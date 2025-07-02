@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpha Wulf - Referrals</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        // Disable right-click context menu
+        document.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable text selection and drag
+        document.addEventListener("selectstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable drag
+        document.addEventListener("dragstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+    </script>
+    <script>
+        function goBack() {
+            window.location.href = "index.html";
+        }
+    </script>
+    <script>
+        // Disable right-click context menu
+        document.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable text selection and drag
+        document.addEventListener("selectstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable drag
+        document.addEventListener("dragstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+    </script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3014995575427702"
+     crossorigin="anonymous"></script>
+    <script>
+        // Disable right-click context menu
+        document.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable text selection and drag
+        document.addEventListener("selectstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable drag
+        document.addEventListener("dragstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+    </script>
+    <script>
+        function goBack() {
+            window.location.href = "index.html";
+        }
+    </script>
+    <script>
+        // Disable right-click context menu
+        document.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable text selection and drag
+        document.addEventListener("selectstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable drag
+        document.addEventListener("dragstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+            color: #FFD700;
+            min-height: 100vh;
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #DAA520;
+        }
+
+        .stats-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 191, 255, 0.3);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #DAA520;
+        }
+
+        .referral-link-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 191, 255, 0.3);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 15px;
+        }
+
+        .referral-link {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 191, 255, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            word-break: break-all;
+            font-size: 14px;
+            color: #DAA520;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .action-button {
+            background: linear-gradient(135deg, #00BFFF 0%, #0077B6 100%);
+            border: none;
+            color: #FFD700;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 191, 255, 0.3);
+        }
+
+        .action-button.secondary {
+            background: rgba(0, 191, 255, 0.2);
+            border: 1px solid #00BFFF;
+        }
+
+        .rewards-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .reward-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .reward-item:last-child {
+            border-bottom: none;
+        }
+
+        .reward-description {
+            flex: 1;
+        }
+
+        .reward-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 5px;
+        }
+
+        .reward-subtitle {
+            font-size: 12px;
+            color: #DAA520;
+        }
+
+        .reward-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #00FF88;
+        }
+
+        .referrals-list {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 191, 255, 0.3);
+        }
+
+        .referral-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .referral-item:last-child {
+            border-bottom: none;
+        }
+
+        .referral-info {
+            flex: 1;
+        }
+
+        .referral-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 5px;
+        }
+
+        .referral-date {
+            font-size: 12px;
+            color: #DAA520;
+        }
+
+        .referral-earnings {
+            font-size: 14px;
+            font-weight: bold;
+            color: #FFD700;
+        }
+
+        .back-button {
+            background: rgba(0, 191, 255, 0.2);
+            border: 1px solid #00BFFF;
+            color: #FFD700;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .back-button:hover {
+            background: rgba(0, 191, 255, 0.3);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #00BFFF;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success-message {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            color: #00FF88;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="back-button" onclick="goBack()">← Back to Game</button>
+        
+        <div class="header">
+            <div class="title">👥 Referrals</div>
+            <div class="subtitle">Invite friends and earn together!</div>
+        </div>
+
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-format="fluid"
+             data-ad-layout-key="-fb+5w+4e-db+86"
+             data-ad-client="ca-pub-3014995575427702"
+             data-ad-slot="5023799767"></ins>
+        <script>
+             (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    <script>
+        // Disable right-click context menu
+        document.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable text selection and drag
+        document.addEventListener("selectstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable drag
+        document.addEventListener("dragstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+    </script>
+    <script>
+        function goBack() {
+            window.location.href = "index.html";
+        }
+    </script>
+    <script>
+        // Disable right-click context menu
+        document.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable text selection and drag
+        document.addEventListener("selectstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable drag
+        document.addEventListener("dragstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+    </script>
+
+        <div class="stats-card">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalReferrals">0</div>
+                    <div class="stat-label">Total Referrals</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="totalEarnings">0</div>
+                    <div class="stat-label">Total Earned</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="activeReferrals">0</div>
+                    <div class="stat-label">Active This Week</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="referralLevel">1</div>
+                    <div class="stat-label">Referral Level</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="referral-link-card">
+            <div class="card-title">🔗 Your Referral Link</div>
+            <div class="referral-link" id="referralLink">Loading...</div>
+            <div class="action-buttons">
+                <button class="action-button" onclick="copyLink()">📋 Copy Link</button>
+                <button class="action-button secondary" onclick="shareLink()">📤 Share</button>
+            </div>
+        </div>
+
+        <div class="rewards-card">
+            <div class="card-title">🎁 Referral Rewards</div>
+            <div class="reward-item">
+                <div class="reward-description">
+                    <div class="reward-title">Friend Joins</div>
+                    <div class="reward-subtitle">When someone uses your link</div>
+                </div>
+                <div class="reward-value">+500</div>
+            </div>
+            <div class="reward-item">
+                <div class="reward-description">
+                    <div class="reward-title">Friend's First Withdrawal</div>
+                    <div class="reward-subtitle">When they withdraw for first time</div>
+                </div>
+                <div class="reward-value">+1000</div>
+            </div>
+            <div class="reward-item">
+                <div class="reward-description">
+                    <div class="reward-title">Weekly Bonus</div>
+                    <div class="reward-subtitle">10% of friend's weekly earnings</div>
+                </div>
+                <div class="reward-value">10%</div>
+            </div>
+        </div>
+
+        <div class="referrals-list">
+            <div class="card-title">👥 Your Referrals</div>
+            <div id="referralsList">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Loading referrals...
+                </div>
+            </div>
+        </div>
+
+        <div id="messages"></div>
+    </div>
+
+    <script>
+        // Telegram Web App initialization
+        let tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+        }
+
+        // Game state
+        let referralLink = '';
+        let referralData = {};
+
+        // API base URL
+        const API_BASE = window.location.origin + '/api';
+
+        // Initialize page
+        async function initReferrals() {
+            try {
+                const telegramUser = tg?.initDataUnsafe?.user;
+                if (!telegramUser) {
+                    showError('Telegram user data not available');
+                    return;
+                }
+
+                // Generate referral link
+                const botUsername = 'alphawolftesting_bot'; // Your actual bot username
+                referralLink = `https://t.me/${botUsername}?start=ref_${telegramUser.id}`;
+                document.getElementById('referralLink').textContent = referralLink;
+
+                // Load referral data
+                await loadReferralData(telegramUser.id);
+                
+            } catch (error) {
+                console.error('Failed to initialize referrals page:', error);
+                showError('Failed to load referrals');
+            }
+        }
+
+        // Load referral data
+        async function loadReferralData(telegramId) {
+            try {
+                const response = await fetch(`${API_BASE}/referral_stats/${telegramId}`);
+                if (response.ok) {
+                    referralData = await response.json();
+                    updateReferralStats();
+                    displayReferrals();
+                } else {
+                    // If no referral data exists, show default values
+                    updateReferralStats();
+                    displayReferrals();
+                }
+            } catch (error) {
+                console.error('Failed to load referral data:', error);
+                updateReferralStats();
+                displayReferrals();
+            }
+        }
+
+        // Update referral statistics
+        function updateReferralStats() {
+            document.getElementById('totalReferrals').textContent = referralData.total_referrals || 0;
+            document.getElementById('totalEarnings').textContent = (referralData.total_earnings || 0).toLocaleString();
+            document.getElementById('activeReferrals').textContent = referralData.active_this_week || 0;
+            document.getElementById('referralLevel').textContent = Math.floor((referralData.total_referrals || 0) / 10) + 1;
+        }
+
+        // Display referrals list
+        function displayReferrals() {
+            const referralsList = document.getElementById('referralsList');
+            const referrals = referralData.referrals || [];
+            
+            if (referrals.length === 0) {
+                referralsList.innerHTML = '<div style="text-align: center; color: #DAA520; padding: 20px;">No referrals yet. Start inviting friends!</div>';
+                return;
+            }
+            
+            referralsList.innerHTML = referrals.map(referral => `
+                <div class="referral-item">
+                    <div class="referral-info">
+                        <div class="referral-name">${referral.name || 'Anonymous Wolf'}</div>
+                        <div class="referral-date">Joined ${new Date(referral.joined_date).toLocaleDateString()}</div>
+                    </div>
+                    <div class="referral-earnings">+${referral.earnings_from_referral || 0}</div>
+                </div>
+            `).join('');
+        }
+
+        // Copy referral link
+        async function copyLink() {
+            try {
+                await navigator.clipboard.writeText(referralLink);
+                showSuccess('Referral link copied to clipboard!');
+            } catch (error) {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = referralLink;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showSuccess('Referral link copied!');
+            }
+        }
+
+        // Share referral link
+        function shareLink() {
+            const shareText = `🐺 Join me in Alpha Wulf! Tap to earn Wolf Coins and withdraw real money via UPI. Use my referral link to get bonus coins: ${referralLink}`;
+            
+            if (tg && tg.openTelegramLink) {
+                // Share via Telegram
+                tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareText)}`);
+            } else if (navigator.share) {
+                // Use Web Share API if available
+                navigator.share({
+                    title: 'Alpha Wulf - Tap to Earn',
+                    text: shareText,
+                    url: referralLink
+                });
+            } else {
+                // Fallback: copy to clipboard
+                copyLink();
+            }
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML = `<div class="success-message">${message}</div>`;
+            setTimeout(() => {
+                messagesDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        // Show error message
+        function showError(message) {
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML = `<div class="error-message">${message}</div>`;
+            setTimeout(() => {
+                messagesDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        // Go back to main game
+        function goBack() {
+            if (tg) {
+                tg.close();
+            } else {
+                window.history.back();
+            }
+        }
+
+        // Initialize when page loads
+        window.addEventListener('load', initReferrals);
+    </script>
+    <script>
+        // Disable right-click context menu
+        document.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable text selection and drag
+        document.addEventListener("selectstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable drag
+        document.addEventListener("dragstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+    </script>
+    <script>
+        function goBack() {
+            window.location.href = "index.html";
+        }
+    </script>
+    <script>
+        // Disable right-click context menu
+        document.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable text selection and drag
+        document.addEventListener("selectstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable drag
+        document.addEventListener("dragstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+    </script>
+</body>
+</html>
+

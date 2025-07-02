@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpha Wulf - Withdraw</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        // Disable right-click context menu
+        document.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable text selection and drag
+        document.addEventListener("selectstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable drag
+        document.addEventListener("dragstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+    </script>
+    <script>
+        function goBack() {
+            window.location.href = "index.html";
+        }
+    </script>
+    <script>
+        // Disable right-click context menu
+        document.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable text selection and drag
+        document.addEventListener("selectstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable drag
+        document.addEventListener("dragstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+    </script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3014995575427702"
+     crossorigin="anonymous"></script>
+    <script>
+        // Disable right-click context menu
+        document.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable text selection and drag
+        document.addEventListener("selectstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable drag
+        document.addEventListener("dragstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+    </script>
+    <script>
+        function goBack() {
+            window.location.href = "index.html";
+        }
+    </script>
+    <script>
+        // Disable right-click context menu
+        document.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable text selection and drag
+        document.addEventListener("selectstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable drag
+        document.addEventListener("dragstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+            color: #FFD700;
+            min-height: 100vh;
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 10px;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #DAA520;
+        }
+
+        .balance-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 191, 255, 0.3);
+            text-align: center;
+        }
+
+        .balance-amount {
+            font-size: 32px;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 10px;
+        }
+
+        .balance-label {
+            font-size: 14px;
+            color: #DAA520;
+        }
+
+        .conversion-rate {
+            font-size: 12px;
+            color: #FFD700;
+            margin-top: 10px;
+        }
+
+        .form-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 191, 255, 0.3);
+        }
+
+        .form-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            color: #DAA520;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(0, 191, 255, 0.3);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #FFD700;
+            font-size: 16px;
+            backdrop-filter: blur(10px);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #FFD700;
+            box-shadow: 0 0 10px rgba(0, 191, 255, 0.3);
+        }
+
+        .form-input::placeholder {
+            color: #DAA520;
+        }
+
+        .amount-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .amount-button {
+            background: rgba(0, 191, 255, 0.2);
+            border: 1px solid #00BFFF;
+            color: #FFD700;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .amount-button:hover {
+            background: rgba(0, 191, 255, 0.3);
+        }
+
+        .amount-button.selected {
+            background: #00BFFF;
+            color: #0A192F;
+        }
+
+        .withdraw-button {
+            width: 100%;
+            background: linear-gradient(135deg, #00BFFF 0%, #0077B6 100%);
+            border: none;
+            color: #FFD700;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .withdraw-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 191, 255, 0.3);
+        }
+
+        .withdraw-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .info-box {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 10px;
+        }
+
+        .info-text {
+            font-size: 12px;
+            color: #DAA520;
+            line-height: 1.4;
+        }
+
+        .withdrawal-history {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 191, 255, 0.3);
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-details {
+            flex: 1;
+        }
+
+        .history-amount {
+            font-size: 16px;
+            font-weight: bold;
+            color: #FFD700;
+        }
+
+        .history-date {
+            font-size: 12px;
+            color: #DAA520;
+        }
+
+        .history-status {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-pending {
+            background: rgba(255, 165, 0, 0.2);
+            color: #FFA500;
+        }
+
+        .status-completed {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00FF88;
+        }
+
+        .status-failed {
+            background: rgba(255, 0, 0, 0.2);
+            color: #FF6B6B;
+        }
+
+        .error-message {
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            color: #FF6B6B;
+            text-align: center;
+        }
+
+        .success-message {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            color: #00FF88;
+            text-align: center;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #00BFFF;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .back-button {
+            background: rgba(0, 191, 255, 0.2);
+            border: 1px solid #00BFFF;
+            color: #FFD700;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .back-button:hover {
+            background: rgba(0, 191, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="back-button" onclick="goBack()">← Back to Game</button>
+        
+        <div class="header">
+            <div class="title">💳 Withdraw Coins</div>
+            <div class="subtitle">Convert your Wolf Coins to real money via UPI</div>
+        </div>
+
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-format="fluid"
+             data-ad-layout-key="-fb+5w+4e-db+86"
+             data-ad-client="ca-pub-3014995575427702"
+             data-ad-slot="5023799767"></ins>
+        <script>
+             (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    <script>
+        // Disable right-click context menu
+        document.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable text selection and drag
+        document.addEventListener("selectstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable drag
+        document.addEventListener("dragstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+    </script>
+    <script>
+        function goBack() {
+            window.location.href = "index.html";
+        }
+    </script>
+    <script>
+        // Disable right-click context menu
+        document.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable text selection and drag
+        document.addEventListener("selectstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable drag
+        document.addEventListener("dragstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+    </script>
+
+        <div class="balance-card">
+            <div class="balance-amount" id="coinBalance">0</div>
+            <div class="balance-label">Wolf Coins Available</div>
+            <div class="conversion-rate">1,000 coins = ₹10 (Minimum withdrawal)</div>
+        </div>
+
+        <div class="info-box">
+            <div class="info-title">📋 Withdrawal Information</div>
+            <div class="info-text">
+                • Minimum withdrawal: 1,000 coins (₹10)<br>
+                • Processing time: 24-48 hours<br>
+                • UPI transfers are instant once processed<br>
+                • Withdrawal fee: 2% of amount
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="form-title">💰 Withdrawal Amount</div>
+            
+            <div class="amount-buttons">
+                <button class="amount-button" onclick="selectAmount(1000)">1,000<br>₹10</button>
+                <button class="amount-button" onclick="selectAmount(2500)">2,500<br>₹25</button>
+                <button class="amount-button" onclick="selectAmount(5000)">5,000<br>₹50</button>
+                <button class="amount-button" onclick="selectAmount(10000)">10,000<br>₹100</button>
+                <button class="amount-button" onclick="selectAmount(25000)">25,000<br>₹250</button>
+                <button class="amount-button" onclick="selectAmount(50000)">50,000<br>₹500</button>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="customAmount">Custom Amount (coins)</label>
+                <input type="number" id="customAmount" class="form-input" placeholder="Enter amount in coins" min="1000" step="100">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="upiId">UPI ID</label>
+                <input type="text" id="upiId" class="form-input" placeholder="yourname@paytm / yourname@gpay" required>
+            </div>
+
+            <div id="withdrawalSummary" style="display: none;">
+                <div style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 10px; margin: 15px 0;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span>Coins to withdraw:</span>
+                        <span id="summaryCoins">0</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span>Conversion rate:</span>
+                        <span>₹<span id="summaryAmount">0</span></span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span>Processing fee (2%):</span>
+                        <span>₹<span id="summaryFee">0</span></span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; color: #FFD700; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 10px;">
+                        <span>You will receive:</span>
+                        <span>₹<span id="summaryFinal">0</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <button class="withdraw-button" id="withdrawButton" onclick="processWithdrawal()" disabled>
+                Process Withdrawal
+            </button>
+        </div>
+
+        <div class="withdrawal-history">
+            <div class="form-title">📊 Withdrawal History</div>
+            <div id="historyList">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Loading withdrawal history...
+                </div>
+            </div>
+        </div>
+
+        <div id="messages"></div>
+    </div>
+
+    <script>
+        // Telegram Web App initialization
+        let tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+        }
+
+        // Game state
+        let userBalance = 0;
+        let selectedAmount = 0;
+        let withdrawalData = {};
+
+        // API base URL
+        const API_BASE = window.location.origin + '/api';
+
+        // Initialize page
+        async function initWithdraw() {
+            try {
+                const telegramUser = tg?.initDataUnsafe?.user;
+                if (!telegramUser) {
+                    showError('Telegram user data not available');
+                    return;
+                }
+
+                // Load user balance
+                const response = await fetch(`${API_BASE}/users/telegram/${telegramUser.id}`);
+                if (response.ok) {
+                    const userData = await response.json();
+                    userBalance = userData.coins;
+                    document.getElementById('coinBalance').textContent = userBalance.toLocaleString();
+                    
+                    // Pre-fill UPI ID if available
+                    if (userData.upi_id) {
+                        document.getElementById('upiId').value = userData.upi_id;
+                    }
+                }
+
+                // Load withdrawal history
+                loadWithdrawalHistory();
+                
+            } catch (error) {
+                console.error('Failed to initialize withdrawal page:', error);
+                showError('Failed to load user data');
+            }
+        }
+
+        // Select predefined amount
+        function selectAmount(amount) {
+            // Remove previous selection
+            document.querySelectorAll('.amount-button').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            // Select current button
+            event.target.classList.add('selected');
+            
+            // Set amount
+            selectedAmount = amount;
+            document.getElementById('customAmount').value = amount;
+            
+            updateWithdrawalSummary();
+        }
+
+        // Update withdrawal summary
+        function updateWithdrawalSummary() {
+            const amount = parseInt(document.getElementById('customAmount').value) || 0;
+            const upiId = document.getElementById('upiId').value.trim();
+            
+            if (amount >= 1000 && upiId) {
+                const rupeeAmount = amount / 100; // 100 coins = 1 rupee
+                const fee = rupeeAmount * 0.02; // 2% fee
+                const finalAmount = rupeeAmount - fee;
+                
+                document.getElementById('summaryCoins').textContent = amount.toLocaleString();
+                document.getElementById('summaryAmount').textContent = rupeeAmount.toFixed(2);
+                document.getElementById('summaryFee').textContent = fee.toFixed(2);
+                document.getElementById('summaryFinal').textContent = finalAmount.toFixed(2);
+                
+                document.getElementById('withdrawalSummary').style.display = 'block';
+                document.getElementById('withdrawButton').disabled = amount > userBalance;
+                
+                if (amount > userBalance) {
+                    showError('Insufficient balance');
+                } else {
+                    clearMessages();
+                }
+            } else {
+                document.getElementById('withdrawalSummary').style.display = 'none';
+                document.getElementById('withdrawButton').disabled = true;
+            }
+        }
+
+        // Process withdrawal
+        async function processWithdrawal() {
+            const amount = parseInt(document.getElementById('customAmount').value);
+            const upiId = document.getElementById('upiId').value.trim();
+            
+            if (!amount || amount < 1000) {
+                showError('Minimum withdrawal amount is 1,000 coins');
+                return;
+            }
+            
+            if (!upiId) {
+                showError('Please enter your UPI ID');
+                return;
+            }
+            
+            if (amount > userBalance) {
+                showError('Insufficient balance');
+                return;
+            }
+
+            // Validate UPI ID format
+            if (!isValidUpiId(upiId)) {
+                showError('Please enter a valid UPI ID (e.g., yourname@paytm)');
+                return;
+            }
+
+            try {
+                document.getElementById('withdrawButton').disabled = true;
+                document.getElementById('withdrawButton').textContent = 'Processing...';
+                
+                const telegramUser = tg?.initDataUnsafe?.user;
+                const response = await fetch(`${API_BASE}/withdraw`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        telegram_id: telegramUser.id,
+                        amount: amount,
+                        upi_id: upiId
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showSuccess(`Withdrawal request submitted successfully! You will receive ₹${result.final_amount} in your UPI account within 24-48 hours.`);
+                    
+                    // Update balance
+                    userBalance = result.new_balance;
+                    document.getElementById('coinBalance').textContent = userBalance.toLocaleString();
+                    
+                    // Reset form
+                    document.getElementById('customAmount').value = '';
+                    document.getElementById('withdrawalSummary').style.display = 'none';
+                    document.querySelectorAll('.amount-button').forEach(btn => {
+                        btn.classList.remove('selected');
+                    });
+                    
+                    // Reload history
+                    loadWithdrawalHistory();
+                    
+                } else {
+                    showError(result.error || 'Withdrawal failed');
+                }
+                
+            } catch (error) {
+                console.error('Withdrawal error:', error);
+                showError('Network error. Please try again.');
+            } finally {
+                document.getElementById('withdrawButton').disabled = false;
+                document.getElementById('withdrawButton').textContent = 'Process Withdrawal';
+            }
+        }
+
+        // Load withdrawal history
+        async function loadWithdrawalHistory() {
+            try {
+                const telegramUser = tg?.initDataUnsafe?.user;
+                const response = await fetch(`${API_BASE}/withdrawal_history/${telegramUser.id}`);
+                
+                if (response.ok) {
+                    const history = await response.json();
+                    displayWithdrawalHistory(history.withdrawals || []);
+                } else {
+                    document.getElementById('historyList').innerHTML = '<div style="text-align: center; color: #DAA520;">No withdrawal history found</div>';
+                }
+                
+            } catch (error) {
+                console.error('Failed to load withdrawal history:', error);
+                document.getElementById('historyList').innerHTML = '<div style="text-align: center; color: #FF6B6B;">Failed to load history</div>';
+            }
+        }
+
+        // Display withdrawal history
+        function displayWithdrawalHistory(withdrawals) {
+            const historyList = document.getElementById('historyList');
+            
+            if (withdrawals.length === 0) {
+                historyList.innerHTML = '<div style="text-align: center; color: #DAA520;">No withdrawals yet</div>';
+                return;
+            }
+            
+            historyList.innerHTML = withdrawals.map(withdrawal => `
+                <div class="history-item">
+                    <div class="history-details">
+                        <div class="history-amount">₹${withdrawal.final_amount}</div>
+                        <div class="history-date">${new Date(withdrawal.created_at).toLocaleDateString()}</div>
+                        <div style="font-size: 12px; color: #DAA520;">${withdrawal.upi_id}</div>
+                    </div>
+                    <div class="history-status status-${withdrawal.status}">
+                        ${withdrawal.status.charAt(0).toUpperCase() + withdrawal.status.slice(1)}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Validate UPI ID
+        function isValidUpiId(upiId) {
+            const upiRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+$/;
+            return upiRegex.test(upiId);
+        }
+
+        // Show error message
+        function showError(message) {
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML = `<div class="error-message">${message}</div>`;
+            setTimeout(() => {
+                messagesDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML = `<div class="success-message">${message}</div>`;
+            setTimeout(() => {
+                messagesDiv.innerHTML = '';
+            }, 10000);
+        }
+
+        // Clear messages
+        function clearMessages() {
+            document.getElementById('messages').innerHTML = '';
+        }
+
+        // Go back to main game
+        function goBack() {
+            if (tg) {
+                tg.close();
+            } else {
+                window.history.back();
+            }
+        }
+
+        // Event listeners
+        document.getElementById('customAmount').addEventListener('input', updateWithdrawalSummary);
+        document.getElementById('upiId').addEventListener('input', updateWithdrawalSummary);
+
+        // Initialize when page loads
+        window.addEventListener('load', initWithdraw);
+    </script>
+    <script>
+        // Disable right-click context menu
+        document.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable text selection and drag
+        document.addEventListener("selectstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable drag
+        document.addEventListener("dragstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+    </script>
+    <script>
+        function goBack() {
+            window.location.href = "index.html";
+        }
+    </script>
+    <script>
+        // Disable right-click context menu
+        document.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable text selection and drag
+        document.addEventListener("selectstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable drag
+        document.addEventListener("dragstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+    </script>
+</body>
+</html>
+
