@@ -1,7 +1,11 @@
 import os
 from supabase import create_client, Client
-import psycopg2
-from psycopg2.extras import RealDictCursor
+
+url: str = os.environ.get("SUPABASE_URL")
+key: str = os.environ.get("SUPABASE_KEY")
+
+supabase: Client = create_client(url, key)
+
 
 class DatabaseConfig:
     def __init__(self):
