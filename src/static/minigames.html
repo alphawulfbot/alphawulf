@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpha Wulf - Mini Games</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        // Disable right-click context menu
+        document.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable text selection and drag
+        document.addEventListener("selectstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable drag
+        document.addEventListener("dragstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+    </script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3014995575427702"
+     crossorigin="anonymous"></script>
+    <script>
+        // Disable right-click context menu
+        document.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable text selection and drag
+        document.addEventListener("selectstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable drag
+        document.addEventListener("dragstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+            color: #FFD700;
+            min-height: 100vh;
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 10px;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #DAA520;
+        }
+
+        .game-grid {
+            display: grid;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .game-card {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(218, 165, 32, 0.05) 100%);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+        }
+
+        .game-icon {
+            font-size: 40px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .game-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 10px;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        .game-description {
+            font-size: 14px;
+            color: #DAA520;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .game-reward {
+            background: rgba(255, 215, 0, 0.2);
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+        .game-area {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(218, 165, 32, 0.05) 100%);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            margin-bottom: 20px;
+            display: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-area.active {
+            display: block;
+        }
+
+        .back-button {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(218, 165, 32, 0.1) 100%);
+            border: 1px solid #FFD700;
+            color: #FFD700;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.3) 0%, rgba(218, 165, 32, 0.2) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(255, 215, 0, 0.2);
+        }
+
+        /* Wolf Hunt Game Styles */
+        .hunt-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .hunt-cell {
+            aspect-ratio: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 191, 255, 0.3);
+        }
+
+        .hunt-cell:hover {
+            background: rgba(0, 191, 255, 0.2);
+        }
+
+        .hunt-cell.revealed {
+            background: rgba(0, 191, 255, 0.3);
+            cursor: not-allowed;
+        }
+
+        .hunt-cell.wolf {
+            background: rgba(255, 215, 0, 0.3);
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        /* Pack Leader Game Styles */
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .memory-card {
+            aspect-ratio: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 191, 255, 0.3);
+            position: relative;
+        }
+
+        .memory-card.flipped {
+            background: rgba(0, 191, 255, 0.3);
+            transform: rotateY(180deg);
+        }
+
+        .memory-card.matched {
+            background: rgba(0, 255, 136, 0.3);
+            cursor: not-allowed;
+        }
+
+        /* Howl Challenge Game Styles */
+        .howl-area {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .howl-button {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00BFFF 0%, #0077B6 100%);
+            border: 5px solid #00FFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin: 20px auto;
+            font-size: 60px;
+            transition: all 0.1s ease;
+            box-shadow: 0 0 30px rgba(0, 191, 255, 0.5);
+        }
+
+        .howl-button:active {
+            transform: scale(0.95);
+            box-shadow: 0 0 50px rgba(0, 191, 255, 0.8);
+        }
+
+        .howl-button.active {
+            animation: howlPulse 0.5s ease-in-out;
+        }
+
+        .timer-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .timer-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #FF0000 0%, #FFD700 50%, #00FF00 100%);
+            transition: width 0.1s linear;
+        }
+
+        .game-stats {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #00BFFF;
+        }
+
+        .stat-label {
+            color: #A0AEC0;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes howlPulse {
+            0% { transform: scale(1); box-shadow: 0 0 30px rgba(0, 191, 255, 0.5); }
+            50% { transform: scale(1.1); box-shadow: 0 0 50px rgba(0, 191, 255, 0.8); }
+            100% { transform: scale(1); box-shadow: 0 0 30px rgba(0, 191, 255, 0.5); }
+        }
+
+        .result-message {
+            text-align: center;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .result-message.success {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid #00FF88;
+            color: #00FF88;
+        }
+
+        .result-message.failure {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid #FF0000;
+            color: #FF6B6B;
+        }
+
+        .play-again-button {
+            background: #00BFFF;
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .play-again-button:hover {
+            background: #0077B6;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="back-button" onclick="goBack()">← Back to Game</button>
+        
+        <div class="header">
+            <div class="title">🎮 Alpha Wulf Mini Games</div>
+            <div class="subtitle">Play games to earn bonus Wolf Coins!</div>
+        </div>
+
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-format="fluid"
+             data-ad-layout-key="-fb+5w+4e-db+86"
+             data-ad-client="ca-pub-3014995575427702"
+             data-ad-slot="5023799767"></ins>
+        <script>
+             (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    <script>
+        // Disable right-click context menu
+        document.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable text selection and drag
+        document.addEventListener("selectstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable drag
+        document.addEventListener("dragstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+    </script>
+
+        <!-- Game Selection -->
+        <div id="gameSelection" class="game-grid">
+            <div class="game-card" onclick="startWolfHunt()">
+                <div class="game-icon">🔍</div>
+                <div class="game-title">Wolf Hunt</div>
+                <div class="game-description">Find the hidden wolves in the forest</div>
+                <div class="game-reward">Reward: 50-200 coins</div>
+            </div>
+
+            <div class="game-card" onclick="startPackLeader()">
+                <div class="game-icon">🧠</div>
+                <div class="game-title">Pack Leader</div>
+                <div class="game-description">Memory game - match the wolf pairs</div>
+                <div class="game-reward">Reward: 100-300 coins</div>
+            </div>
+
+            <div class="game-card" onclick="startHowlChallenge()">
+                <div class="game-icon">🎵</div>
+                <div class="game-title">Howl Challenge</div>
+                <div class="game-description">Perfect timing challenge</div>
+                <div class="game-reward">Reward: 75-250 coins</div>
+            </div>
+        </div>
+
+        <!-- Wolf Hunt Game -->
+        <div id="wolfHuntGame" class="game-area">
+            <button class="back-button" onclick="backToSelection()">← Back to Games</button>
+            <div class="game-title">🔍 Wolf Hunt</div>
+            <div class="game-description">Find all the hidden wolves! Click on the forest tiles to search.</div>
+            
+            <div class="game-stats">
+                <div class="stat">
+                    <div class="stat-value" id="wolvesFound">0</div>
+                    <div class="stat-label">Wolves Found</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="attemptsLeft">10</div>
+                    <div class="stat-label">Attempts Left</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="huntScore">0</div>
+                    <div class="stat-label">Score</div>
+                </div>
+            </div>
+
+            <div class="hunt-grid" id="huntGrid"></div>
+            <div id="huntResult"></div>
+        </div>
+
+        <!-- Pack Leader Game -->
+        <div id="packLeaderGame" class="game-area">
+            <button class="back-button" onclick="backToSelection()">← Back to Games</button>
+            <div class="game-title">🧠 Pack Leader</div>
+            <div class="game-description">Match all the wolf pairs to become the pack leader!</div>
+            
+            <div class="game-stats">
+                <div class="stat">
+                    <div class="stat-value" id="pairsMatched">0</div>
+                    <div class="stat-label">Pairs Matched</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="moves">0</div>
+                    <div class="stat-label">Moves</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="memoryScore">0</div>
+                    <div class="stat-label">Score</div>
+                </div>
+            </div>
+
+            <div class="memory-grid" id="memoryGrid"></div>
+            <div id="memoryResult"></div>
+        </div>
+
+        <!-- Howl Challenge Game -->
+        <div id="howlChallengeGame" class="game-area">
+            <button class="back-button" onclick="backToSelection()">← Back to Games</button>
+            <div class="game-title">🎵 Howl Challenge</div>
+            <div class="game-description">Howl at the perfect moment when the moon is brightest!</div>
+            
+            <div class="game-stats">
+                <div class="stat">
+                    <div class="stat-value" id="round">1</div>
+                    <div class="stat-label">Round</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="accuracy">0%</div>
+                    <div class="stat-label">Accuracy</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="howlScore">0</div>
+                    <div class="stat-label">Score</div>
+                </div>
+            </div>
+
+            <div class="timer-bar">
+                <div class="timer-fill" id="timerFill" style="width: 0%"></div>
+            </div>
+
+            <div class="howl-area">
+                <div class="howl-button" id="howlButton" onclick="howl()">🌙</div>
+                <div>Tap when the moon is at its brightest!</div>
+            </div>
+
+            <div id="howlResult"></div>
+        </div>
+    </div>
+
+    <script>
+        // Telegram Web App initialization
+        let tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+        }
+
+        // Game state
+        let currentGame = null;
+        let gameData = {};
+
+        // API base URL
+        const API_BASE = window.location.origin + '/api';
+
+        // Navigation functions
+        function backToSelection() {
+            document.querySelectorAll('.game-area').forEach(area => {
+                area.classList.remove('active');
+            });
+            document.getElementById('gameSelection').style.display = 'grid';
+            currentGame = null;
+        }
+
+        function showGame(gameId) {
+            document.getElementById('gameSelection').style.display = 'none';
+            document.getElementById(gameId).classList.add('active');
+        }
+
+        // Wolf Hunt Game
+        function startWolfHunt() {
+            currentGame = 'wolfHunt';
+            showGame('wolfHuntGame');
+            initWolfHunt();
+        }
+
+        function initWolfHunt() {
+            gameData.wolfHunt = {
+                wolves: [],
+                found: 0,
+                attempts: 10,
+                score: 0,
+                totalWolves: 3
+            };
+
+            // Generate random wolf positions
+            const positions = [];
+            while (positions.length < gameData.wolfHunt.totalWolves) {
+                const pos = Math.floor(Math.random() * 16);
+                if (!positions.includes(pos)) {
+                    positions.push(pos);
+                }
+            }
+            gameData.wolfHunt.wolves = positions;
+
+            // Create grid
+            const grid = document.getElementById('huntGrid');
+            grid.innerHTML = '';
+            for (let i = 0; i < 16; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'hunt-cell';
+                cell.textContent = '🌲';
+                cell.onclick = () => huntCell(i);
+                grid.appendChild(cell);
+            }
+
+            updateWolfHuntUI();
+        }
+
+        function huntCell(index) {
+            const cell = document.getElementById('huntGrid').children[index];
+            if (cell.classList.contains('revealed')) return;
+
+            cell.classList.add('revealed');
+            gameData.wolfHunt.attempts--;
+
+            if (gameData.wolfHunt.wolves.includes(index)) {
+                cell.textContent = '🐺';
+                cell.classList.add('wolf');
+                gameData.wolfHunt.found++;
+                gameData.wolfHunt.score += 50;
+            } else {
+                cell.textContent = '🕳️';
+            }
+
+            updateWolfHuntUI();
+
+            if (gameData.wolfHunt.found === gameData.wolfHunt.totalWolves) {
+                endWolfHunt(true);
+            } else if (gameData.wolfHunt.attempts === 0) {
+                endWolfHunt(false);
+            }
+        }
+
+        function updateWolfHuntUI() {
+            document.getElementById('wolvesFound').textContent = gameData.wolfHunt.found;
+            document.getElementById('attemptsLeft').textContent = gameData.wolfHunt.attempts;
+            document.getElementById('huntScore').textContent = gameData.wolfHunt.score;
+        }
+
+        function endWolfHunt(success) {
+            const result = document.getElementById('huntResult');
+            if (success) {
+                const bonus = gameData.wolfHunt.attempts * 10;
+                gameData.wolfHunt.score += bonus;
+                result.innerHTML = `
+                    <div class="result-message success">
+                        🎉 Excellent hunting! You found all wolves!<br>
+                        Score: ${gameData.wolfHunt.score} coins<br>
+                        Bonus: ${bonus} coins for remaining attempts
+                    </div>
+                    <button class="play-again-button" onclick="initWolfHunt()">Hunt Again</button>
+                `;
+            } else {
+                result.innerHTML = `
+                    <div class="result-message failure">
+                        😔 The wolves escaped! You found ${gameData.wolfHunt.found}/${gameData.wolfHunt.totalWolves}<br>
+                        Score: ${gameData.wolfHunt.score} coins
+                    </div>
+                    <button class="play-again-button" onclick="initWolfHunt()">Try Again</button>
+                `;
+            }
+
+            // Award coins to user
+            awardCoins(gameData.wolfHunt.score, 'Wolf Hunt');
+        }
+
+        // Pack Leader Game
+        function startPackLeader() {
+            currentGame = 'packLeader';
+            showGame('packLeaderGame');
+            initPackLeader();
+        }
+
+        function initPackLeader() {
+            gameData.packLeader = {
+                cards: [],
+                flipped: [],
+                matched: [],
+                moves: 0,
+                score: 0,
+                pairs: 8
+            };
+
+            // Create card pairs
+            const symbols = ['🐺', '🌙', '🌲', '🦴', '🐾', '🔥', '⭐', '🏔️'];
+            const cards = [...symbols, ...symbols];
+            
+            // Shuffle cards
+            for (let i = cards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [cards[i], cards[j]] = [cards[j], cards[i]];
+            }
+            
+            gameData.packLeader.cards = cards;
+
+            // Create grid
+            const grid = document.getElementById('memoryGrid');
+            grid.innerHTML = '';
+            for (let i = 0; i < 16; i++) {
+                const card = document.createElement('div');
+                card.className = 'memory-card';
+                card.textContent = '❓';
+                card.onclick = () => flipCard(i);
+                grid.appendChild(card);
+            }
+
+            updatePackLeaderUI();
+        }
+
+        function flipCard(index) {
+            const card = document.getElementById('memoryGrid').children[index];
+            if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
+            if (gameData.packLeader.flipped.length >= 2) return;
+
+            card.classList.add('flipped');
+            card.textContent = gameData.packLeader.cards[index];
+            gameData.packLeader.flipped.push(index);
+
+            if (gameData.packLeader.flipped.length === 2) {
+                gameData.packLeader.moves++;
+                setTimeout(checkMatch, 1000);
+            }
+
+            updatePackLeaderUI();
+        }
+
+        function checkMatch() {
+            const [first, second] = gameData.packLeader.flipped;
+            const firstCard = document.getElementById('memoryGrid').children[first];
+            const secondCard = document.getElementById('memoryGrid').children[second];
+
+            if (gameData.packLeader.cards[first] === gameData.packLeader.cards[second]) {
+                firstCard.classList.add('matched');
+                secondCard.classList.add('matched');
+                gameData.packLeader.matched.push(first, second);
+                gameData.packLeader.score += 50;
+            } else {
+                firstCard.classList.remove('flipped');
+                secondCard.classList.remove('flipped');
+                firstCard.textContent = '❓';
+                secondCard.textContent = '❓';
+            }
+
+            gameData.packLeader.flipped = [];
+            updatePackLeaderUI();
+
+            if (gameData.packLeader.matched.length === 16) {
+                endPackLeader();
+            }
+        }
+
+        function updatePackLeaderUI() {
+            document.getElementById('pairsMatched').textContent = gameData.packLeader.matched.length / 2;
+            document.getElementById('moves').textContent = gameData.packLeader.moves;
+            document.getElementById('memoryScore').textContent = gameData.packLeader.score;
+        }
+
+        function endPackLeader() {
+            const bonus = Math.max(0, 100 - gameData.packLeader.moves * 5);
+            gameData.packLeader.score += bonus;
+            
+            const result = document.getElementById('memoryResult');
+            result.innerHTML = `
+                <div class="result-message success">
+                    🎉 You're the Pack Leader!<br>
+                    Moves: ${gameData.packLeader.moves}<br>
+                    Score: ${gameData.packLeader.score} coins<br>
+                    Efficiency Bonus: ${bonus} coins
+                </div>
+                <button class="play-again-button" onclick="initPackLeader()">Lead Again</button>
+            `;
+
+            awardCoins(gameData.packLeader.score, 'Pack Leader');
+        }
+
+        // Howl Challenge Game
+        function startHowlChallenge() {
+            currentGame = 'howlChallenge';
+            showGame('howlChallengeGame');
+            initHowlChallenge();
+        }
+
+        function initHowlChallenge() {
+            gameData.howlChallenge = {
+                round: 1,
+                score: 0,
+                accuracy: 0,
+                totalRounds: 5,
+                currentTimer: 0,
+                targetTime: 0,
+                isActive: false,
+                results: []
+            };
+
+            startHowlRound();
+        }
+
+        function startHowlRound() {
+            gameData.howlChallenge.targetTime = Math.random() * 3000 + 2000; // 2-5 seconds
+            gameData.howlChallenge.currentTimer = 0;
+            gameData.howlChallenge.isActive = true;
+
+            const timerFill = document.getElementById('timerFill');
+            const howlButton = document.getElementById('howlButton');
+            
+            howlButton.classList.remove('active');
+            
+            const interval = setInterval(() => {
+                gameData.howlChallenge.currentTimer += 50;
+                const progress = (gameData.howlChallenge.currentTimer / 5000) * 100;
+                timerFill.style.width = `${progress}%`;
+
+                if (gameData.howlChallenge.currentTimer >= gameData.howlChallenge.targetTime - 200 && 
+                    gameData.howlChallenge.currentTimer <= gameData.howlChallenge.targetTime + 200) {
+                    howlButton.classList.add('active');
+                } else {
+                    howlButton.classList.remove('active');
+                }
+
+                if (gameData.howlChallenge.currentTimer >= 5000) {
+                    clearInterval(interval);
+                    if (gameData.howlChallenge.isActive) {
+                        howlResult(false, 0);
+                    }
+                }
+            }, 50);
+        }
+
+        function howl() {
+            if (!gameData.howlChallenge.isActive) return;
+
+            gameData.howlChallenge.isActive = false;
+            const timeDiff = Math.abs(gameData.howlChallenge.currentTimer - gameData.howlChallenge.targetTime);
+            const accuracy = Math.max(0, 100 - (timeDiff / 10));
+            
+            howlResult(accuracy > 70, accuracy);
+        }
+
+        function howlResult(success, accuracy) {
+            gameData.howlChallenge.results.push(accuracy);
+            
+            if (success) {
+                const roundScore = Math.floor(accuracy * 2);
+                gameData.howlChallenge.score += roundScore;
+            }
+
+            const avgAccuracy = gameData.howlChallenge.results.reduce((a, b) => a + b, 0) / gameData.howlChallenge.results.length;
+            gameData.howlChallenge.accuracy = Math.floor(avgAccuracy);
+
+            updateHowlChallengeUI();
+
+            if (gameData.howlChallenge.round >= gameData.howlChallenge.totalRounds) {
+                endHowlChallenge();
+            } else {
+                gameData.howlChallenge.round++;
+                setTimeout(startHowlRound, 2000);
+            }
+        }
+
+        function updateHowlChallengeUI() {
+            document.getElementById('round').textContent = gameData.howlChallenge.round;
+            document.getElementById('accuracy').textContent = `${gameData.howlChallenge.accuracy}%`;
+            document.getElementById('howlScore').textContent = gameData.howlChallenge.score;
+        }
+
+        function endHowlChallenge() {
+            const result = document.getElementById('howlResult');
+            const avgAccuracy = gameData.howlChallenge.accuracy;
+            
+            let message = '';
+            if (avgAccuracy >= 90) {
+                message = '🌟 Perfect Howl! You are the Alpha!';
+            } else if (avgAccuracy >= 70) {
+                message = '🎉 Great Howling! Well done!';
+            } else if (avgAccuracy >= 50) {
+                message = '👍 Good effort! Keep practicing!';
+            } else {
+                message = '😅 The pack needs more practice!';
+            }
+
+            result.innerHTML = `
+                <div class="result-message ${avgAccuracy >= 70 ? 'success' : 'failure'}">
+                    ${message}<br>
+                    Average Accuracy: ${avgAccuracy}%<br>
+                    Score: ${gameData.howlChallenge.score} coins
+                </div>
+                <button class="play-again-button" onclick="initHowlChallenge()">Howl Again</button>
+            `;
+
+            awardCoins(gameData.howlChallenge.score, 'Howl Challenge');
+        }
+
+        // Award coins to user
+        async function awardCoins(amount, gameName) {
+            try {
+                const telegramUser = tg?.initDataUnsafe?.user;
+                if (!telegramUser) return;
+
+                const response = await fetch(`${API_BASE}/minigame_reward`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        telegram_id: telegramUser.id,
+                        amount: amount,
+                        game_name: gameName
+                    })
+                });
+
+                if (response.ok) {
+                    console.log(`Awarded ${amount} coins for ${gameName}`);
+                }
+            } catch (error) {
+                console.error('Failed to award coins:', error);
+            }
+        }
+
+        // Go back to main game
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+    </script>
+    <script>
+        // Disable right-click context menu
+        document.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable text selection and drag
+        document.addEventListener("selectstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable drag
+        document.addEventListener("dragstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+    </script>
+</body>
+</html>
+

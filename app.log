@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "/home/ubuntu/alpha_wulf_bot/src/main.py", line 10, in <module>
+    from src.routes.bot import bot_bp
+  File "/home/ubuntu/alpha_wulf_bot/src/routes/bot.py", line 2, in <module>
+    from src.bot import TelegramBot
+  File "/home/ubuntu/alpha_wulf_bot/src/bot.py", line 88
+    requests.post(f"{os.getenv("WEBHOOK_URL", "https://xlhyimcjxznx.manus.space")}/api/process_referral", 
+                                ^^^^^^^^^^^
+SyntaxError: f-string: unmatched '('

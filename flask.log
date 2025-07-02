@@ -1,0 +1,54 @@
+ * Serving Flask app 'main'
+ * Debug mode: on
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://169.254.0.21:5000
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 145-629-270
+127.0.0.1 - - [02/Jul/2025 03:06:48] "GET / HTTP/1.1" 200 -
+ * Detected change in '/home/ubuntu/alpha_wulf_bot/src/bot.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 145-629-270
+127.0.0.1 - - [02/Jul/2025 03:07:27] "[31m[1mPOST /api/user/auth HTTP/1.1[0m" 405 -
+ * Detected change in '/home/ubuntu/alpha_wulf_bot/src/routes/user.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 145-629-270
+ * Detected change in '/home/ubuntu/alpha_wulf_bot/src/routes/withdrawal.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 145-629-270
+ * Detected change in '/home/ubuntu/alpha_wulf_bot/src/routes/withdrawal.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 145-629-270
+ * Detected change in '/home/ubuntu/alpha_wulf_bot/src/bot.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 145-629-270
+ * Detected change in '/home/ubuntu/alpha_wulf_bot/src/routes/user.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 145-629-270
+ * Detected change in '/home/ubuntu/alpha_wulf_bot/src/routes/user.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 145-629-270
+ * Detected change in '/home/ubuntu/alpha_wulf_bot/src/models/user.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 145-629-270
+ * Detected change in '/home/ubuntu/alpha_wulf_bot/src/models/user.py', reloading
+ * Restarting with stat
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/ubuntu/alpha_wulf_bot/src/main.py", line 8, in <module>
+    from src.models.user import db
+  File "/home/ubuntu/alpha_wulf_bot/src/models/user.py", line 55
+    'telegram_id': self.telegram_id,
+IndentationError: unexpected indent
