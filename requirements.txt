@@ -6,3 +6,5 @@ requests==2.32.3
 gunicorn
 
 supabase
+
+psycopg2-binary
