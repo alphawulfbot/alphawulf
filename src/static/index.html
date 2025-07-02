@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alpha Wulf - Tap to Earn</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3014995575427702"
-     crossorigin="anonymous"></script>
+    <!-- Google AdSense script removed temporarily -->
     <style>
         * {
             margin: 0;
@@ -709,7 +708,7 @@
                     throw new Error(`Failed to authenticate user: ${authResponse.status}`);
                 }
                 
-                const authData = await authResponse.json();
+                authData = await authResponse.json();
                 console.log('Auth response:', authData);
                 
                 if (!authData.success || !authData.user) {
