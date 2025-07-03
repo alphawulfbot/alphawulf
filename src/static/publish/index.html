@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alpha Wulf - Tap to Earn</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3014995575427702"
-     crossorigin="anonymous"></script>
+    <!-- Google AdSense script removed temporarily -->
     <style>
         * {
             margin: 0;
@@ -395,21 +394,6 @@
             0% { opacity: 1; }
             100% { opacity: 0; visibility: hidden; }
         }
-        
-        /* Hide Manus branding completely */
-        a[href*="manus"], 
-        a[href*="Create my website"],
-        [class*="manus"],
-        [id*="manus"] {
-            display: none !important;
-            visibility: hidden !important;
-            opacity: 0 !important;
-            pointer-events: none !important;
-            position: absolute !important;
-            left: -9999px !important;
-            top: -9999px !important;
-        }
-        
         @media (max-width: 480px) {
             .container {
                 padding: 15px;
@@ -545,15 +529,7 @@
                 <div class="subtitle">Tap to Earn Wolf Coins</div>
             </div>
 
-            <ins class="adsbygoogle"
-                 style="display:block"
-                 data-ad-format="fluid"
-                 data-ad-layout-key="-fb+5w+4e-db+86"
-                 data-ad-client="ca-pub-3014995575427702"
-                 data-ad-slot="5023799767"></ins>
-            <script>
-                 (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
+            <!-- AdSense temporarily removed to fix loading issues -->
 
             <div class="stats">
                 <div class="stat-card">
@@ -632,7 +608,7 @@
         }
 
         // API base URL
-        const API_BASE = window.location.origin + '/api';
+        const API_BASE = "https://alphawulf-backend-gfgy.onrender.com/api";
 
         // Initialize game with robust error handling
         async function initGame() {
@@ -664,7 +640,7 @@
                 
                 // Try multiple authentication methods
                 let authResponse;
-                const authData = {
+                let authData = {
                     telegram_id: telegramUser.id,
                     username: telegramUser.username,
                     first_name: telegramUser.first_name,
@@ -709,7 +685,7 @@
                     throw new Error(`Failed to authenticate user: ${authResponse.status}`);
                 }
                 
-                const authData = await authResponse.json();
+                authData = await authResponse.json();
                 console.log('Auth response:', authData);
                 
                 if (!authData.success || !authData.user) {
@@ -739,32 +715,32 @@
                 };
                 
                 console.log('Game state initialized:', gameState);
-                   updateDisplay();
+                updateDisplay();
                 hideLoading();
                 startEnergyRegeneration();
                 
             } catch (error) {
-                console.error("Failed to initialize game:", error);
-                console.error("Error details:", {
+                console.error('Failed to initialize game:', error);
+                console.error('Error details:', {
                     message: error.message,
                     stack: error.stack,
                     name: error.name
                 });
                 
                 // Try to provide more specific error information
-                let errorMessage = "Unable to connect to Alpha Wulf servers. Please try again later.";
+                let errorMessage = 'Unable to connect to Alpha Wulf servers. Please try again later.';
                 
-                if (error.message.includes("Network connection failed")) {
-                    errorMessage = "Network connection failed. Please check your internet connection and try again.";
-                } else if (error.message.includes("Failed to authenticate")) {
-                    errorMessage = "Authentication failed. Please restart the app and try again.";
+                if (error.message.includes('Network connection failed')) {
+                    errorMessage = 'Network connection failed. Please check your internet connection and try again.';
+                } else if (error.message.includes('Failed to authenticate')) {
+                    errorMessage = 'Authentication failed. Please restart the app and try again.';
                 }
                 
                 showError(errorMessage);
                 
                 // Fallback: Load with default values if authentication fails
                 setTimeout(() => {
-                    console.log("Loading fallback game state...");
+                    console.log('Loading fallback game state...');
                     gameState.userId = 123456789;
                     gameState.coins = 2500;
                     updateDisplay();
@@ -776,18 +752,18 @@
 
         // Update UI elements
         function updateDisplay() {
-            document.getElementById("coins").textContent = gameState.coins.toLocaleString();
-            document.getElementById("energy").textContent = `${gameState.energy}/${gameState.maxEnergy}`;
-            document.getElementById("tapPower").textContent = gameState.tapPower;
+            document.getElementById('coins').textContent = gameState.coins.toLocaleString();
+            document.getElementById('energy').textContent = `${gameState.energy}/${gameState.maxEnergy}`;
+            document.getElementById('tapPower').textContent = gameState.tapPower;
             
             const energyPercentage = (gameState.energy / gameState.maxEnergy) * 100;
-            document.getElementById("energyFill").style.width = `${energyPercentage}%`;
+            document.getElementById('energyFill').style.width = `${energyPercentage}%`;
             
-            const tapButton = document.getElementById("tapButton");
+            const tapButton = document.getElementById('tapButton');
             if (gameState.energy <= 0) {
-                tapButton.classList.add("disabled");
+                tapButton.classList.add('disabled');
             } else {
-                tapButton.classList.remove("disabled");
+                tapButton.classList.remove('disabled');
             }
         }
 
@@ -808,9 +784,9 @@
             // Send tap to backend
             try {
                 await fetch(`${API_BASE}/tap`, {
-                    method: "POST",
+                    method: 'POST',
                     headers: {
-                        "Content-Type": "application/json"
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         telegram_id: gameState.userId,
@@ -818,19 +794,19 @@
                     })
                 });
             } catch (error) {
-                console.error("Failed to send tap to backend:", error);
+                console.error('Failed to send tap to backend:', error);
             }
         }
 
         // Create coin animation
         function createCoinAnimation(event) {
-            const coin = document.createElement("div");
-            coin.className = "coin-animation";
+            const coin = document.createElement('div');
+            coin.className = 'coin-animation';
             coin.textContent = `+${gameState.tapPower}`;
             
             const rect = event.target.getBoundingClientRect();
-            coin.style.left = (event.clientX - rect.left) + "px";
-            coin.style.top = (event.clientY - rect.top) + "px";
+            coin.style.left = (event.clientX - rect.left) + 'px';
+            coin.style.top = (event.clientY - rect.top) + 'px';
             
             event.target.appendChild(coin);
             
@@ -851,16 +827,16 @@
 
         // Helper functions
         function updateUserProfile(telegramUser, userData) {
-            const userAvatar = document.getElementById("userAvatar");
-            const userName = document.getElementById("userName");
-            const userId = document.getElementById("userId");
+            const userAvatar = document.getElementById('userAvatar');
+            const userName = document.getElementById('userName');
+            const userId = document.getElementById('userId');
             
             // Set avatar initial (first letter of first name or username)
-            const initial = (telegramUser.first_name || telegramUser.username || "U").charAt(0).toUpperCase();
+            const initial = (telegramUser.first_name || telegramUser.username || 'U').charAt(0).toUpperCase();
             userAvatar.textContent = initial;
             
             // Set display name (prefer first name, fallback to username)
-            const displayName = telegramUser.first_name || telegramUser.username || "User";
+            const displayName = telegramUser.first_name || telegramUser.username || 'User';
             userName.textContent = displayName;
             
             // Set user ID
@@ -871,7 +847,16 @@
             if (!gameState.userInfo) return;
             
             const stats = `
-👤 User Profile:\nName: ${gameState.userInfo.firstName || "N/A"} ${gameState.userInfo.lastName || ""}\nUsername: @${gameState.userInfo.username || "N/A"}\nTelegram ID: ${gameState.userInfo.telegramId}\n\n🎮 Game Stats:\n🪙 Total Coins: ${gameState.coins.toLocaleString()}\n⚡ Energy: ${gameState.energy}/${gameState.maxEnergy}\n💪 Tap Power: ${gameState.tapPower}\n🔋 Energy Regen: ${gameState.energyRegenRate}/min
+👤 User Profile:
+Name: ${gameState.userInfo.firstName || 'N/A'} ${gameState.userInfo.lastName || ''}
+Username: @${gameState.userInfo.username || 'N/A'}
+Telegram ID: ${gameState.userInfo.telegramId}
+
+🎮 Game Stats:
+🪙 Total Coins: ${gameState.coins.toLocaleString()}
+⚡ Energy: ${gameState.energy}/${gameState.maxEnergy}
+💪 Tap Power: ${gameState.tapPower}
+🔋 Energy Regen: ${gameState.energyRegenRate}/min
             `;
             
             if (tg) {
@@ -882,94 +867,89 @@
         }
 
         function hideLoading() {
-            const loadingScreen = document.getElementById("loading");
-            const gameScreen = document.getElementById("game");
+            const loadingScreen = document.getElementById('loading');
+            const gameScreen = document.getElementById('game');
             
             // Immediately hide loading screen
-            loadingScreen.style.display = "none";
-            gameScreen.style.display = "block";
+            loadingScreen.style.display = 'none';
+            gameScreen.style.display = 'block';
             
             // Force hide any Manus branding elements
-            // setTimeout(() => {
-            //     const manusElements = document.querySelectorAll("[href*=\"manus\"], [class*=\"manus\"], [id*=\"manus\"], a[href*=\"Create my website\"]");
-            //     manusElements.forEach(el => {
-            //         el.style.display = "none !important";
-            //         el.style.visibility = "hidden !important";
-            //         el.style.opacity = "0 !important";
-            //         el.style.pointerEvents = "none !important";
-            //         el.remove();
-            //     });
-            // }, 100);
+            setTimeout(() => {
+                const manusElements = document.querySelectorAll('[href*="manus"], [class*="manus"], [id*="manus"], a[href*="Create my website"]');
+                manusElements.forEach(el => {
+                    el.style.display = 'none !important';
+                    el.style.visibility = 'hidden !important';
+                    el.style.opacity = '0 !important';
+                    el.style.pointerEvents = 'none !important';
+                    el.remove();
+                });
+            }, 100);
         }
 
         // Force hide loading screen on page load
-        document.addEventListener("DOMContentLoaded", function() {
-            initGame(); // Call initGame directly
-            
-            // Force hide loading screen after 2 seconds regardless
+        document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => {
                 hideLoading();
-            }, 2000);
+                initGame();
+            }, 500);
         });
 
         // Additional fallback to ensure game loads
-        window.addEventListener("load", function() {
-            if (!gameState.userId) {
-                initGame();
-            } // Call initGame directly if not already initialized
-            
-            // Force hide loading screen after 3 seconds regardless
+        window.addEventListener('load', function() {
             setTimeout(() => {
                 hideLoading();
-            }, 3000);
-        });//         initGame();
-            //     }
-            // }, 1000);
-            if (!gameState.userId) {
-                initGame();
-            } // Call initGame directly if not already initialized
+                if (!gameState.userId) {
+                    initGame();
+                }
+            }, 1000);
         });
 
         function showError(message) {
-            document.getElementById("loading").style.display = "none";
-            document.getElementById("game").style.display = "none";
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('game').style.display = 'none';
             
             // Create error display if it doesn't exist
-            let errorDiv = document.getElementById("error");
+            let errorDiv = document.getElementById('error');
             if (!errorDiv) {
-                errorDiv = document.createElement("div");
-                errorDiv.id = "error";
-                errorDiv.className = "error";
+                errorDiv = document.createElement('div');
+                errorDiv.id = 'error';
+                errorDiv.className = 'error';
                 errorDiv.innerHTML = `
                     <h3>Connection Error</h3>
                     <p>${message}</p>
                     <button onclick="location.reload()">Retry</button>
                 `;
-                document.querySelector(".container").appendChild(errorDiv);
+                document.querySelector('.container').appendChild(errorDiv);
             }
-            errorDiv.style.display = "block";
+            errorDiv.style.display = 'block';
         }
 
         // Navigation functions - Make buttons actually work
         function showUpgrades() {
-            window.location.href = "upgrades.html";
+            window.location.href = 'upgrades.html';
         }
 
         function showMiniGames() {
-            window.location.href = "minigames.html";
+            window.location.href = 'minigames.html';
         }
 
         function showWithdraw() {
-            window.location.href = "withdraw.html";
+            window.location.href = 'withdraw.html';
         }
 
         function showReferrals() {
-            window.location.href = "referrals.html";
+            window.location.href = 'referrals.html';
         }
 
         function showStats() {
             const stats = `
-🐺 Alpha Wulf Stats 🐺\n\n💰 Total Coins: ${gameState.coins.toLocaleString()}\n⚡ Energy: ${gameState.energy}/${gameState.maxEnergy}\n💪 Tap Power: ${gameState.tapPower}\n🔋 Energy Regen: ${gameState.energyRegenRate}/min
+🐺 Alpha Wulf Stats 🐺
+
+💰 Total Coins: ${gameState.coins.toLocaleString()}
+⚡ Energy: ${gameState.energy}/${gameState.maxEnergy}
+💪 Tap Power: ${gameState.tapPower}
+🔋 Energy Regen: ${gameState.energyRegenRate}/min
             `;
             
             if (tg) {
@@ -980,29 +960,29 @@
         }
 
         // Event listeners
-        document.getElementById("tapButton").addEventListener("click", handleTap);
+        document.getElementById('tapButton').addEventListener('click', handleTap);
 
         // Disable right-click context menu
-        document.addEventListener("contextmenu", function(e) {
+        document.addEventListener('contextmenu', function(e) {
             e.preventDefault();
             return false;
         });
 
         // Disable text selection and drag
-        document.addEventListener("selectstart", function(e) {
+        document.addEventListener('selectstart', function(e) {
             e.preventDefault();
             return false;
         });
 
         // Disable drag
-        document.addEventListener("dragstart", function(e) {
+        document.addEventListener('dragstart', function(e) {
             e.preventDefault();
             return false;
         });
 
         // Initialize when page loads
-        window.addEventListener("load", initGame);
+        window.addEventListener('load', initGame);
     </script>
 </body>
-</html>html>
+</html>
 
