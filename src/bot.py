@@ -2,7 +2,7 @@ import os
 import requests
 import json
 from datetime import datetime
-from src.models.user import db, User, Transaction, Upgrade, UserUpgrade
+from src.models.user import User, Transaction
 
 class TelegramBot:
     def __init__(self, token):
@@ -66,7 +66,7 @@ class TelegramBot:
                 pass
         
         # Check if user exists
-        user = User.query.filter_by(telegram_id=telegram_id).first()
+        user = User.get_by_telegram_id(telegram_id)
         
         if not user:
             # Create new user
@@ -78,14 +78,22 @@ class TelegramBot:
                 coins=2500,  # Welcome bonus
                 energy=100
             )
-            db.session.add(user)
-            db.session.commit()
+            user.save()
+            
+            # Log welcome bonus transaction
+            transaction = Transaction(
+                user_id=user.id,
+                transaction_type='welcome',
+                amount=2500,
+                description='Welcome bonus'
+            )
+            transaction.save()
             
             # Process referral if exists
             if referrer_id and referrer_id != telegram_id:
                 try:
                     import requests
-                    webhook_url = os.getenv("WEBHOOK_URL", "https://p9hwiqc5v1nk.manus.space")
+                    webhook_url = os.getenv("WEBHOOK_URL", "https://alphawulf-backend-gfgy.onrender.com")
                     referral_url = f"{webhook_url}/api/process_referral"
                     requests.post(referral_url, json={
                                     "referrer_telegram_id": referrer_id,
@@ -117,8 +125,9 @@ Ready to become the Alpha? Let's start tapping! 🚀"""
 💪 Tap Power: <b>{user.tap_power}</b>
 
 Ready to continue your hunt? 🎯"""
-                # Create main menu keyboard
-        base_url = os.getenv('BASE_URL', 'https://xlhyimcjx1g7.manus.space')
+                
+        # Create main menu keyboard
+        base_url = os.getenv('BASE_URL', 'https://alphawulf-frontend.onrender.com')
         keyboard = {
             "inline_keyboard": [
                 [{"text": "🎮 Play Alpha Wulf", "web_app": {"url": base_url}}],
@@ -136,7 +145,7 @@ Ready to continue your hunt? 🎯"""
         user_data = message['from']
         telegram_id = user_data['id']
         
-        user = User.query.filter_by(telegram_id=telegram_id).first()
+        user = User.get_by_telegram_id(telegram_id)
         if not user:
             self.send_message(message['chat']['id'], "Please start the bot first with /start")
             return

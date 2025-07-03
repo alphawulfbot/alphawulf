@@ -97,6 +97,7 @@ class User:
 
     def add_coins(self, amount):
         self.coins += amount
+        self.total_earned += amount
         return self.save()
 
     def spend_coins(self, amount):
@@ -110,7 +111,9 @@ class User:
             self.energy -= taps
             coins_earned = taps * self.tap_power
             self.coins += coins_earned
+            self.total_earned += coins_earned
             self.total_taps += taps
+            self.last_activity = datetime.utcnow().isoformat()
             self.update_energy()
             return self.save()
         return False
@@ -119,7 +122,10 @@ class User:
         now = datetime.utcnow()
         # Convert ISO format string to datetime object if necessary
         if isinstance(self.last_energy_update, str):
-            self.last_energy_update = datetime.fromisoformat(self.last_energy_update.replace("Z", "+00:00"))
+            try:
+                self.last_energy_update = datetime.fromisoformat(self.last_energy_update.replace("Z", "+00:00"))
+            except:
+                self.last_energy_update = now
 
         time_diff = (now - self.last_energy_update).total_seconds() / 60
         energy_to_add = int(time_diff * self.energy_regen_rate)
@@ -128,7 +134,6 @@ class User:
             self.energy = min(self.energy + energy_to_add, self.max_energy)
             self.last_energy_update = now.isoformat()
             self.last_activity = now.isoformat()
-            self.save() # Save changes to DB
 
     @classmethod
     def get_all_users(cls):
@@ -146,8 +151,7 @@ class User:
             total_users_response = supabase.table("users").select("id", count="exact").execute()
             total_users = total_users_response.count
 
-            # Total coins in circulation (requires a sum function in Supabase or client-side aggregation)
-            # For simplicity, fetching all and summing client-side for now. For large datasets, use Supabase RPC.
+            # Total coins in circulation
             all_users_coins = supabase.table("users").select("coins").execute()
             total_coins = sum(user["coins"] for user in all_users_coins.data) if all_users_coins.data else 0
 
@@ -164,6 +168,104 @@ class User:
             print(f"Error getting user stats: {e}")
             return {"total_users": 0, "total_coins": 0, "total_taps": 0}
 
-# Placeholder for other models if they are to be managed via Supabase as well
-# You would define similar classes for Transaction, Upgrade, etc., interacting directly with Supabase.
-# For now, I'm focusing on the User model to fix the import error.
+# Transaction model for Supabase
+class Transaction:
+    def __init__(self, user_id, transaction_type, amount, description="", **kwargs):
+        self.user_id = user_id
+        self.transaction_type = transaction_type
+        self.amount = amount
+        self.description = description
+        self.created_at = kwargs.get("created_at", datetime.utcnow().isoformat())
+        self.id = kwargs.get("id", None)
+
+    def save(self):
+        """Save transaction to Supabase"""
+        try:
+            transaction_data = {
+                "user_id": self.user_id,
+                "transaction_type": self.transaction_type,
+                "amount": self.amount,
+                "description": self.description,
+                "created_at": self.created_at
+            }
+            response = supabase.table("transactions").insert(transaction_data).execute()
+            if response.data:
+                self.id = response.data[0]["id"]
+            return True
+        except Exception as e:
+            print(f"Error saving transaction: {e}")
+            return False
+
+    @classmethod
+    def get_by_user_id(cls, user_id, limit=50):
+        """Get transactions by user ID"""
+        try:
+            response = supabase.table("transactions").select("*").eq("user_id", user_id).order("created_at", desc=True).limit(limit).execute()
+            return [cls(**transaction) for transaction in response.data]
+        except Exception as e:
+            print(f"Error getting transactions: {e}")
+            return []
+
+# Upgrade model for Supabase
+class Upgrade:
+    def __init__(self, name, upgrade_type, base_cost, cost_multiplier, max_level, **kwargs):
+        self.name = name
+        self.upgrade_type = upgrade_type
+        self.base_cost = base_cost
+        self.cost_multiplier = cost_multiplier
+        self.max_level = max_level
+        self.id = kwargs.get("id", None)
+
+    @classmethod
+    def get_all_upgrades(cls):
+        """Get all available upgrades"""
+        # For now, return hardcoded upgrades
+        return [
+            cls("Tap Power", "tap_power", 100, 1.5, 50),
+            cls("Energy Capacity", "energy_capacity", 200, 1.6, 30),
+            cls("Energy Regeneration", "energy_regen", 150, 1.4, 40)
+        ]
+
+# UserUpgrade model for Supabase
+class UserUpgrade:
+    def __init__(self, user_id, upgrade_type, level, **kwargs):
+        self.user_id = user_id
+        self.upgrade_type = upgrade_type
+        self.level = level
+        self.id = kwargs.get("id", None)
+
+    def save(self):
+        """Save user upgrade to Supabase"""
+        try:
+            upgrade_data = {
+                "user_id": self.user_id,
+                "upgrade_type": self.upgrade_type,
+                "level": self.level
+            }
+            
+            # Check if upgrade exists
+            existing = supabase.table("user_upgrades").select("*").eq("user_id", self.user_id).eq("upgrade_type", self.upgrade_type).execute()
+            
+            if existing.data:
+                # Update existing
+                response = supabase.table("user_upgrades").update(upgrade_data).eq("user_id", self.user_id).eq("upgrade_type", self.upgrade_type).execute()
+            else:
+                # Create new
+                response = supabase.table("user_upgrades").insert(upgrade_data).execute()
+                if response.data:
+                    self.id = response.data[0]["id"]
+            return True
+        except Exception as e:
+            print(f"Error saving user upgrade: {e}")
+            return False
+
+    @classmethod
+    def get_by_user_id(cls, user_id):
+        """Get user upgrades by user ID"""
+        try:
+            response = supabase.table("user_upgrades").select("*").eq("user_id", user_id).execute()
+            return [cls(**upgrade) for upgrade in response.data]
+        except Exception as e:
+            print(f"Error getting user upgrades: {e}")
+            return []
+

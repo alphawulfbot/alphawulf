@@ -7,9 +7,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from flask import Flask
 from flask_cors import CORS
 
-# No longer importing db from src.models.user or SQLAlchemy here
-# Database interactions will be handled directly within models using the Supabase client
-
 from src.routes.user import user_bp
 from src.routes.bot import bot_bp
 from src.routes.game import game_bp
@@ -36,3 +33,4 @@ app.register_blueprint(admin_bp)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+
