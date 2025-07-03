@@ -31,7 +31,7 @@ class User:
 
     def generate_referral_code(self):
         """Generate a unique referral code"""
-        return f"REF{\'\'.join(random.choices(string.ascii_uppercase + string.digits, k=8))}"
+        return f"REF{''.join(random.choices(string.ascii_uppercase + string.digits, k=8))}"
 
     @classmethod
     def get_by_telegram_id(cls, telegram_id):
@@ -167,5 +167,3 @@ class User:
 # Placeholder for other models if they are to be managed via Supabase as well
 # You would define similar classes for Transaction, Upgrade, etc., interacting directly with Supabase.
 # For now, I'm focusing on the User model to fix the import error.
-
-

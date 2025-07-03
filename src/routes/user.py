@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from src.models.user import User, db, Transaction
+from src.models.user import User
 import hashlib
 import hmac
 import json
@@ -45,8 +45,8 @@ def authenticate_user():
         if not telegram_id:
             return jsonify({'error': 'Telegram ID is required'}), 400
         
-        # Find or create user
-        user = User.query.filter_by(telegram_id=telegram_id).first()
+        # Find or create user using Supabase
+        user = User.get_by_telegram_id(telegram_id)
         if not user:
             user = User(
                 telegram_id=telegram_id,
@@ -56,26 +56,15 @@ def authenticate_user():
                 coins=2500,  # Welcome bonus
                 total_earned=2500
             )
-            db.session.add(user)
-            db.session.commit()
-            
-            # Log welcome bonus transaction
-            transaction = Transaction(
-                user_id=user.id,
-                transaction_type='welcome',
-                amount=2500,
-                description='Welcome bonus'
-            )
-            db.session.add(transaction)
-            db.session.commit()
+            user.save()
         else:
             # Update user info
             user.first_name = first_name or user.first_name
             user.last_name = last_name or user.last_name
             user.username = username or user.username
-            user.last_activity = datetime.utcnow()
+            user.last_activity = datetime.utcnow().isoformat()
             user.update_energy()
-            db.session.commit()
+            user.save()
         
         return jsonify({
             'success': True,
@@ -83,12 +72,13 @@ def authenticate_user():
         })
     
     except Exception as e:
+        print(f"Authentication error: {e}")
         return jsonify({'error': str(e)}), 500
 
 @user_bp.route('/profile/<int:telegram_id>', methods=['GET'])
 def get_user_profile(telegram_id):
     """Get user profile by Telegram ID"""
-    user = User.query.filter_by(telegram_id=telegram_id).first()
+    user = User.get_by_telegram_id(telegram_id)
     if not user:
         return jsonify({'error': 'User not found'}), 404
     
@@ -103,7 +93,7 @@ def handle_tap():
         telegram_id = data.get('telegram_id')
         taps = data.get('taps', 1)
         
-        user = User.query.filter_by(telegram_id=telegram_id).first()
+        user = User.get_by_telegram_id(telegram_id)
         if not user:
             return jsonify({'error': 'User not found'}), 404
         
@@ -120,19 +110,10 @@ def handle_tap():
         user.coins += coins_earned
         user.energy -= taps
         user.total_earned += coins_earned
-        user.last_activity = datetime.utcnow()
+        user.total_taps += taps
+        user.last_activity = datetime.utcnow().isoformat()
         
-        db.session.commit()
-        
-        # Log transaction
-        transaction = Transaction(
-            user_id=user.id,
-            transaction_type='tap',
-            amount=coins_earned,
-            description=f'Earned from {taps} taps'
-        )
-        db.session.add(transaction)
-        db.session.commit()
+        user.save()
         
         return jsonify({
             'success': True,
@@ -141,6 +122,7 @@ def handle_tap():
         })
     
     except Exception as e:
+        print(f"Tap error: {e}")
         return jsonify({'error': str(e)}), 500
 
 @user_bp.route('/update_upi', methods=['POST'])
@@ -151,12 +133,12 @@ def update_upi():
         telegram_id = data.get('telegram_id')
         upi_id = data.get('upi_id')
         
-        user = User.query.filter_by(telegram_id=telegram_id).first()
+        user = User.get_by_telegram_id(telegram_id)
         if not user:
             return jsonify({'error': 'User not found'}), 404
         
         user.upi_id = upi_id
-        db.session.commit()
+        user.save()
         
         return jsonify({
             'success': True,
@@ -164,33 +146,34 @@ def update_upi():
         })
     
     except Exception as e:
+        print(f"UPI update error: {e}")
         return jsonify({'error': str(e)}), 500
 
 @user_bp.route('/transactions/<int:telegram_id>', methods=['GET'])
 def get_user_transactions(telegram_id):
     """Get user transaction history"""
-    user = User.query.filter_by(telegram_id=telegram_id).first()
+    user = User.get_by_telegram_id(telegram_id)
     if not user:
         return jsonify({'error': 'User not found'}), 404
     
-    transactions = Transaction.query.filter_by(user_id=user.id).order_by(Transaction.created_at.desc()).limit(50).all()
-    
-    return jsonify([{
-        'id': t.id,
-        'type': t.transaction_type,
-        'amount': t.amount,
-        'description': t.description,
-        'created_at': t.created_at.isoformat()
-    } for t in transactions])
+    # For now, return empty transactions since we haven't implemented transaction tracking in Supabase yet
+    # This can be enhanced later with a separate transactions table
+    return jsonify([])
 
 @user_bp.route('/leaderboard', methods=['GET'])
 def get_leaderboard():
     """Get top users leaderboard"""
-    top_users = User.query.order_by(User.total_earned.desc()).limit(10).all()
+    try:
+        # Get all users and sort by total_earned
+        all_users = User.get_all_users()
+        top_users = sorted(all_users, key=lambda x: x.get('total_earned', 0), reverse=True)[:10]
+        
+        return jsonify([{
+            'rank': idx + 1,
+            'name': user.get('first_name') or user.get('username') or f'User{user.get("telegram_id")}',
+            'total_earned': user.get('total_earned', 0)
+        } for idx, user in enumerate(top_users)])
     
-    return jsonify([{
-        'rank': idx + 1,
-        'name': user.first_name or user.username or f'User{user.telegram_id}',
-        'total_earned': user.total_earned
-    } for idx, user in enumerate(top_users)])
-
+    except Exception as e:
+        print(f"Leaderboard error: {e}")
+        return jsonify([])

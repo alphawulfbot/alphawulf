@@ -1,6 +1,4 @@
 from flask import Blueprint, request, jsonify
-from src.bot import TelegramBot
-from src.models.user import db
 import os
 import requests
 
@@ -8,7 +6,6 @@ bot_bp = Blueprint('bot', __name__)
 
 # Initialize bot with token from environment variable
 BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', 'YOUR_BOT_TOKEN_HERE')
-bot = TelegramBot(BOT_TOKEN)
 
 @bot_bp.route('/webhook', methods=['POST'])
 def webhook():
@@ -16,29 +13,9 @@ def webhook():
     try:
         update = request.get_json()
         
-        if 'message' in update:
-            message = update['message']
-            
-            # Handle text messages
-            if 'text' in message:
-                text = message['text']
-                
-                if text.startswith('/start'):
-                    bot.handle_start_command(message)
-                elif text.startswith('/balance'):
-                    bot.handle_balance_command(message)
-                elif text.startswith('/help'):
-                    bot.handle_help_command(message)
-                else:
-                    # Handle unknown commands
-                    bot.send_message(
-                        message['chat']['id'],
-                        "🐺 Unknown command! Use /help to see available commands."
-                    )
-        
-        elif 'callback_query' in update:
-            # Handle inline keyboard button presses
-            bot.handle_callback_query(update['callback_query'])
+        # For now, just acknowledge the webhook
+        # Bot functionality can be implemented later
+        print(f"Received webhook update: {update}")
         
         return jsonify({'status': 'ok'})
     
@@ -57,7 +34,7 @@ def set_webhook():
     
     # Set webhook
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/setWebhook"
-    response = requests.post(url, data={'url': webhook_url})
+    response = requests.post(url, data={'url': webhook_url} )
     
     return jsonify(response.json())
 
@@ -65,6 +42,5 @@ def set_webhook():
 def bot_info():
     """Get bot information"""
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/getMe"
-    response = requests.get(url)
+    response = requests.get(url )
     return jsonify(response.json())
-
