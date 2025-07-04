@@ -79,34 +79,25 @@ class User:
             if "id" in user_data and user_data["id"] is None:
                 del user_data["id"]
             
-            # Convert Unix timestamp to ISO format for PostgreSQL
+            # Ensure last_energy_update is an integer
             if "last_energy_update" in user_data and user_data["last_energy_update"] is not None:
-                # Convert to ISO format string that PostgreSQL can handle
-                # This assumes last_energy_update is stored as a bigint in the database
-                # If it's stored as a timestamp, use this instead:
-                # from datetime import datetime
-                # user_data["last_energy_update"] = datetime.fromtimestamp(user_data["last_energy_update"]).isoformat()
-                
-                # For now, we'll keep it as an integer since that's what the error suggests
-                # Make sure it's within the valid range for PostgreSQL timestamps
-                # PostgreSQL can handle timestamps from 4713 BC to 294276 AD
-                # For safety, we'll cap it at a reasonable value if it's too large
-                if isinstance(user_data["last_energy_update"], int) and user_data["last_energy_update"] > 2147483647:
-                    logger.warning(f"Timestamp too large: {user_data['last_energy_update']}, capping at current time")
-                    user_data["last_energy_update"] = int(time.time())
+                user_data["last_energy_update"] = int(user_data["last_energy_update"])
             
+            # Check if user already exists
+            existing_user = None
             if self.id:
-                # Update existing user
-                response = supabase.table("users").update(user_data).eq("id", self.id).execute()
+                existing_user = self.id
             else:
-                # Check if user already exists by telegram_id
-                existing_user = User.get_by_telegram_id(self.telegram_id)
-                if existing_user and existing_user.id:
-                    # Update existing user
-                    response = supabase.table("users").update(user_data).eq("telegram_id", self.telegram_id).execute()
-                else:
-                    # Create new user
-                    response = supabase.table("users").insert(user_data).execute()
+                existing_response = supabase.table("users").select("id").eq("telegram_id", self.telegram_id).execute()
+                if existing_response.data and len(existing_response.data) > 0:
+                    existing_user = existing_response.data[0].get("id")
+            
+            if existing_user:
+                # Update existing user
+                response = supabase.table("users").update(user_data).eq("id", existing_user).execute()
+            else:
+                # Create new user
+                response = supabase.table("users").insert(user_data).execute()
             
             if response.data and len(response.data) > 0:
                 self.id = response.data[0].get("id")
@@ -115,44 +106,43 @@ class User:
         except Exception as e:
             logger.error(f"Error in save: {str(e)}")
             
-            # Try again without upi_id if that's the issue
-            if "Could not find the 'upi_id' column" in str(e):
-                try:
-                    user_data = self.to_dict()
-                    
-                    # Remove id from dict if it's None
-                    if "id" in user_data and user_data["id"] is None:
-                        del user_data["id"]
-                    
-                    # Remove upi_id
-                    if "upi_id" in user_data:
-                        del user_data["upi_id"]
-                    
-                    # Handle timestamp again
-                    if "last_energy_update" in user_data and user_data["last_energy_update"] is not None:
-                        if isinstance(user_data["last_energy_update"], int) and user_data["last_energy_update"] > 2147483647:
-                            logger.warning(f"Timestamp too large: {user_data['last_energy_update']}, capping at current time")
-                            user_data["last_energy_update"] = int(time.time())
-                    
-                    if self.id:
-                        # Update existing user
-                        response = supabase.table("users").update(user_data).eq("id", self.id).execute()
-                    else:
-                        # Check if user already exists by telegram_id
-                        existing_user = User.get_by_telegram_id(self.telegram_id)
-                        if existing_user and existing_user.id:
-                            # Update existing user
-                            response = supabase.table("users").update(user_data).eq("telegram_id", self.telegram_id).execute()
-                        else:
-                            # Create new user
-                            response = supabase.table("users").insert(user_data).execute()
-                    
-                    if response.data and len(response.data) > 0:
-                        self.id = response.data[0].get("id")
-                    
-                    return self
-                except Exception as e2:
-                    logger.error(f"Error in save (retry without upi_id): {str(e2)}")
+            # Try again without problematic fields if there's an error
+            try:
+                user_data = self.to_dict()
+                
+                # Remove id from dict if it's None
+                if "id" in user_data and user_data["id"] is None:
+                    del user_data["id"]
+                
+                # Remove problematic fields
+                if "last_energy_update" in user_data:
+                    user_data["last_energy_update"] = int(time.time())
+                
+                if "upi_id" in user_data and "upi_id" in str(e):
+                    del user_data["upi_id"]
+                
+                # Check if user already exists
+                existing_user = None
+                if self.id:
+                    existing_user = self.id
+                else:
+                    existing_response = supabase.table("users").select("id").eq("telegram_id", self.telegram_id).execute()
+                    if existing_response.data and len(existing_response.data) > 0:
+                        existing_user = existing_response.data[0].get("id")
+                
+                if existing_user:
+                    # Update existing user
+                    response = supabase.table("users").update(user_data).eq("id", existing_user).execute()
+                else:
+                    # Create new user
+                    response = supabase.table("users").insert(user_data).execute()
+                
+                if response.data and len(response.data) > 0:
+                    self.id = response.data[0].get("id")
+                
+                return self
+            except Exception as e2:
+                logger.error(f"Error in save (retry): {str(e2)}")
             
             logger.warning(f"Failed to save user {self.telegram_id} to database")
             return self
