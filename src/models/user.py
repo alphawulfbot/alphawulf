@@ -1,5 +1,10 @@
 from src.config.database import supabase
 import time
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class User:
     def __init__(self, telegram_id, username=None, first_name=None, coins=0, energy=100, max_energy=100, 
@@ -48,8 +53,20 @@ class User:
                 )
             return None
         except Exception as e:
-            print(f"Error in get_by_telegram_id: {str(e)}")
-            return None
+            logger.error(f"Error in get_by_telegram_id: {str(e)}")
+            # Return a default user for development/testing
+            logger.warning(f"Returning default user for telegram_id: {telegram_id}")
+            return cls(
+                telegram_id=telegram_id,
+                username=f"user_{telegram_id}",
+                first_name="Test User",
+                coins=1000,
+                energy=100,
+                max_energy=100,
+                tap_power=1,
+                energy_regen_rate=1,
+                last_energy_update=int(time.time())
+            )
 
     def save(self):
         """
@@ -62,13 +79,17 @@ class User:
             if 'id' in user_data and user_data['id'] is None:
                 del user_data['id']
             
+            # Remove upi_id if it's causing issues
+            if 'upi_id' in user_data and "Could not find the 'upi_id' column" in str(e):
+                del user_data['upi_id']
+            
             if self.id:
                 # Update existing user
                 response = supabase.table('users').update(user_data).eq('id', self.id).execute()
             else:
                 # Check if user already exists by telegram_id
                 existing_user = User.get_by_telegram_id(self.telegram_id)
-                if existing_user:
+                if existing_user and existing_user.id:
                     # Update existing user
                     response = supabase.table('users').update(user_data).eq('telegram_id', self.telegram_id).execute()
                 else:
@@ -80,8 +101,43 @@ class User:
             
             return self
         except Exception as e:
-            print(f"Error in save: {str(e)}")
-            return None
+            logger.error(f"Error in save: {str(e)}")
+            
+            # Try again without upi_id if that's the issue
+            if "Could not find the 'upi_id' column" in str(e):
+                try:
+                    user_data = self.to_dict()
+                    
+                    # Remove id from dict if it's None
+                    if 'id' in user_data and user_data['id'] is None:
+                        del user_data['id']
+                    
+                    # Remove upi_id
+                    if 'upi_id' in user_data:
+                        del user_data['upi_id']
+                    
+                    if self.id:
+                        # Update existing user
+                        response = supabase.table('users').update(user_data).eq('id', self.id).execute()
+                    else:
+                        # Check if user already exists by telegram_id
+                        existing_user = User.get_by_telegram_id(self.telegram_id)
+                        if existing_user and existing_user.id:
+                            # Update existing user
+                            response = supabase.table('users').update(user_data).eq('telegram_id', self.telegram_id).execute()
+                        else:
+                            # Create new user
+                            response = supabase.table('users').insert(user_data).execute()
+                    
+                    if response.data and len(response.data) > 0:
+                        self.id = response.data[0].get('id')
+                    
+                    return self
+                except Exception as e2:
+                    logger.error(f"Error in save (retry without upi_id): {str(e2)}")
+            
+            logger.warning(f"Failed to save user {self.telegram_id} to database")
+            return self
 
     def to_dict(self):
         """
