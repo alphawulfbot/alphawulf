@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpha Wulf Admin Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #FFD700;
+            font-family: 'Arial', sans-serif;
+        }
+        .navbar {
+            background-color: #2d2d2d;
+            border-bottom: 1px solid #FFD700;
+        }
+        .card {
+            background-color: #2d2d2d;
+            border: 1px solid #FFD700;
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: rgba(255, 215, 0, 0.2);
+            border-bottom: 1px solid #FFD700;
+            font-weight: bold;
+        }
+        .table {
+            color: #FFD700;
+        }
+        .table thead {
+            background-color: rgba(255, 215, 0, 0.2);
+        }
+        .table-dark {
+            background-color: #2d2d2d;
+        }
+        .btn-primary {
+            background-color: #FFD700;
+            border-color: #DAA520;
+            color: #1a1a1a;
+        }
+        .btn-primary:hover {
+            background-color: #DAA520;
+            border-color: #B8860B;
+            color: #1a1a1a;
+        }
+        .btn-success {
+            background-color: #00FF88;
+            border-color: #00CC66;
+            color: #1a1a1a;
+        }
+        .btn-success:hover {
+            background-color: #00CC66;
+            border-color: #009944;
+            color: #1a1a1a;
+        }
+        .btn-danger {
+            background-color: #FF6B6B;
+            border-color: #FF4444;
+            color: #1a1a1a;
+        }
+        .btn-danger:hover {
+            background-color: #FF4444;
+            border-color: #CC0000;
+            color: #1a1a1a;
+        }
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .stat-label {
+            font-size: 1rem;
+            color: #DAA520;
+        }
+        .badge {
+            font-size: 0.8rem;
+            padding: 5px 10px;
+        }
+        .badge-pending {
+            background-color: #FFA500;
+            color: #1a1a1a;
+        }
+        .badge-completed {
+            background-color: #00FF88;
+            color: #1a1a1a;
+        }
+        .badge-failed {
+            background-color: #FF6B6B;
+            color: #1a1a1a;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="#">🐺 Alpha Wulf Admin</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#users">Users</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#withdrawals">Withdrawals</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Dashboard -->
+        <section id="dashboard" class="mb-5">
+            <h2 class="mb-4">Dashboard</h2>
+            <div class="row" id="stats-container">
+                <div class="col-md-4 mb-3">
+                    <div class="card stat-card">
+                        <div class="stat-value" id="total-users">0</div>
+                        <div class="stat-label">Total Users</div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card stat-card">
+                        <div class="stat-value" id="active-users">0</div>
+                        <div class="stat-label">Active Users (24h)</div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card stat-card">
+                        <div class="stat-value" id="total-coins">0</div>
+                        <div class="stat-label">Total Coins</div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card stat-card">
+                        <div class="stat-value" id="total-withdrawals">0</div>
+                        <div class="stat-label">Total Withdrawals</div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card stat-card">
+                        <div class="stat-value" id="pending-withdrawals">0</div>
+                        <div class="stat-label">Pending Withdrawals</div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card stat-card">
+                        <div class="stat-value" id="total-withdrawn">₹0</div>
+                        <div class="stat-label">Total Withdrawn</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Users -->
+        <section id="users" class="mb-5">
+            <h2 class="mb-4">Users</h2>
+            <div class="card">
+                <div class="card-header">
+                    User List
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-dark table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Username</th>
+                                    <th>Name</th>
+                                    <th>Coins</th>
+                                    <th>Energy</th>
+                                    <th>Tap Power</th>
+                                    <th>Referrals</th>
+                                    <th>Last Active</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body">
+                                <tr>
+                                    <td colspan="8" class="text-center">Loading users...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Withdrawals -->
+        <section id="withdrawals" class="mb-5">
+            <h2 class="mb-4">Withdrawals</h2>
+            <div class="card">
+                <div class="card-header">
+                    Withdrawal Requests
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-dark table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>User</th>
+                                    <th>Amount</th>
+                                    <th>Final Amount</th>
+                                    <th>UPI ID</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="withdrawals-table-body">
+                                <tr>
+                                    <td colspan="8" class="text-center">Loading withdrawals...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // API base URL
+        const API_BASE = window.location.origin + '/api';
+
+        // Load dashboard stats
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/stats`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const stats = data.stats;
+                    document.getElementById('total-users').textContent = stats.total_users.toLocaleString();
+                    document.getElementById('active-users').textContent = stats.active_users.toLocaleString();
+                    document.getElementById('total-coins').textContent = stats.total_coins.toLocaleString();
+                    document.getElementById('total-withdrawals').textContent = stats.total_withdrawals.toLocaleString();
+                    document.getElementById('pending-withdrawals').textContent = stats.pending_withdrawals.toLocaleString();
+                    document.getElementById('total-withdrawn').textContent = '₹' + stats.total_withdrawn.toLocaleString();
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Load users
+        async function loadUsers() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/users`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const users = data.users;
+                    const tableBody = document.getElementById('users-table-body');
+                    
+                    if (users.length === 0) {
+                        tableBody.innerHTML = '<tr><td colspan="8" class="text-center">No users found</td></tr>';
+                        return;
+                    }
+                    
+                    tableBody.innerHTML = users.map(user => `
+                        <tr>
+                            <td>${user.telegram_id}</td>
+                            <td>${user.username || 'N/A'}</td>
+                            <td>${user.first_name || 'N/A'}</td>
+                            <td>${user.coins.toLocaleString()}</td>
+                            <td>${user.energy}/${user.max_energy}</td>
+                            <td>${user.tap_power}</td>
+                            <td>${user.referral_count || 0}</td>
+                            <td>${user.last_energy_update ? new Date(user.last_energy_update * 1000).toLocaleString() : 'Never'}</td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+                document.getElementById('users-table-body').innerHTML = '<tr><td colspan="8" class="text-center">Error loading users</td></tr>';
+            }
+        }
+
+        // Load withdrawals
+        async function loadWithdrawals() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/withdrawals`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const withdrawals = data.withdrawals;
+                    const tableBody = document.getElementById('withdrawals-table-body');
+                    
+                    if (withdrawals.length === 0) {
+                        tableBody.innerHTML = '<tr><td colspan="8" class="text-center">No withdrawals found</td></tr>';
+                        return;
+                    }
+                    
+                    tableBody.innerHTML = withdrawals.map(withdrawal => `
+                        <tr>
+                            <td>${withdrawal.id.substring(0, 8)}...</td>
+                            <td>${withdrawal.telegram_id}</td>
+                            <td>${withdrawal.amount.toLocaleString()} coins</td>
+                            <td>₹${withdrawal.final_amount.toLocaleString()}</td>
+                            <td>${withdrawal.upi_id}</td>
+                            <td>${new Date(withdrawal.created_at * 1000).toLocaleString()}</td>
+                            <td>
+                                <span class="badge badge-${withdrawal.status}">
+                                    ${withdrawal.status.charAt(0).toUpperCase() + withdrawal.status.slice(1)}
+                                </span>
+                            </td>
+                            <td>
+                                ${withdrawal.status === 'pending' ? `
+                                    <button class="btn btn-success btn-sm" onclick="updateWithdrawalStatus('${withdrawal.id}', 'completed')">
+                                        Complete
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" onclick="updateWithdrawalStatus('${withdrawal.id}', 'failed')">
+                                        Reject
+                                    </button>
+                                ` : ''}
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading withdrawals:', error);
+                document.getElementById('withdrawals-table-body').innerHTML = '<tr><td colspan="8" class="text-center">Error loading withdrawals</td></tr>';
+            }
+        }
+
+        // Update withdrawal status
+        async function updateWithdrawalStatus(withdrawalId, status) {
+            try {
+                const response = await fetch(`${API_BASE}/admin/withdrawal/${withdrawalId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Reload withdrawals and stats
+                    loadWithdrawals();
+                    loadStats();
+                } else {
+                    alert('Error updating withdrawal status: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error updating withdrawal status:', error);
+                alert('Error updating withdrawal status: ' + error.message);
+            }
+        }
+
+        // Navigation
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Update active link
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Show corresponding section
+                const targetId = this.getAttribute('href').substring(1);
+                document.querySelectorAll('section').forEach(section => {
+                    section.style.display = section.id === targetId ? 'block' : 'none';
+                });
+            });
+        });
+
+        // Initial load
+        window.addEventListener('load', function() {
+            loadStats();
+            loadUsers();
+            loadWithdrawals();
+            
+            // Show dashboard by default
+            document.querySelectorAll('section').forEach(section => {
+                section.style.display = section.id === 'dashboard' ? 'block' : 'none';
+            });
+        });
+
+        // Refresh data every 30 seconds
+        setInterval(() => {
+            loadStats();
+            loadUsers();
+            loadWithdrawals();
+        }, 30000);
+    </script>
+</body>
+</html>
+

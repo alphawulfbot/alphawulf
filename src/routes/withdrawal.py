@@ -1,80 +1,106 @@
 from flask import Blueprint, request, jsonify
-from src.models.user import User, Transaction
-from datetime import datetime
+from src.models.user import User
+import time
+import uuid
 
-withdrawal_bp = Blueprint("withdrawal", __name__)
+withdraw_bp = Blueprint('withdraw', __name__)
 
-@withdrawal_bp.route("/request", methods=["POST"])
-def request_withdrawal():
-    """Request withdrawal"""
+@withdraw_bp.route('/api/withdraw', methods=['POST'])
+def withdraw():
+    """
+    Handle withdrawal requests
+    """
     try:
         data = request.json
-        telegram_id = data.get("telegram_id")
-        amount = data.get("amount")
-        upi_id = data.get("upi_id")
+        telegram_id = data.get('telegram_id')
+        amount = data.get('amount')
+        upi_id = data.get('upi_id')
         
-        if not all([telegram_id, amount, upi_id]):
-            return jsonify({"error": "Missing required fields"}), 400
+        if not telegram_id or not amount or not upi_id:
+            return jsonify({'error': 'Missing required parameters'}), 400
         
+        # Validate amount
+        if amount < 1000:
+            return jsonify({'error': 'Minimum withdrawal amount is 1,000 coins'}), 400
+        
+        # Get user from database
         user = User.get_by_telegram_id(telegram_id)
         if not user:
-            return jsonify({"error": "User not found"}), 404
-        
-        # Check minimum withdrawal amount
-        min_withdrawal = 1000
-        if amount < min_withdrawal:
-            return jsonify({"error": f"Minimum withdrawal amount is {min_withdrawal} coins"}), 400
+            return jsonify({'error': 'User not found'}), 404
         
         # Check if user has enough coins
         if user.coins < amount:
-            return jsonify({"error": "Insufficient coins"}), 400
+            return jsonify({'error': 'Insufficient balance'}), 400
         
-        # Update user UPI ID
+        # Calculate final amount (after fees)
+        rupee_amount = amount / 100  # 100 coins = 1 rupee
+        fee = rupee_amount * 0.02  # 2% fee
+        final_amount = rupee_amount - fee
+        
+        # Create withdrawal record
+        withdrawal_id = str(uuid.uuid4())
+        withdrawal = {
+            'id': withdrawal_id,
+            'telegram_id': telegram_id,
+            'amount': amount,
+            'rupee_amount': rupee_amount,
+            'fee': fee,
+            'final_amount': final_amount,
+            'upi_id': upi_id,
+            'status': 'pending',
+            'created_at': int(time.time())
+        }
+        
+        # Save withdrawal to database
+        from src.config.database import supabase
+        supabase.table('withdrawals').insert(withdrawal).execute()
+        
+        # Update user's balance
+        user.coins -= amount
+        
+        # Save UPI ID for future withdrawals
         user.upi_id = upi_id
+        
+        # Save user
         user.save()
         
-        # Log withdrawal request as a transaction
-        transaction = Transaction(
-            user_id=user.id,
-            transaction_type="withdrawal_request",
-            amount=-amount, # Negative amount for withdrawal
-            description=f"Withdrawal request for {amount} coins to UPI: {upi_id}"
-        )
-        transaction.save()
-
-        # For now, just return success (withdrawal processing would be handled by admin)
         return jsonify({
-            "success": True,
-            "message": "Withdrawal request submitted successfully",
-            "amount": amount,
-            "upi_id": upi_id
+            'success': True,
+            'withdrawal_id': withdrawal_id,
+            'amount': amount,
+            'rupee_amount': rupee_amount,
+            'fee': fee,
+            'final_amount': final_amount,
+            'user': user.to_dict()
         })
-    
+        
     except Exception as e:
-        print(f"Withdrawal request error: {e}")
-        return jsonify({"error": str(e)}), 500
+        print(f"Error in withdraw: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
-@withdrawal_bp.route("/history/<int:telegram_id>", methods=["GET"])
-def get_withdrawal_history(telegram_id):
-    """Get user's withdrawal history"""
+@withdraw_bp.route('/api/withdrawal_history/<telegram_id>', methods=['GET'])
+def withdrawal_history(telegram_id):
+    """
+    Get withdrawal history for a user
+    """
     try:
+        # Get user from database
         user = User.get_by_telegram_id(telegram_id)
         if not user:
-            return jsonify({"error": "User not found"}), 404
+            return jsonify({'error': 'User not found'}), 404
         
-        # Fetch withdrawal transactions
-        withdrawal_transactions = Transaction.get_by_user_id(user.id)
-        history = [
-            {
-                "amount": abs(tx.amount),
-                "date": tx.created_at,
-                "status": "pending" # Assuming all are pending for now
-            }
-            for tx in withdrawal_transactions if tx.transaction_type == "withdrawal_request"
-        ]
+        # Get withdrawals from database
+        from src.config.database import supabase
+        response = supabase.table('withdrawals').select('*').eq('telegram_id', telegram_id).order('created_at', desc=True).execute()
         
-        return jsonify(history)
-    
+        withdrawals = response.data
+        
+        return jsonify({
+            'success': True,
+            'withdrawals': withdrawals
+        })
+        
     except Exception as e:
-        print(f"Get withdrawal history error: {e}")
-        return jsonify({"error": str(e)}), 500
+        print(f"Error in withdrawal_history: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+

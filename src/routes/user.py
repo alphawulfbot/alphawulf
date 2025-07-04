@@ -1,169 +1,186 @@
 from flask import Blueprint, request, jsonify
-from src.models.user import User, Transaction
-import hashlib
-import hmac
-import json
-import os
-from urllib.parse import unquote
-from datetime import datetime
+from src.models.user import User
+import time
 
-user_bp = Blueprint("user", __name__)
+user_bp = Blueprint('user', __name__)
 
-def verify_telegram_auth(auth_data, bot_token):
-    """Verify Telegram Web App authentication data"""
+@user_bp.route('/api/user/<telegram_id>', methods=['GET'])
+def get_user(telegram_id):
+    """
+    Get user data by Telegram ID
+    """
     try:
-        # Parse the auth data
-        auth_dict = {}
-        for item in auth_data.split("&"):
-            key, value = item.split("=", 1)
-            auth_dict[key] = unquote(value)
-        
-        # Extract hash and create data string
-        received_hash = auth_dict.pop("hash", "")
-        data_check_string = "\n".join([f"{k}={v}" for k, v in sorted(auth_dict.items())])
-        
-        # Create secret key
-        secret_key = hmac.new(b"WebAppData", bot_token.encode(), hashlib.sha256).digest()
-        
-        # Calculate expected hash
-        expected_hash = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
-        
-        return hmac.compare_digest(received_hash, expected_hash)
-    except Exception as e:
-        print(f"Auth verification error: {e}")
-        return False
-
-@user_bp.route("/auth", methods=["POST"])
-def authenticate_user():
-    """Authenticate user via Telegram Web App data"""
-    try:
-        data = request.json
-        telegram_id = data.get("telegram_id")
-        first_name = data.get("first_name", "")
-        last_name = data.get("last_name", "")
-        username = data.get("username", "")
-        auth_data = data.get("auth_data")
-        bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
-
-        # For now, skip auth verification to get the frontend working
-        # if not verify_telegram_auth(auth_data, bot_token):
-        #     return jsonify({"error": "Authentication failed"}), 401
-
         user = User.get_by_telegram_id(telegram_id)
-
         if not user:
+            # Create a new user if not found
             user = User(
                 telegram_id=telegram_id,
-                username=username,
-                first_name=first_name,
-                last_name=last_name
+                username="user_" + str(telegram_id),
+                first_name="User",
+                coins=0,
+                energy=100,
+                max_energy=100,
+                tap_power=1,
+                energy_regen_rate=1,
+                last_energy_update=None
             )
             user.save()
-
-        user.update_energy()
-        user.save() # Save any energy updates
-
-        return jsonify({"success": True, "message": "Authentication successful", "user": user.to_dict()})
-
-    except Exception as e:
-        print(f"Authentication error: {e}")
-        return jsonify({"error": str(e)}), 500
-
-@user_bp.route("/user/<int:telegram_id>", methods=["GET"])
-def get_user(telegram_id):
-    """Get user data by Telegram ID"""
-    try:
-        user = User.get_by_telegram_id(telegram_id)
-        if not user:
-            return jsonify({"error": "User not found"}), 404
         
-        user.update_energy()
-        user.save()
-
+        # Update energy based on regeneration rate
+        current_time = int(time.time())
+        if user.last_energy_update:
+            time_diff = current_time - user.last_energy_update
+            energy_to_add = (time_diff // 60) * user.energy_regen_rate  # 1 energy per minute * regen rate
+            
+            if energy_to_add > 0:
+                user.energy = min(user.energy + energy_to_add, user.max_energy)
+                user.last_energy_update = current_time
+                user.save()
+        else:
+            user.last_energy_update = current_time
+            user.save()
+        
         return jsonify(user.to_dict())
-
     except Exception as e:
-        print(f"Get user error: {e}")
-        return jsonify({"error": str(e)}), 500
+        print(f"Error in get_user: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
-@user_bp.route("/user/update_coins", methods=["POST"])
-def update_user_coins():
-    """Update user coins (for testing/admin) - REMOVE IN PRODUCTION"""
+@user_bp.route('/api/user/update', methods=['POST'])
+def update_user():
+    """
+    Update user data (coins, energy, etc.)
+    """
     try:
         data = request.json
-        telegram_id = data.get("telegram_id")
-        amount = data.get("amount")
-
-        user = User.get_by_telegram_id(telegram_id)
-        if not user:
-            return jsonify({"error": "User not found"}), 404
-
-        user.coins += amount
-        user.save()
-
-        return jsonify({"success": True, "user": user.to_dict()})
-
-    except Exception as e:
-        print(f"Update coins error: {e}")
-        return jsonify({"error": str(e)}), 500
-
-@user_bp.route("/user/update_upi", methods=["POST"])
-def update_user_upi():
-    """Update user UPI ID"""
-    try:
-        data = request.json
-        telegram_id = data.get("telegram_id")
-        upi_id = data.get("upi_id")
-
-        user = User.get_by_telegram_id(telegram_id)
-        if not user:
-            return jsonify({"error": "User not found"}), 404
+        telegram_id = data.get('telegram_id')
         
-        user.upi_id = upi_id
+        if not telegram_id:
+            return jsonify({'error': 'Missing telegram_id'}), 400
+        
+        user = User.get_by_telegram_id(telegram_id)
+        if not user:
+            # Create a new user if not found
+            user = User(
+                telegram_id=telegram_id,
+                username=data.get('username', "user_" + str(telegram_id)),
+                first_name=data.get('first_name', "User"),
+                coins=0,
+                energy=100,
+                max_energy=100,
+                tap_power=1,
+                energy_regen_rate=1,
+                last_energy_update=int(time.time())
+            )
+        
+        # Update user fields
+        if 'coins' in data:
+            coins_to_add = data.get('coins', 0)
+            user.coins += coins_to_add
+        
+        if 'energy' in data:
+            energy_to_use = data.get('energy', 0)
+            # Only deduct energy if user has enough and energy is positive
+            if energy_to_use > 0 and user.energy >= energy_to_use:
+                user.energy -= energy_to_use
+                user.last_energy_update = int(time.time())
+            elif energy_to_use < 0:
+                # Negative energy means adding energy (for testing)
+                user.energy = min(user.energy - energy_to_use, user.max_energy)
+                user.last_energy_update = int(time.time())
+        
+        # Update other fields if provided
+        if 'username' in data:
+            user.username = data.get('username')
+        
+        if 'first_name' in data:
+            user.first_name = data.get('first_name')
+        
+        if 'upi_id' in data:
+            user.upi_id = data.get('upi_id')
+        
+        # Save user
+        user.save()
+        
+        return jsonify(user.to_dict())
+    except Exception as e:
+        print(f"Error in update_user: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@user_bp.route('/api/tap', methods=['POST'])
+def tap():
+    """
+    Handle user taps to earn coins
+    """
+    try:
+        data = request.json
+        telegram_id = data.get('telegram_id')
+        taps = data.get('taps', 1)
+        
+        if not telegram_id:
+            return jsonify({'error': 'Missing telegram_id'}), 400
+        
+        user = User.get_by_telegram_id(telegram_id)
+        if not user:
+            # Create a new user if not found
+            user = User(
+                telegram_id=telegram_id,
+                username="user_" + str(telegram_id),
+                first_name="User",
+                coins=0,
+                energy=100,
+                max_energy=100,
+                tap_power=1,
+                energy_regen_rate=1,
+                last_energy_update=int(time.time())
+            )
+        
+        # Update energy based on regeneration rate
+        current_time = int(time.time())
+        if user.last_energy_update:
+            time_diff = current_time - user.last_energy_update
+            energy_to_add = (time_diff // 60) * user.energy_regen_rate  # 1 energy per minute * regen rate
+            
+            if energy_to_add > 0:
+                user.energy = min(user.energy + energy_to_add, user.max_energy)
+                user.last_energy_update = current_time
+        else:
+            user.last_energy_update = current_time
+        
+        # Calculate energy needed for taps
+        energy_needed = taps
+        
+        # Check if user has enough energy
+        if user.energy < energy_needed:
+            # Adjust taps based on available energy
+            taps = user.energy
+            energy_needed = taps
+        
+        # If no energy, return early
+        if taps <= 0:
+            user.save()
+            return jsonify({
+                'success': False,
+                'error': 'Not enough energy',
+                'user': user.to_dict()
+            })
+        
+        # Calculate coins earned
+        coins_earned = taps * user.tap_power
+        
+        # Update user
+        user.coins += coins_earned
+        user.energy -= energy_needed
+        
+        # Save user
         user.save()
         
         return jsonify({
-            "success": True,
-            "message": "UPI ID updated successfully"
+            'success': True,
+            'coins_earned': coins_earned,
+            'energy_used': energy_needed,
+            'user': user.to_dict()
         })
-    
     except Exception as e:
-        print(f"UPI update error: {e}")
-        return jsonify({"error": str(e)}), 500
+        print(f"Error in tap: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
-@user_bp.route("/transactions/<int:telegram_id>", methods=["GET"])
-def get_user_transactions(telegram_id):
-    """Get user transaction history"""
-    user = User.get_by_telegram_id(telegram_id)
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-    
-    transactions = Transaction.get_by_user_id(user.id)
-    transactions_data = []
-    for tx in transactions:
-        transactions_data.append({
-            "type": tx.transaction_type,
-            "amount": tx.amount,
-            "description": tx.description,
-            "date": tx.created_at
-        })
-
-    return jsonify(transactions_data)
-
-@user_bp.route("/leaderboard", methods=["GET"])
-def get_leaderboard():
-    """Get top users leaderboard"""
-    try:
-        # Get all users and sort by total_earned
-        all_users = User.get_all_users()
-        top_users = sorted(all_users, key=lambda x: x.get("total_earned", 0), reverse=True)[:10]
-        
-        return jsonify([{
-            "rank": idx + 1,
-            "name": user.get("first_name") or user.get("username") or f"User{user.get('telegram_id')}",
-            "total_earned": user.get("total_earned", 0)
-        } for idx, user in enumerate(top_users)])
-    
-    except Exception as e:
-        print(f"Leaderboard error: {e}")
-        return jsonify([])
