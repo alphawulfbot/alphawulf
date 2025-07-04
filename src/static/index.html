@@ -20,7 +20,7 @@
 
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: var(--background-color );
+            background-color: var(--background-color);
             color: var(--primary-color);
             margin: 0;
             padding: 0;
@@ -65,6 +65,19 @@
             width: 40px;
             height: 40px;
             margin-right: 10px;
+        }
+
+        .section {
+            flex-grow: 1;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .section.active {
+            display: flex;
         }
 
         .tap-area {
@@ -147,6 +160,10 @@
             background-color: var(--button-hover-bg);
         }
 
+        .nav-button.active {
+            background-color: var(--accent-color);
+        }
+
         #loading-screen, #error-screen {
             position: fixed;
             top: 0;
@@ -190,6 +207,97 @@
             display: none;
         }
 
+        /* Section-specific styles */
+        .frens-section, .mine-section, .earn-section, .airdrop-section {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--accent-color);
+        }
+
+        .referral-code {
+            background-color: var(--container-bg);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .referral-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background-color: var(--container-bg);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: var(--secondary-color);
+            margin-top: 5px;
+        }
+
+        .upgrade-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .upgrade-card {
+            background-color: var(--container-bg);
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .upgrade-info {
+            text-align: left;
+        }
+
+        .upgrade-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .upgrade-cost {
+            color: var(--secondary-color);
+            font-size: 0.9em;
+        }
+
+        .upgrade-button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .upgrade-button:disabled {
+            background-color: var(--button-bg);
+            cursor: not-allowed;
+        }
+
     </style>
 </head>
 <body>
@@ -217,8 +325,65 @@
             <span id="coin-count">0</span>
         </div>
 
-        <div class="tap-area" id="tap-area">
-            <img src="https://i.ibb.co/mHk8J2L/wulf.png" alt="Wulf" id="wulf-image">
+        <!-- Mine Section (Default) -->
+        <div class="section active" id="mine-section">
+            <div class="tap-area" id="tap-area">
+                <img src="https://i.ibb.co/mHk8J2L/wulf.png" alt="Wulf" id="wulf-image">
+            </div>
+        </div>
+
+        <!-- Frens Section -->
+        <div class="section frens-section" id="frens-section">
+            <div class="section-title">Invite Friends</div>
+            <div class="referral-code">
+                <div>Your Referral Code:</div>
+                <div id="referral-code" style="font-weight: 700; font-size: 1.2em; margin-top: 5px;">Loading...</div>
+            </div>
+            <div class="referral-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="referral-count">0</div>
+                    <div class="stat-label">Friends Invited</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="referral-earnings">0</div>
+                    <div class="stat-label">Coins Earned</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Earn Section -->
+        <div class="section earn-section" id="earn-section">
+            <div class="section-title">Upgrades</div>
+            <div class="upgrade-grid">
+                <div class="upgrade-card">
+                    <div class="upgrade-info">
+                        <div class="upgrade-name">Tap Power</div>
+                        <div class="upgrade-cost">Cost: <span id="tap-power-cost">1000</span> coins</div>
+                    </div>
+                    <button class="upgrade-button" id="tap-power-btn" onclick="upgradeItem('tap_power')">Upgrade</button>
+                </div>
+                <div class="upgrade-card">
+                    <div class="upgrade-info">
+                        <div class="upgrade-name">Max Energy</div>
+                        <div class="upgrade-cost">Cost: <span id="max-energy-cost">2000</span> coins</div>
+                    </div>
+                    <button class="upgrade-button" id="max-energy-btn" onclick="upgradeItem('max_energy')">Upgrade</button>
+                </div>
+                <div class="upgrade-card">
+                    <div class="upgrade-info">
+                        <div class="upgrade-name">Energy Regen</div>
+                        <div class="upgrade-cost">Cost: <span id="energy-regen-cost">1500</span> coins</div>
+                    </div>
+                    <button class="upgrade-button" id="energy-regen-btn" onclick="upgradeItem('energy_regen')">Upgrade</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Airdrop Section -->
+        <div class="section airdrop-section" id="airdrop-section">
+            <div class="section-title">Airdrop</div>
+            <p>Coming Soon!</p>
+            <p>Stay tuned for exciting airdrop opportunities.</p>
         </div>
 
         <div class="energy-section">
@@ -231,10 +396,10 @@
         </div>
 
         <div class="bottom-nav">
-            <button class="nav-button">Frens</button>
-            <button class="nav-button">Mine</button>
-            <button class="nav-button">Earn</button>
-            <button class="nav-button">Airdrop</button>
+            <button class="nav-button" data-section="frens">Frens</button>
+            <button class="nav-button active" data-section="mine">Mine</button>
+            <button class="nav-button" data-section="earn">Earn</button>
+            <button class="nav-button" data-section="airdrop">Airdrop</button>
         </div>
     </div>
 
@@ -243,7 +408,7 @@
         const API_BASE_URL = "https://alphawulf-backend-gfgy.onrender.com/api";
 
         // --- DOM Elements ---
-        const loadingScreen = document.getElementById('loading-screen' );
+        const loadingScreen = document.getElementById('loading-screen');
         const errorScreen = document.getElementById('error-screen');
         const errorMessage = document.getElementById('error-message');
         const mainContainer = document.querySelector('.main-container');
@@ -256,17 +421,30 @@
         const energyBar = document.getElementById('energy-bar');
         const statusIndicator = document.getElementById('status-indicator');
 
-        // --- Game State ---
+        // --- Game State (Persistent) ---
         let gameState = {};
         let tapQueue = 0;
         let isSaving = false;
         let saveTimeout;
+        let energyRegenInterval;
+        let isInitialized = false;
+
+        // --- Navigation ---
+        let currentSection = 'mine';
 
         // --- Initialization ---
         window.addEventListener('load', initGame);
 
         async function initGame() {
+            // Prevent re-initialization
+            if (isInitialized) {
+                console.log('Game already initialized, skipping...');
+                return;
+            }
+
             try {
+                console.log('Initializing Alpha Wulf game...');
+
                 if (!window.Telegram || !window.Telegram.WebApp || !window.Telegram.WebApp.initData) {
                     throw new Error("Not a valid Telegram environment. Please play inside Telegram.");
                 }
@@ -275,6 +453,8 @@
 
                 const authData = window.Telegram.WebApp.initData;
                 const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
+
+                console.log('Authenticating user:', tgUser.id);
 
                 const response = await apiPost('/auth', {
                     auth_data: authData,
@@ -289,7 +469,10 @@
                 }
 
                 gameState = response.user;
+                console.log('User authenticated successfully:', gameState);
+
                 setupGame();
+                isInitialized = true;
 
             } catch (error) {
                 console.error("Initialization Error:", error);
@@ -298,11 +481,64 @@
         }
 
         function setupGame() {
+            console.log('Setting up game interface...');
+            
             userInfo.textContent = gameState.first_name || gameState.username || 'Player';
+            
+            // Setup event listeners
             wulfImage.addEventListener('click', handleTap);
+            setupNavigation();
+            
+            // Update display
             updateDisplay();
-            setInterval(regenerateEnergy, 1000); // Regenerate energy every second
+            updateReferralDisplay();
+            
+            // Start energy regeneration
+            if (energyRegenInterval) clearInterval(energyRegenInterval);
+            energyRegenInterval = setInterval(regenerateEnergy, 1000);
+            
             hideLoading();
+            console.log('Game setup complete!');
+        }
+
+        function setupNavigation() {
+            const navButtons = document.querySelectorAll('.nav-button');
+            navButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const sectionName = button.getAttribute('data-section');
+                    switchSection(sectionName);
+                });
+            });
+        }
+
+        function switchSection(sectionName) {
+            console.log('Switching to section:', sectionName);
+            
+            // Hide all sections
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => section.classList.remove('active'));
+            
+            // Show target section
+            const targetSection = document.getElementById(`${sectionName}-section`);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+            
+            // Update nav buttons
+            const navButtons = document.querySelectorAll('.nav-button');
+            navButtons.forEach(btn => btn.classList.remove('active'));
+            
+            const activeButton = document.querySelector(`[data-section="${sectionName}"]`);
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
+            
+            currentSection = sectionName;
+            
+            // Load section-specific data if needed
+            if (sectionName === 'frens') {
+                updateReferralDisplay();
+            }
         }
 
         // --- Game Logic ---
@@ -311,6 +547,8 @@
 
             gameState.energy -= gameState.tap_power;
             gameState.coins += gameState.tap_power;
+            gameState.total_taps = (gameState.total_taps || 0) + 1;
+            gameState.total_earned = (gameState.total_earned || 0) + gameState.tap_power;
             tapQueue++;
 
             updateDisplay();
@@ -318,7 +556,7 @@
 
             // Debounce saving
             clearTimeout(saveTimeout);
-            saveTimeout = setTimeout(syncTaps, 1500); // Save after 1.5s of inactivity
+            saveTimeout = setTimeout(syncTaps, 1500);
         }
 
         async function syncTaps() {
@@ -329,7 +567,9 @@
 
             try {
                 const tapsToSync = tapQueue;
-                tapQueue = 0; // Reset queue immediately
+                tapQueue = 0;
+
+                console.log('Syncing taps:', tapsToSync);
 
                 const response = await apiPost('/tap', {
                     telegram_id: gameState.telegram_id,
@@ -337,17 +577,20 @@
                 });
 
                 if (response.success && response.user) {
-                    // Re-sync state with authoritative backend response
-                    gameState = response.user;
+                    // Update gameState with authoritative backend data
+                    gameState = { ...gameState, ...response.user };
                     updateDisplay();
+                    updateReferralDisplay();
+                    console.log('Taps synced successfully');
                 } else {
                     // Rollback if save failed
                     tapQueue += tapsToSync;
-                    console.error("Failed to save taps");
+                    console.error("Failed to save taps:", response);
                 }
             } catch (error) {
                 console.error("Sync Error:", error);
-                // Ideally, handle offline mode or retry logic here
+                // Rollback on error
+                tapQueue += tapsToSync;
             } finally {
                 isSaving = false;
                 hideStatus();
@@ -356,18 +599,88 @@
 
         function regenerateEnergy() {
             if (gameState.energy < gameState.max_energy) {
-                gameState.energy = Math.min(gameState.max_energy, gameState.energy + gameState.energy_regen_rate);
+                gameState.energy = Math.min(gameState.max_energy, gameState.energy + (gameState.energy_regen_rate || 1));
                 updateDisplay();
+            }
+        }
+
+        async function upgradeItem(upgradeType) {
+            try {
+                showStatus("Upgrading...");
+                
+                const response = await apiPost('/upgrade', {
+                    telegram_id: gameState.telegram_id,
+                    upgrade_type: upgradeType
+                });
+
+                if (response.success && response.user) {
+                    gameState = { ...gameState, ...response.user };
+                    updateDisplay();
+                    console.log('Upgrade successful:', upgradeType);
+                } else {
+                    console.error('Upgrade failed:', response.message);
+                }
+            } catch (error) {
+                console.error('Upgrade error:', error);
+            } finally {
+                hideStatus();
             }
         }
 
         // --- UI Updates ---
         function updateDisplay() {
-            coinCount.textContent = Math.floor(gameState.coins).toLocaleString();
-            currentEnergyEl.textContent = Math.floor(gameState.energy);
-            maxEnergyEl.textContent = gameState.max_energy;
-            const energyPercentage = (gameState.energy / gameState.max_energy) * 100;
+            coinCount.textContent = Math.floor(gameState.coins || 0).toLocaleString();
+            currentEnergyEl.textContent = Math.floor(gameState.energy || 0);
+            maxEnergyEl.textContent = gameState.max_energy || 100;
+            
+            const energyPercentage = ((gameState.energy || 0) / (gameState.max_energy || 100)) * 100;
             energyBar.style.width = `${energyPercentage}%`;
+
+            // Update upgrade costs and buttons
+            updateUpgradeButtons();
+        }
+
+        function updateReferralDisplay() {
+            const referralCodeEl = document.getElementById('referral-code');
+            const referralCountEl = document.getElementById('referral-count');
+            const referralEarningsEl = document.getElementById('referral-earnings');
+
+            if (referralCodeEl) referralCodeEl.textContent = gameState.referral_code || 'Loading...';
+            if (referralCountEl) referralCountEl.textContent = gameState.referral_count || 0;
+            if (referralEarningsEl) referralEarningsEl.textContent = gameState.referral_earnings || 0;
+        }
+
+        function updateUpgradeButtons() {
+            const tapPowerCost = calculateUpgradeCost('tap_power');
+            const maxEnergyCost = calculateUpgradeCost('max_energy');
+            const energyRegenCost = calculateUpgradeCost('energy_regen');
+
+            const tapPowerCostEl = document.getElementById('tap-power-cost');
+            const maxEnergyCostEl = document.getElementById('max-energy-cost');
+            const energyRegenCostEl = document.getElementById('energy-regen-cost');
+
+            const tapPowerBtn = document.getElementById('tap-power-btn');
+            const maxEnergyBtn = document.getElementById('max-energy-btn');
+            const energyRegenBtn = document.getElementById('energy-regen-btn');
+
+            if (tapPowerCostEl) tapPowerCostEl.textContent = tapPowerCost;
+            if (maxEnergyCostEl) maxEnergyCostEl.textContent = maxEnergyCost;
+            if (energyRegenCostEl) energyRegenCostEl.textContent = energyRegenCost;
+
+            if (tapPowerBtn) tapPowerBtn.disabled = gameState.coins < tapPowerCost;
+            if (maxEnergyBtn) maxEnergyBtn.disabled = gameState.coins < maxEnergyCost;
+            if (energyRegenBtn) energyRegenBtn.disabled = gameState.coins < energyRegenCost;
+        }
+
+        function calculateUpgradeCost(upgradeType) {
+            const baseCosts = {
+                'tap_power': 1000,
+                'max_energy': 2000,
+                'energy_regen': 1500
+            };
+            
+            const currentLevel = gameState[upgradeType] || 1;
+            return Math.floor(baseCosts[upgradeType] * Math.pow(1.5, currentLevel - 1));
         }
 
         function showFloatingText(x, y, text) {
@@ -425,6 +738,16 @@
             return response.json();
         }
 
+        // --- Prevent re-initialization on navigation ---
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted && isInitialized) {
+                console.log('Page restored from cache, maintaining state');
+                updateDisplay();
+                updateReferralDisplay();
+            }
+        });
+
     </script>
 </body>
 </html>
+
