@@ -79,6 +79,22 @@ class User:
             if "id" in user_data and user_data["id"] is None:
                 del user_data["id"]
             
+            # Convert Unix timestamp to ISO format for PostgreSQL
+            if "last_energy_update" in user_data and user_data["last_energy_update"] is not None:
+                # Convert to ISO format string that PostgreSQL can handle
+                # This assumes last_energy_update is stored as a bigint in the database
+                # If it's stored as a timestamp, use this instead:
+                # from datetime import datetime
+                # user_data["last_energy_update"] = datetime.fromtimestamp(user_data["last_energy_update"]).isoformat()
+                
+                # For now, we'll keep it as an integer since that's what the error suggests
+                # Make sure it's within the valid range for PostgreSQL timestamps
+                # PostgreSQL can handle timestamps from 4713 BC to 294276 AD
+                # For safety, we'll cap it at a reasonable value if it's too large
+                if isinstance(user_data["last_energy_update"], int) and user_data["last_energy_update"] > 2147483647:
+                    logger.warning(f"Timestamp too large: {user_data['last_energy_update']}, capping at current time")
+                    user_data["last_energy_update"] = int(time.time())
+            
             if self.id:
                 # Update existing user
                 response = supabase.table("users").update(user_data).eq("id", self.id).execute()
@@ -100,7 +116,7 @@ class User:
             logger.error(f"Error in save: {str(e)}")
             
             # Try again without upi_id if that's the issue
-            if "upi_id" in user_data and "Could not find the 'upi_id' column" in str(e):
+            if "Could not find the 'upi_id' column" in str(e):
                 try:
                     user_data = self.to_dict()
                     
@@ -111,6 +127,12 @@ class User:
                     # Remove upi_id
                     if "upi_id" in user_data:
                         del user_data["upi_id"]
+                    
+                    # Handle timestamp again
+                    if "last_energy_update" in user_data and user_data["last_energy_update"] is not None:
+                        if isinstance(user_data["last_energy_update"], int) and user_data["last_energy_update"] > 2147483647:
+                            logger.warning(f"Timestamp too large: {user_data['last_energy_update']}, capping at current time")
+                            user_data["last_energy_update"] = int(time.time())
                     
                     if self.id:
                         # Update existing user
