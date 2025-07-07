@@ -17,7 +17,7 @@ def get_user(telegram_id):
         # Get user from database
         user = User.get_by_telegram_id(telegram_id)
         
-        # If user doesn't exist, create a new one
+        # If user doesn't exist, create a new one with 2500 coins bonus
         if not user:
             # Extract user data from request
             data = request.args
@@ -25,12 +25,14 @@ def get_user(telegram_id):
             first_name = data.get("first_name")
             referred_by = data.get("referred_by")
             
-            # Create new user
+            logger.info(f"Creating new user {telegram_id} with 2500 coins bonus")
+            
+            # Create new user with 2500 coins bonus
             user = User(
                 telegram_id=telegram_id,
                 username=username,
                 first_name=first_name,
-                coins=0,
+                coins=2500,  # New user bonus
                 energy=100,
                 max_energy=100,
                 tap_power=1,
@@ -66,7 +68,7 @@ def get_user(telegram_id):
                     except Exception as e:
                         logger.error(f"Error recording referred user: {str(e)}")
         else:
-            # Update energy based on regeneration rate
+            # Update energy based on regeneration rate for existing users
             current_time = int(time.time())
             if user.last_energy_update:
                 time_diff = current_time - user.last_energy_update
@@ -76,7 +78,7 @@ def get_user(telegram_id):
                 user.energy = min(user.max_energy, user.energy + energy_regen)
                 user.last_energy_update = current_time
                 
-                # Save updated energy
+                # Save updated energy without affecting coins
                 user.save()
         
         # Return user data
@@ -137,8 +139,17 @@ def tap():
         user.coins += user.tap_power
         user.last_energy_update = current_time
         
-        # Save updated user
-        user.save()
+        # Save updated user data immediately
+        try:
+            user.save()
+            logger.debug(f"User {telegram_id} tapped: coins={user.coins}, energy={user.energy}")
+        except Exception as save_error:
+            logger.error(f"Error saving user data after tap: {str(save_error)}")
+            return jsonify({
+                "success": False,
+                "message": "Failed to save progress",
+                "error": str(save_error)
+            }), 500
         
         # Return updated user data
         return jsonify({
@@ -152,6 +163,55 @@ def tap():
         })
     except Exception as e:
         logger.error(f"Error in tap: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@user_bp.route("/api/save_progress", methods=["POST"])
+def save_progress():
+    """Endpoint to manually save user progress"""
+    try:
+        data = request.json
+        telegram_id = data.get("telegram_id")
+        coins = data.get("coins")
+        energy = data.get("energy")
+        
+        if not telegram_id:
+            return jsonify({"error": "Telegram ID is required"}), 400
+        
+        # Get user from database
+        user = User.get_by_telegram_id(telegram_id)
+        
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        
+        # Update user data if provided
+        if coins is not None:
+            user.coins = int(coins)
+        if energy is not None:
+            user.energy = float(energy)
+        
+        user.last_energy_update = int(time.time())
+        
+        # Save updated user
+        try:
+            user.save()
+            logger.info(f"Progress saved for user {telegram_id}: coins={user.coins}, energy={user.energy}")
+        except Exception as save_error:
+            logger.error(f"Error saving progress: {str(save_error)}")
+            return jsonify({
+                "success": False,
+                "message": "Failed to save progress",
+                "error": str(save_error)
+            }), 500
+        
+        return jsonify({
+            "success": True,
+            "message": "Progress saved successfully",
+            "coins": user.coins,
+            "energy": user.energy
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in save_progress: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 @user_bp.route("/api/update_upi", methods=["POST"])
@@ -185,6 +245,4 @@ def update_upi():
     except Exception as e:
         logger.error(f"Error in update_upi: {str(e)}")
         return jsonify({"error": str(e)}), 500
-
-
 
