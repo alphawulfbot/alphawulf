@@ -183,11 +183,17 @@ def save_progress():
         if not user:
             return jsonify({"error": "User not found"}), 404
         
-        # Update user data if provided
+        # Update user data if provided, ensuring correct type conversion
         if coins is not None:
-            user.coins = int(coins)
+            try:
+                user.coins = int(float(coins))
+            except ValueError:
+                logger.warning(f"Invalid value for coins in save_progress: {coins}. Keeping current value.")
         if energy is not None:
-            user.energy = float(energy)
+            try:
+                user.energy = float(energy)
+            except ValueError:
+                logger.warning(f"Invalid value for energy in save_progress: {energy}. Keeping current value.")
         
         user.last_energy_update = int(time.time())
         
