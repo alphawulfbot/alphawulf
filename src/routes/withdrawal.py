@@ -17,17 +17,17 @@ def withdraw():
         # Get withdrawal data from request
         data = request.json
         telegram_id = data.get("telegram_id")
-        amount = data.get("amount")
+        amount_str = data.get("amount") # Get as string first
         upi_id = data.get("upi_id")
         
-        if not telegram_id or not amount or not upi_id:
+        if not telegram_id or not amount_str or not upi_id:
             return jsonify({"error": "Telegram ID, amount, and UPI ID are required"}), 400
         
-        # Convert amount to integer
+        # Convert amount to integer, handling potential float strings
         try:
-            amount = int(amount)
+            amount = int(float(amount_str))
         except ValueError:
-            return jsonify({"error": "Amount must be a number"}), 400
+            return jsonify({"error": "Amount must be a valid number"}), 400
         
         # Check if amount is valid
         if amount < 1000:
@@ -124,5 +124,6 @@ def withdrawal_history(telegram_id):
     except Exception as e:
         logger.error(f"Error in withdrawal_history: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
 
 

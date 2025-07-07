@@ -246,3 +246,5 @@ def update_upi():
         logger.error(f"Error in update_upi: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+
+
