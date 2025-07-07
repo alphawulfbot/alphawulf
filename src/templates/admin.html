@@ -64,6 +64,16 @@
             border-color: #CC0000;
             color: #1a1a1a;
         }
+        .btn-warning {
+            background-color: #FFA500;
+            border-color: #FF8C00;
+            color: #1a1a1a;
+        }
+        .btn-warning:hover {
+            background-color: #FF8C00;
+            border-color: #FF7F00;
+            color: #1a1a1a;
+        }
         .stat-card {
             text-align: center;
             padding: 20px;
@@ -88,9 +98,40 @@
             background-color: #00FF88;
             color: #1a1a1a;
         }
-        .badge-failed {
+        .badge-rejected {
             background-color: #FF6B6B;
             color: #1a1a1a;
+        }
+        .user-actions {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        .user-actions .btn {
+            font-size: 0.75rem;
+            padding: 2px 6px;
+        }
+        .modal-content {
+            background-color: #2d2d2d;
+            color: #FFD700;
+            border: 1px solid #FFD700;
+        }
+        .modal-header {
+            border-bottom: 1px solid #FFD700;
+        }
+        .modal-footer {
+            border-top: 1px solid #FFD700;
+        }
+        .form-control {
+            background-color: #1a1a1a;
+            border: 1px solid #FFD700;
+            color: #FFD700;
+        }
+        .form-control:focus {
+            background-color: #1a1a1a;
+            border-color: #DAA520;
+            color: #FFD700;
+            box-shadow: 0 0 0 0.2rem rgba(255, 215, 0, 0.25);
         }
     </style>
 </head>
@@ -111,6 +152,11 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#withdrawals">Withdrawals</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/logout">Logout</a>
                     </li>
                 </ul>
             </div>
@@ -162,7 +208,7 @@
         </section>
 
         <!-- Users -->
-        <section id="users" class="mb-5">
+        <section id="users" class="mb-5" style="display: none;">
             <h2 class="mb-4">Users</h2>
             <div class="card">
                 <div class="card-header">
@@ -173,7 +219,7 @@
                         <table class="table table-dark table-striped">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
+                                    <th>Telegram ID</th>
                                     <th>Username</th>
                                     <th>Name</th>
                                     <th>Coins</th>
@@ -181,11 +227,12 @@
                                     <th>Tap Power</th>
                                     <th>Referrals</th>
                                     <th>Last Active</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="users-table-body">
                                 <tr>
-                                    <td colspan="8" class="text-center">Loading users...</td>
+                                    <td colspan="9" class="text-center">Loading users...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -195,7 +242,7 @@
         </section>
 
         <!-- Withdrawals -->
-        <section id="withdrawals" class="mb-5">
+        <section id="withdrawals" class="mb-5" style="display: none;">
             <h2 class="mb-4">Withdrawals</h2>
             <div class="card">
                 <div class="card-header">
@@ -207,7 +254,7 @@
                             <thead>
                                 <tr>
                                     <th>ID</th>
-                                    <th>User</th>
+                                    <th>Telegram ID</th>
                                     <th>Amount</th>
                                     <th>Final Amount</th>
                                     <th>UPI ID</th>
@@ -228,6 +275,31 @@
         </section>
     </div>
 
+    <!-- Coin Adjustment Modal -->
+    <div class="modal fade" id="coinModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Adjust Coins</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="coinForm">
+                        <input type="hidden" id="coinTelegramId">
+                        <div class="mb-3">
+                            <label for="coinAmount" class="form-label">Amount (use negative to subtract)</label>
+                            <input type="number" class="form-control" id="coinAmount" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="adjustCoins()">Adjust Coins</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // API base URL
@@ -239,15 +311,12 @@
                 const response = await fetch(`${API_BASE}/admin/stats`);
                 const data = await response.json();
                 
-                if (data.success) {
-                    const stats = data.stats;
-                    document.getElementById('total-users').textContent = stats.total_users.toLocaleString();
-                    document.getElementById('active-users').textContent = stats.active_users.toLocaleString();
-                    document.getElementById('total-coins').textContent = stats.total_coins.toLocaleString();
-                    document.getElementById('total-withdrawals').textContent = stats.total_withdrawals.toLocaleString();
-                    document.getElementById('pending-withdrawals').textContent = stats.pending_withdrawals.toLocaleString();
-                    document.getElementById('total-withdrawn').textContent = '₹' + stats.total_withdrawn.toLocaleString();
-                }
+                document.getElementById('total-users').textContent = data.total_users.toLocaleString();
+                document.getElementById('active-users').textContent = data.active_users.toLocaleString();
+                document.getElementById('total-coins').textContent = data.total_coins.toLocaleString();
+                document.getElementById('total-withdrawals').textContent = data.total_withdrawals.toLocaleString();
+                document.getElementById('pending-withdrawals').textContent = data.pending_withdrawals.toLocaleString();
+                document.getElementById('total-withdrawn').textContent = '₹' + data.total_withdrawn.toLocaleString();
             } catch (error) {
                 console.error('Error loading stats:', error);
             }
@@ -259,31 +328,36 @@
                 const response = await fetch(`${API_BASE}/admin/users`);
                 const data = await response.json();
                 
-                if (data.success) {
-                    const users = data.users;
-                    const tableBody = document.getElementById('users-table-body');
-                    
-                    if (users.length === 0) {
-                        tableBody.innerHTML = '<tr><td colspan="8" class="text-center">No users found</td></tr>';
-                        return;
-                    }
-                    
-                    tableBody.innerHTML = users.map(user => `
-                        <tr>
-                            <td>${user.telegram_id}</td>
-                            <td>${user.username || 'N/A'}</td>
-                            <td>${user.first_name || 'N/A'}</td>
-                            <td>${user.coins.toLocaleString()}</td>
-                            <td>${user.energy}/${user.max_energy}</td>
-                            <td>${user.tap_power}</td>
-                            <td>${user.referral_count || 0}</td>
-                            <td>${user.last_energy_update ? new Date(user.last_energy_update * 1000).toLocaleString() : 'Never'}</td>
-                        </tr>
-                    `).join('');
+                const users = data.users || [];
+                const tableBody = document.getElementById('users-table-body');
+                
+                if (users.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="9" class="text-center">No users found</td></tr>';
+                    return;
                 }
+                
+                tableBody.innerHTML = users.map(user => `
+                    <tr>
+                        <td>${user.telegram_id}</td>
+                        <td>${user.username || 'N/A'}</td>
+                        <td>${user.first_name || 'N/A'}</td>
+                        <td>${(user.coins || 0).toLocaleString()}</td>
+                        <td>${user.energy || 0}/${user.max_energy || 100}</td>
+                        <td>${user.tap_power || 1}</td>
+                        <td>${user.referral_count || 0}</td>
+                        <td>${user.last_energy_update ? new Date(user.last_energy_update * 1000).toLocaleString() : 'Never'}</td>
+                        <td>
+                            <div class="user-actions">
+                                <button class="btn btn-primary btn-sm" onclick="openCoinModal('${user.telegram_id}')">Coins</button>
+                                <button class="btn btn-warning btn-sm" onclick="resetUser('${user.telegram_id}')">Reset</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteUser('${user.telegram_id}')">Delete</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
             } catch (error) {
                 console.error('Error loading users:', error);
-                document.getElementById('users-table-body').innerHTML = '<tr><td colspan="8" class="text-center">Error loading users</td></tr>';
+                document.getElementById('users-table-body').innerHTML = '<tr><td colspan="9" class="text-center">Error loading users</td></tr>';
             }
         }
 
@@ -293,76 +367,202 @@
                 const response = await fetch(`${API_BASE}/admin/withdrawals`);
                 const data = await response.json();
                 
-                if (data.success) {
-                    const withdrawals = data.withdrawals;
-                    const tableBody = document.getElementById('withdrawals-table-body');
-                    
-                    if (withdrawals.length === 0) {
-                        tableBody.innerHTML = '<tr><td colspan="8" class="text-center">No withdrawals found</td></tr>';
-                        return;
-                    }
-                    
-                    tableBody.innerHTML = withdrawals.map(withdrawal => `
-                        <tr>
-                            <td>${withdrawal.id.substring(0, 8)}...</td>
-                            <td>${withdrawal.telegram_id}</td>
-                            <td>${withdrawal.amount.toLocaleString()} coins</td>
-                            <td>₹${withdrawal.final_amount.toLocaleString()}</td>
-                            <td>${withdrawal.upi_id}</td>
-                            <td>${new Date(withdrawal.created_at * 1000).toLocaleString()}</td>
-                            <td>
-                                <span class="badge badge-${withdrawal.status}">
-                                    ${withdrawal.status.charAt(0).toUpperCase() + withdrawal.status.slice(1)}
-                                </span>
-                            </td>
-                            <td>
-                                ${withdrawal.status === 'pending' ? `
-                                    <button class="btn btn-success btn-sm" onclick="updateWithdrawalStatus('${withdrawal.id}', 'completed')">
-                                        Complete
-                                    </button>
-                                    <button class="btn btn-danger btn-sm" onclick="updateWithdrawalStatus('${withdrawal.id}', 'failed')">
-                                        Reject
-                                    </button>
-                                ` : ''}
-                            </td>
-                        </tr>
-                    `).join('');
+                const withdrawals = data.withdrawals || [];
+                const tableBody = document.getElementById('withdrawals-table-body');
+                
+                if (withdrawals.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="8" class="text-center">No withdrawals found</td></tr>';
+                    return;
                 }
+                
+                tableBody.innerHTML = withdrawals.map(withdrawal => `
+                    <tr>
+                        <td>${withdrawal.id ? withdrawal.id.substring(0, 8) + '...' : 'N/A'}</td>
+                        <td>${withdrawal.telegram_id}</td>
+                        <td>${(withdrawal.amount || 0).toLocaleString()} coins</td>
+                        <td>₹${(withdrawal.rupee_amount || withdrawal.final_amount || 0).toLocaleString()}</td>
+                        <td>${withdrawal.upi_id || 'N/A'}</td>
+                        <td>${withdrawal.created_at ? new Date(withdrawal.created_at * 1000).toLocaleString() : 'N/A'}</td>
+                        <td>
+                            <span class="badge badge-${withdrawal.status || 'pending'}">
+                                ${(withdrawal.status || 'pending').charAt(0).toUpperCase() + (withdrawal.status || 'pending').slice(1)}
+                            </span>
+                        </td>
+                        <td>
+                            ${withdrawal.status === 'pending' ? `
+                                <button class="btn btn-success btn-sm" onclick="approveWithdrawal('${withdrawal.id}')">
+                                    Approve
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="rejectWithdrawal('${withdrawal.id}')">
+                                    Reject
+                                </button>
+                            ` : 'N/A'}
+                        </td>
+                    </tr>
+                `).join('');
             } catch (error) {
                 console.error('Error loading withdrawals:', error);
                 document.getElementById('withdrawals-table-body').innerHTML = '<tr><td colspan="8" class="text-center">Error loading withdrawals</td></tr>';
             }
         }
 
-        // Update withdrawal status
-        async function updateWithdrawalStatus(withdrawalId, status) {
+        // Open coin adjustment modal
+        function openCoinModal(telegramId) {
+            document.getElementById('coinTelegramId').value = telegramId;
+            document.getElementById('coinAmount').value = '';
+            new bootstrap.Modal(document.getElementById('coinModal')).show();
+        }
+
+        // Adjust coins
+        async function adjustCoins() {
+            const telegramId = document.getElementById('coinTelegramId').value;
+            const amount = parseInt(document.getElementById('coinAmount').value);
+            
+            if (!amount) {
+                alert('Please enter a valid amount');
+                return;
+            }
+            
             try {
-                const response = await fetch(`${API_BASE}/admin/withdrawal/${withdrawalId}`, {
-                    method: 'PUT',
+                const response = await fetch(`${API_BASE}/admin/adjust_coins`, {
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ status })
+                    body: JSON.stringify({ telegram_id: telegramId, amount: amount })
                 });
                 
                 const data = await response.json();
                 
                 if (data.success) {
-                    // Reload withdrawals and stats
+                    alert(data.message);
+                    bootstrap.Modal.getInstance(document.getElementById('coinModal')).hide();
+                    loadUsers();
+                    loadStats();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error adjusting coins:', error);
+                alert('Error adjusting coins: ' + error.message);
+            }
+        }
+
+        // Reset user
+        async function resetUser(telegramId) {
+            if (!confirm('Are you sure you want to reset this user\'s data?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/reset_user`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ telegram_id: telegramId })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(data.message);
+                    loadUsers();
+                    loadStats();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error resetting user:', error);
+                alert('Error resetting user: ' + error.message);
+            }
+        }
+
+        // Delete user
+        async function deleteUser(telegramId) {
+            if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/delete_user`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ telegram_id: telegramId })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(data.message);
+                    loadUsers();
+                    loadStats();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error deleting user:', error);
+                alert('Error deleting user: ' + error.message);
+            }
+        }
+
+        // Approve withdrawal
+        async function approveWithdrawal(withdrawalId) {
+            try {
+                const response = await fetch(`${API_BASE}/admin/approve_withdrawal/${withdrawalId}`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(data.message);
                     loadWithdrawals();
                     loadStats();
                 } else {
-                    alert('Error updating withdrawal status: ' + (data.error || 'Unknown error'));
+                    alert('Error: ' + data.message);
                 }
             } catch (error) {
-                console.error('Error updating withdrawal status:', error);
-                alert('Error updating withdrawal status: ' + error.message);
+                console.error('Error approving withdrawal:', error);
+                alert('Error approving withdrawal: ' + error.message);
+            }
+        }
+
+        // Reject withdrawal
+        async function rejectWithdrawal(withdrawalId) {
+            if (!confirm('Are you sure you want to reject this withdrawal? Coins will be refunded to the user.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/reject_withdrawal/${withdrawalId}`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(data.message);
+                    loadWithdrawals();
+                    loadStats();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error rejecting withdrawal:', error);
+                alert('Error rejecting withdrawal: ' + error.message);
             }
         }
 
         // Navigation
         document.querySelectorAll('.nav-link').forEach(link => {
             link.addEventListener('click', function(e) {
+                if (this.getAttribute('href') === '/admin/logout') {
+                    return; // Allow normal navigation for logout
+                }
+                
                 e.preventDefault();
                 
                 // Update active link
@@ -382,11 +582,6 @@
             loadStats();
             loadUsers();
             loadWithdrawals();
-            
-            // Show dashboard by default
-            document.querySelectorAll('section').forEach(section => {
-                section.style.display = section.id === 'dashboard' ? 'block' : 'none';
-            });
         });
 
         // Refresh data every 30 seconds

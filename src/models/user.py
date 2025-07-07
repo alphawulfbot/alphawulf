@@ -14,15 +14,15 @@ class User:
         self.telegram_id = telegram_id
         self.username = username
         self.first_name = first_name
-        self.coins = coins
-        self.energy = energy
-        self.max_energy = max_energy
-        self.tap_power = tap_power
-        self.energy_regen_rate = energy_regen_rate
-        self.last_energy_update = last_energy_update or int(time.time())
+        self.coins = int(coins) if coins is not None else 0
+        self.energy = int(energy) if energy is not None else 100
+        self.max_energy = int(max_energy) if max_energy is not None else 100
+        self.tap_power = int(tap_power) if tap_power is not None else 1
+        self.energy_regen_rate = int(energy_regen_rate) if energy_regen_rate is not None else 1
+        self.last_energy_update = int(last_energy_update) if last_energy_update is not None else int(time.time())
         self.referred_by = referred_by
-        self.referral_count = referral_count
-        self.referral_earnings = referral_earnings
+        self.referral_count = int(referral_count) if referral_count is not None else 0
+        self.referral_earnings = int(referral_earnings) if referral_earnings is not None else 0
         self.upi_id = upi_id
 
     @classmethod
@@ -73,15 +73,21 @@ class User:
         Save user to database
         """
         try:
+            # Ensure all numeric fields are integers before saving
+            self.coins = int(self.coins) if self.coins is not None else 0
+            self.energy = int(self.energy) if self.energy is not None else 100
+            self.max_energy = int(self.max_energy) if self.max_energy is not None else 100
+            self.tap_power = int(self.tap_power) if self.tap_power is not None else 1
+            self.energy_regen_rate = int(self.energy_regen_rate) if self.energy_regen_rate is not None else 1
+            self.last_energy_update = int(self.last_energy_update) if self.last_energy_update is not None else int(time.time())
+            self.referral_count = int(self.referral_count) if self.referral_count is not None else 0
+            self.referral_earnings = int(self.referral_earnings) if self.referral_earnings is not None else 0
+            
             user_data = self.to_dict()
             
             # Remove id from dict if it's None
             if "id" in user_data and user_data["id"] is None:
                 del user_data["id"]
-            
-            # Ensure last_energy_update is an integer
-            if "last_energy_update" in user_data and user_data["last_energy_update"] is not None:
-                user_data["last_energy_update"] = int(user_data["last_energy_update"])
             
             # Check if user already exists
             existing_user = None
@@ -121,6 +127,11 @@ class User:
                 if "upi_id" in user_data and "upi_id" in str(e):
                     del user_data["upi_id"]
                 
+                # Ensure all numeric fields are integers in retry as well
+                for key in ["coins", "energy", "max_energy", "tap_power", "energy_regen_rate", "referral_count", "referral_earnings"]:
+                    if key in user_data and user_data[key] is not None:
+                        user_data[key] = int(user_data[key])
+                
                 # Check if user already exists
                 existing_user = None
                 if self.id:
@@ -156,15 +167,17 @@ class User:
             "telegram_id": self.telegram_id,
             "username": self.username,
             "first_name": self.first_name,
-            "coins": self.coins,
-            "energy": self.energy,
-            "max_energy": self.max_energy,
-            "tap_power": self.tap_power,
-            "energy_regen_rate": self.energy_regen_rate,
-            "last_energy_update": self.last_energy_update,
+            "coins": int(self.coins) if self.coins is not None else 0,
+            "energy": int(self.energy) if self.energy is not None else 100,
+            "max_energy": int(self.max_energy) if self.max_energy is not None else 100,
+            "tap_power": int(self.tap_power) if self.tap_power is not None else 1,
+            "energy_regen_rate": int(self.energy_regen_rate) if self.energy_regen_rate is not None else 1,
+            "last_energy_update": int(self.last_energy_update) if self.last_energy_update is not None else int(time.time()),
             "referred_by": self.referred_by,
-            "referral_count": self.referral_count,
-            "referral_earnings": self.referral_earnings,
+            "referral_count": int(self.referral_count) if self.referral_count is not None else 0,
+            "referral_earnings": int(self.referral_earnings) if self.referral_earnings is not None else 0,
             "upi_id": self.upi_id
         }
+
+
 
