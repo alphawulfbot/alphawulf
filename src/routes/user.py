@@ -8,9 +8,9 @@ import json
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-user_bp = Blueprint('user', __name__)
+user_bp = Blueprint("user", __name__)
 
-@user_bp.route('/api/user/<telegram_id>', methods=['GET'])
+@user_bp.route("/api/user/<telegram_id>", methods=["GET"])
 def get_user(telegram_id):
     try:
         # Get user from database
@@ -18,18 +18,19 @@ def get_user(telegram_id):
         
         # If user doesn't exist, create a new one
         if not user:
+            logger.info(f"User not found: {telegram_id}. Creating new user.")
             # Extract user data from request
             data = request.args
-            username = data.get('username')
-            first_name = data.get('first_name')
-            referred_by = data.get('referred_by')
+            username = data.get("username")
+            first_name = data.get("first_name")
+            referred_by = data.get("referred_by")
             
-            # Create new user
+            # Create new user with 2500 coins bonus
             user = User(
                 telegram_id=telegram_id,
                 username=username,
                 first_name=first_name,
-                coins=0,
+                coins=2500,  # New user bonus
                 energy=100,
                 max_energy=100,
                 tap_power=1,
@@ -52,13 +53,16 @@ def get_user(telegram_id):
                     referrer.coins += 100
                     referrer.save()
         else:
+            logger.info(f"User found: {telegram_id}. Updating energy.")
             # Update energy based on regeneration rate
             current_time = int(time.time())
             if user.last_energy_update:
                 time_diff = current_time - user.last_energy_update
-                energy_regen = (time_diff / 60) * user.energy_regen_rate  # Energy regenerates per minute
+                # Energy regenerates per 30 seconds (0.5 minutes)
+                energy_regen = (time_diff / 30) * user.energy_regen_rate  
                 
                 user.energy = min(user.max_energy, user.energy + energy_regen)
+                user.energy = float(user.energy) # Ensure energy is float
                 user.last_energy_update = current_time
                 
                 # Save updated energy
@@ -69,25 +73,25 @@ def get_user(telegram_id):
             "telegram_id": user.telegram_id,
             "username": user.username,
             "first_name": user.first_name,
-            "coins": user.coins,
-            "energy": user.energy,
-            "max_energy": user.max_energy,
-            "tap_power": user.tap_power,
-            "energy_regen_rate": user.energy_regen_rate,
-            "referral_count": user.referral_count,
-            "referral_earnings": user.referral_earnings,
+            "coins": int(user.coins), # Ensure coins are integer
+            "energy": float(user.energy),
+            "max_energy": int(user.max_energy),
+            "tap_power": int(user.tap_power),
+            "energy_regen_rate": float(user.energy_regen_rate),
+            "referral_count": int(user.referral_count),
+            "referral_earnings": int(user.referral_earnings),
             "upi_id": user.upi_id
         })
     except Exception as e:
         logger.error(f"Error in get_user: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-@user_bp.route('/api/tap', methods=['POST'])
+@user_bp.route("/api/tap", methods=["POST"])
 def tap():
     try:
         # Get user data from request
         data = request.json
-        telegram_id = data.get('telegram_id')
+        telegram_id = data.get("telegram_id")
         
         if not telegram_id:
             return jsonify({"error": "Telegram ID is required"}), 400
@@ -102,20 +106,22 @@ def tap():
         current_time = int(time.time())
         if user.last_energy_update:
             time_diff = current_time - user.last_energy_update
-            energy_regen = (time_diff / 60) * user.energy_regen_rate  # Energy regenerates per minute
+            # Energy regenerates per 30 seconds (0.5 minutes)
+            energy_regen = (time_diff / 30) * user.energy_regen_rate  
             
             user.energy = min(user.max_energy, user.energy + energy_regen)
+            user.energy = float(user.energy) # Ensure energy is float
         
         # Check if user has enough energy
         if user.energy < 1:
             return jsonify({
                 "success": False,
                 "message": "Not enough energy",
-                "coins": user.coins,
-                "energy": user.energy,
-                "max_energy": user.max_energy,
-                "tap_power": user.tap_power,
-                "energy_regen_rate": user.energy_regen_rate
+                "coins": int(user.coins),
+                "energy": float(user.energy),
+                "max_energy": int(user.max_energy),
+                "tap_power": int(user.tap_power),
+                "energy_regen_rate": float(user.energy_regen_rate)
             })
         
         # Deduct energy and add coins
@@ -130,23 +136,23 @@ def tap():
         return jsonify({
             "success": True,
             "message": "Tap successful",
-            "coins": user.coins,
-            "energy": user.energy,
-            "max_energy": user.max_energy,
-            "tap_power": user.tap_power,
-            "energy_regen_rate": user.energy_regen_rate
+            "coins": int(user.coins),
+            "energy": float(user.energy),
+            "max_energy": int(user.max_energy),
+            "tap_power": int(user.tap_power),
+            "energy_regen_rate": float(user.energy_regen_rate)
         })
     except Exception as e:
         logger.error(f"Error in tap: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-@user_bp.route('/api/update_upi', methods=['POST'])
+@user_bp.route("/api/update_upi", methods=["POST"])
 def update_upi():
     try:
         # Get user data from request
         data = request.json
-        telegram_id = data.get('telegram_id')
-        upi_id = data.get('upi_id')
+        telegram_id = data.get("telegram_id")
+        upi_id = data.get("upi_id")
         
         if not telegram_id or not upi_id:
             return jsonify({"error": "Telegram ID and UPI ID are required"}), 400
@@ -171,4 +177,6 @@ def update_upi():
     except Exception as e:
         logger.error(f"Error in update_upi: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
+
 

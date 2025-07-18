@@ -8,28 +8,31 @@ import time
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-withdraw_bp = Blueprint('withdraw', __name__)
+withdraw_bp = Blueprint("withdraw", __name__)
 
-@withdraw_bp.route('/api/withdraw', methods=['POST'])
+@withdraw_bp.route("/api/withdraw", methods=["POST"])
 def withdraw():
     try:
         # Get withdrawal data from request
         data = request.json
-        telegram_id = data.get('telegram_id')
-        amount = data.get('amount')
-        upi_id = data.get('upi_id')
+        telegram_id = data.get("telegram_id")
+        amount = data.get("amount")
+        upi_id = data.get("upi_id")
         
-        if not telegram_id or not amount or not upi_id:
+        if not telegram_id or amount is None or not upi_id:
             return jsonify({"error": "Telegram ID, amount, and UPI ID are required"}), 400
         
-        # Convert amount to integer
+        # Convert amount to float first, then to integer for calculations
         try:
-            amount = int(amount)
+            amount = float(amount)
+            # Ensure amount is a whole number for coin deduction, if it's meant to be integer coins
+            # If coins can be fractional, adjust this. Assuming coins are integer.
+            amount_int = int(amount)
         except ValueError:
-            return jsonify({"error": "Amount must be a number"}), 400
+            return jsonify({"error": "Amount must be a valid number"}), 400
         
         # Check if amount is valid
-        if amount < 1000:
+        if amount_int < 1000:
             return jsonify({"error": "Minimum withdrawal amount is 1,000 coins"}), 400
         
         # Get user from database
@@ -39,7 +42,7 @@ def withdraw():
             return jsonify({"error": "User not found"}), 404
         
         # Check if user has enough coins
-        if user.coins < amount:
+        if user.coins < amount_int:
             return jsonify({
                 "success": False,
                 "message": "Not enough coins",
@@ -47,68 +50,57 @@ def withdraw():
             })
         
         # Calculate fee (2%)
-        fee = int(amount * 0.02)
-        final_amount = amount - fee
+        fee = int(amount_int * 0.02)
+        final_amount = amount_int - fee
         
         # Convert coins to INR (1000 coins = ₹10)
         inr_amount = (final_amount / 1000) * 10
         
         # Update user coins
-        user.coins -= amount
+        user.coins -= amount_int
         user.save()
         
         # Create withdrawal record
         try:
             withdrawal_data = {
                 "user_id": telegram_id,
-                "amount": amount,
+                "amount": amount_int,
                 "final_amount": final_amount,
                 "fee": fee,
                 "inr_amount": inr_amount,
                 "upi_id": upi_id,
                 "status": "pending",
-                "created_at": time.strftime('%Y-%m-%d %H:%M:%S')
+                "created_at": time.strftime("%Y-%m-%d %H:%M:%S")
             }
             
             # Insert withdrawal record
             response = supabase.table("withdrawals").insert(withdrawal_data).execute()
             
             if not response.data:
+                logger.warning(f"Failed to insert full withdrawal record. Trying without fee: {withdrawal_data}")
                 # If the insert fails due to missing 'fee' column, try without it
-                try:
-                    withdrawal_data_alt = {
-                        "user_id": telegram_id,
-                        "amount": amount,
-                        "final_amount": final_amount,
-                        "inr_amount": inr_amount,
-                        "upi_id": upi_id,
-                        "status": "pending",
-                        "created_at": time.strftime('%Y-%m-%d %H:%M:%S')
-                    }
-                    
-                    response = supabase.table("withdrawals").insert(withdrawal_data_alt).execute()
-                except Exception as e2:
-                    logger.error(f"Error creating withdrawal record (alternative): {str(e2)}")
-                    # If that also fails, try with minimal fields
-                    withdrawal_data_min = {
-                        "user_id": telegram_id,
-                        "amount": amount,
-                        "upi_id": upi_id,
-                        "status": "pending"
-                    }
-                    
-                    response = supabase.table("withdrawals").insert(withdrawal_data_min).execute()
+                withdrawal_data_alt = {
+                    "user_id": telegram_id,
+                    "amount": amount_int,
+                    "final_amount": final_amount,
+                    "inr_amount": inr_amount,
+                    "upi_id": upi_id,
+                    "status": "pending",
+                    "created_at": time.strftime("%Y-%m-%d %H:%M:%S")
+                }
+                response = supabase.table("withdrawals").insert(withdrawal_data_alt).execute()
+
         except Exception as e:
             logger.error(f"Error creating withdrawal record: {str(e)}")
-            # Try with minimal fields
+            # If that also fails, try with minimal fields
             try:
                 withdrawal_data_min = {
                     "user_id": telegram_id,
-                    "amount": amount,
+                    "amount": amount_int,
                     "upi_id": upi_id,
-                    "status": "pending"
+                    "status": "pending",
+                    "created_at": time.strftime("%Y-%m-%d %H:%M:%S")
                 }
-                
                 response = supabase.table("withdrawals").insert(withdrawal_data_min).execute()
             except Exception as e2:
                 logger.error(f"Error creating minimal withdrawal record: {str(e2)}")
@@ -118,7 +110,7 @@ def withdraw():
                     "success": True,
                     "message": "Withdrawal processed successfully, but record creation failed. Please contact support.",
                     "coins": user.coins,
-                    "amount": amount,
+                    "amount": amount_int,
                     "fee": fee,
                     "final_amount": final_amount,
                     "inr_amount": inr_amount
@@ -129,7 +121,7 @@ def withdraw():
             "success": True,
             "message": "Withdrawal processed successfully",
             "coins": user.coins,
-            "amount": amount,
+            "amount": amount_int,
             "fee": fee,
             "final_amount": final_amount,
             "inr_amount": inr_amount
@@ -138,7 +130,7 @@ def withdraw():
         logger.error(f"Error in withdraw: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-@withdraw_bp.route('/api/withdrawal_history/<telegram_id>', methods=['GET'])
+@withdraw_bp.route("/api/withdrawal_history/<telegram_id>", methods=["GET"])
 def withdrawal_history(telegram_id):
     try:
         # Get user from database
@@ -158,4 +150,6 @@ def withdrawal_history(telegram_id):
     except Exception as e:
         logger.error(f"Error in withdrawal_history: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
+
 

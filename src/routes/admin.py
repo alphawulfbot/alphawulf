@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for
+from flask import Blueprint, render_template, jsonify, request, redirect, url_for, session, flash
 from src.models.user import User
 from src.config.database import supabase
 import logging
@@ -10,135 +10,114 @@ from functools import wraps
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-admin_bp = Blueprint('admin', __name__)
+admin_bp = Blueprint("admin", __name__)
 
-# Admin credentials
-ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'admin')
-ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'alphawulf2025')
+# Admin credentials - should be stored securely in environment variables
+ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "AlphaWulf@#321admin") # Set admin password
 
 # Login required decorator
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if 'logged_in' not in session:
-            return redirect('/admin/login')
+        if "admin_logged_in" not in session or not session["admin_logged_in"]:
+            return redirect(url_for("admin.login", next=request.url))
         return f(*args, **kwargs)
     return decorated_function
 
-@admin_bp.route('/admin/login', methods=['GET', 'POST'])
+@admin_bp.route("/admin/login", methods=["GET", "POST"])
 def login():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
         
         if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
-            session['logged_in'] = True
-            return redirect('/admin')
+            session["admin_logged_in"] = True
+            next_page = request.args.get("next")
+            if next_page:
+                return redirect(next_page)
+            return redirect(url_for("admin.admin_dashboard"))
         else:
-            return render_template('login.html', error='Invalid credentials')
+            flash("Invalid username or password")
     
-    return render_template('login.html')
+    return render_template("login.html")
 
-@admin_bp.route('/admin/logout')
+@admin_bp.route("/admin/logout")
 def logout():
-    session.pop('logged_in', None)
-    return redirect('/admin/login')
+    session.pop("admin_logged_in", None)
+    return redirect(url_for("admin.login"))
 
-@admin_bp.route('/admin')
+@admin_bp.route("/admin")
 @login_required
-def admin():
-    return render_template('admin.html')
+def admin_dashboard():
+    return render_template("admin.html")
 
-@admin_bp.route('/api/admin/users')
+@admin_bp.route("/api/admin/users")
 @login_required
 def get_users():
     try:
-        # Get all users
-        users = User.get_all_users()
-        logger.info(f"Retrieved {len(users)} users")
+        # Get all users from database, including username and telegram_id
+        response = supabase.table("users").select("telegram_id, username, first_name, coins, energy, max_energy, tap_power, referral_count, referral_earnings, last_energy_update").execute()
         
-        # Format users for display
-        formatted_users = []
-        for user in users:
-            formatted_users.append({
-                "id": user.telegram_id,
-                "username": user.username or "N/A",
-                "name": user.first_name or "N/A",
-                "coins": user.coins,
-                "energy": user.energy,
-                "tap_power": user.tap_power,
-                "referrals": user.referral_count,
-                "last_active": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(user.last_energy_update)) if user.last_energy_update else "N/A"
-            })
-        
-        return jsonify({"users": formatted_users})
+        if response.data:
+            users = response.data
+            logger.info(f"Retrieved {len(users)} users")
+            return jsonify({"users": users})
+        else:
+            logger.info("Retrieved 0 users")
+            return jsonify({"users": []})
     except Exception as e:
-        logger.error(f"Error in get_users: {str(e)}")
-        return jsonify({"users": []})
+        logger.error(f"Error retrieving users: {str(e)}")
+        return jsonify({"users": [], "error": str(e)}), 500
 
-@admin_bp.route('/api/admin/withdrawals')
+@admin_bp.route("/api/admin/withdrawals")
 @login_required
 def get_withdrawals():
     try:
-        # Get all withdrawals
+        # Get all withdrawals from database, ordered by created_at desc
         response = supabase.table("withdrawals").select("*").order("created_at", desc=True).execute()
         
         if response.data:
             withdrawals = response.data
             logger.info(f"Retrieved {len(withdrawals)} withdrawals")
-            
-            # Format withdrawals for display
-            formatted_withdrawals = []
-            for withdrawal in withdrawals:
-                # Get user info
-                user_id = withdrawal.get("user_id")
-                user = User.get_by_telegram_id(user_id)
-                username = user.username if user else "N/A"
-                
-                formatted_withdrawals.append({
-                    "id": withdrawal.get("id"),
-                    "user": username,
-                    "amount": withdrawal.get("amount"),
-                    "final_amount": withdrawal.get("final_amount", withdrawal.get("amount")),
-                    "upi_id": withdrawal.get("upi_id"),
-                    "date": withdrawal.get("created_at"),
-                    "status": withdrawal.get("status")
-                })
-            
-            return jsonify({"withdrawals": formatted_withdrawals})
+            return jsonify({"withdrawals": withdrawals})
         else:
             logger.info("Retrieved 0 withdrawals")
             return jsonify({"withdrawals": []})
     except Exception as e:
-        logger.error(f"Error in get_withdrawals: {str(e)}")
-        return jsonify({"withdrawals": []})
+        logger.error(f"Error retrieving withdrawals: {str(e)}")
+        return jsonify({"withdrawals": [], "error": str(e)}), 500
 
-@admin_bp.route('/api/admin/stats')
+@admin_bp.route("/api/admin/stats")
 @login_required
 def get_stats():
     try:
         # Get all users
-        users = User.get_all_users()
+        users_response = supabase.table("users").select("*").execute()
+        users = users_response.data if users_response.data else []
+        
+        # Get all withdrawals
+        withdrawals_response = supabase.table("withdrawals").select("*").execute()
+        withdrawals = withdrawals_response.data if withdrawals_response.data else []
         
         # Calculate stats
         total_users = len(users)
-        total_coins = sum(user.coins for user in users)
         
-        # Calculate active users (last 24 hours)
+        # Active users in the last 24 hours
         current_time = int(time.time())
-        active_users = sum(1 for user in users if user.last_energy_update and current_time - user.last_energy_update < 86400)
+        active_users = sum(1 for user in users if user.get("last_energy_update") and current_time - user.get("last_energy_update") < 86400)
         
-        # Get all withdrawals
-        try:
-            withdrawals_response = supabase.table("withdrawals").select("*").execute()
-            withdrawals = withdrawals_response.data if withdrawals_response.data else []
-        except Exception as e:
-            logger.error(f"Error getting withdrawals: {str(e)}")
-            withdrawals = []
+        # Total coins across all users
+        total_coins = sum(user.get("coins", 0) for user in users)
         
+        # Total withdrawals
         total_withdrawals = len(withdrawals)
-        pending_withdrawals = sum(1 for w in withdrawals if w.get("status") == "pending")
-        total_withdrawn = sum(w.get("amount", 0) for w in withdrawals)
+        
+        # Pending withdrawals
+        pending_withdrawals = sum(1 for withdrawal in withdrawals if withdrawal.get("status") == "pending")
+        
+        # Total withdrawn amount
+        total_withdrawn = sum(withdrawal.get("amount", 0) for withdrawal in withdrawals if withdrawal.get("status") == "completed")
         
         logger.info(f"Stats: {total_users} users, {active_users} active, {total_coins} coins, {total_withdrawals} withdrawals")
         
@@ -151,80 +130,151 @@ def get_stats():
             "total_withdrawn": total_withdrawn
         })
     except Exception as e:
-        logger.error(f"Error in get_stats: {str(e)}")
+        logger.error(f"Error retrieving stats: {str(e)}")
         return jsonify({
             "total_users": 0,
             "active_users": 0,
             "total_coins": 0,
             "total_withdrawals": 0,
             "pending_withdrawals": 0,
-            "total_withdrawn": 0
-        })
+            "total_withdrawn": 0,
+            "error": str(e)
+        }), 500
 
-@admin_bp.route('/api/admin/approve_withdrawal', methods=['POST'])
+@admin_bp.route("/api/admin/approve_withdrawal/<int:withdrawal_id>", methods=["POST"])
 @login_required
-def approve_withdrawal():
+def approve_withdrawal(withdrawal_id):
     try:
-        # Get withdrawal ID from request
-        data = request.json
-        withdrawal_id = data.get('id')
+        # Update withdrawal status to completed
+        response = supabase.table("withdrawals").update({"status": "completed"}).eq("id", withdrawal_id).execute()
         
-        if not withdrawal_id:
-            return jsonify({"error": "Withdrawal ID is required"}), 400
-        
-        # Update withdrawal status
-        response = supabase.table("withdrawals").update({"status": "approved"}).eq("id", withdrawal_id).execute()
-        
-        if response.data:
-            return jsonify({"success": True, "message": "Withdrawal approved successfully"})
+        if response.data and len(response.data) > 0:
+            return jsonify({"success": True, "message": "Withdrawal approved"})
         else:
-            return jsonify({"error": "Withdrawal not found"}), 404
+            return jsonify({"success": False, "message": "Withdrawal not found"}), 404
     except Exception as e:
-        logger.error(f"Error in approve_withdrawal: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"Error approving withdrawal: {str(e)}")
+        return jsonify({"success": False, "message": str(e)}), 500
 
-@admin_bp.route('/api/admin/reject_withdrawal', methods=['POST'])
+@admin_bp.route("/api/admin/reject_withdrawal/<int:withdrawal_id>", methods=["POST"])
 @login_required
-def reject_withdrawal():
+def reject_withdrawal(withdrawal_id):
     try:
-        # Get withdrawal ID from request
-        data = request.json
-        withdrawal_id = data.get('id')
-        
-        if not withdrawal_id:
-            return jsonify({"error": "Withdrawal ID is required"}), 400
-        
-        # Get withdrawal info
+        # Get withdrawal details
         withdrawal_response = supabase.table("withdrawals").select("*").eq("id", withdrawal_id).execute()
         
         if not withdrawal_response.data or len(withdrawal_response.data) == 0:
-            return jsonify({"error": "Withdrawal not found"}), 404
+            return jsonify({"success": False, "message": "Withdrawal not found"}), 404
         
         withdrawal = withdrawal_response.data[0]
         user_id = withdrawal.get("user_id")
         amount = withdrawal.get("amount")
         
-        # Get user
-        user = User.get_by_telegram_id(user_id)
+        # Update withdrawal status to rejected
+        update_response = supabase.table("withdrawals").update({"status": "rejected"}).eq("id", withdrawal_id).execute()
         
-        if not user:
-            return jsonify({"error": "User not found"}), 404
+        if not update_response.data or len(update_response.data) == 0:
+            return jsonify({"success": False, "message": "Failed to update withdrawal status"}), 500
         
         # Refund coins to user
-        user.coins += amount
-        user.save()
+        user_response = supabase.table("users").select("*").eq("telegram_id", user_id).execute()
         
-        # Update withdrawal status
-        response = supabase.table("withdrawals").update({"status": "rejected"}).eq("id", withdrawal_id).execute()
+        if not user_response.data or len(user_response.data) == 0:
+            return jsonify({"success": False, "message": "User not found"}), 404
         
-        if response.data:
-            return jsonify({
-                "success": True,
-                "message": "Withdrawal rejected and coins refunded successfully"
-            })
-        else:
-            return jsonify({"error": "Failed to update withdrawal status"}), 500
+        user = user_response.data[0]
+        current_coins = user.get("coins", 0)
+        
+        # Update user coins
+        user_update_response = supabase.table("users").update({"coins": current_coins + amount}).eq("telegram_id", user_id).execute()
+        
+        if not user_update_response.data or len(user_update_response.data) == 0:
+            return jsonify({"success": False, "message": "Failed to refund coins to user"}), 500
+        
+        return jsonify({"success": True, "message": "Withdrawal rejected and coins refunded"})
     except Exception as e:
-        logger.error(f"Error in reject_withdrawal: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"Error rejecting withdrawal: {str(e)}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@admin_bp.route("/api/admin/adjust_coins", methods=["POST"])
+@login_required
+def adjust_coins():
+    try:
+        data = request.json
+        telegram_id = data.get("telegram_id")
+        amount = data.get("amount")
+        action = data.get("action") # "add" or "subtract"
+
+        if not telegram_id or amount is None or action not in ["add", "subtract"]:
+            return jsonify({"success": False, "message": "Missing data"}), 400
+
+        user = User.get_by_telegram_id(telegram_id)
+        if not user:
+            return jsonify({"success": False, "message": "User not found"}), 404
+
+        if action == "add":
+            user.coins += amount
+        elif action == "subtract":
+            user.coins = max(0, user.coins - amount) # Ensure coins don't go below zero
+        
+        user.save()
+        return jsonify({"success": True, "message": "Coins adjusted successfully", "new_coins": user.coins})
+    except Exception as e:
+        logger.error(f"Error adjusting coins: {str(e)}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@admin_bp.route("/api/admin/reset_user_data", methods=["POST"])
+@login_required
+def reset_user_data():
+    try:
+        data = request.json
+        telegram_id = data.get("telegram_id")
+
+        if not telegram_id:
+            return jsonify({"success": False, "message": "Telegram ID is required"}), 400
+
+        user = User.get_by_telegram_id(telegram_id)
+        if not user:
+            return jsonify({"success": False, "message": "User not found"}), 404
+
+        # Reset user data to initial state (similar to new user creation)
+        user.coins = 2500 # New user bonus
+        user.energy = 100
+        user.max_energy = 100
+        user.tap_power = 1
+        user.energy_regen_rate = 1
+        user.last_energy_update = int(time.time())
+        user.referral_count = 0
+        user.referral_earnings = 0
+        user.upi_id = None # Clear UPI ID
+        
+        user.save()
+        return jsonify({"success": True, "message": "User data reset successfully"})
+    except Exception as e:
+        logger.error(f"Error resetting user data: {str(e)}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@admin_bp.route("/api/admin/delete_user", methods=["POST"])
+@login_required
+def delete_user():
+    try:
+        data = request.json
+        telegram_id = data.get("telegram_id")
+
+        if not telegram_id:
+            return jsonify({"success": False, "message": "Telegram ID is required"}), 400
+
+        # Delete user from database
+        response = supabase.table("users").delete().eq("telegram_id", telegram_id).execute()
+        
+        if response.data and len(response.data) > 0:
+            return jsonify({"success": True, "message": "User deleted successfully"})
+        else:
+            return jsonify({"success": False, "message": "User not found"}), 404
+    except Exception as e:
+        logger.error(f"Error deleting user: {str(e)}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
+
+
 

@@ -1,7 +1,6 @@
 from src.config.database import supabase
 import time
 import logging
-import math
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -12,18 +11,18 @@ class User:
                  tap_power=1, energy_regen_rate=1, last_energy_update=None, referred_by=None, 
                  referral_count=0, referral_earnings=0, upi_id=None, id=None):
         self.id = id
-        self.telegram_id = telegram_id
+        self.telegram_id = str(telegram_id) # Ensure telegram_id is string
         self.username = username
         self.first_name = first_name
-        self.coins = int(coins) if coins is not None else 0
-        self.energy = int(energy) if energy is not None else 100
-        self.max_energy = int(max_energy) if max_energy is not None else 100
-        self.tap_power = int(tap_power) if tap_power is not None else 1
-        self.energy_regen_rate = int(energy_regen_rate) if energy_regen_rate is not None else 1
-        self.last_energy_update = int(last_energy_update) if last_energy_update is not None else int(time.time())
-        self.referred_by = referred_by
-        self.referral_count = int(referral_count) if referral_count is not None else 0
-        self.referral_earnings = int(referral_earnings) if referral_earnings is not None else 0
+        self.coins = int(coins) # Ensure coins are integer
+        self.energy = float(energy) # Ensure energy is float
+        self.max_energy = int(max_energy) # Ensure max_energy is integer
+        self.tap_power = int(tap_power) # Ensure tap_power is integer
+        self.energy_regen_rate = float(energy_regen_rate) # Ensure energy_regen_rate is float
+        self.last_energy_update = last_energy_update or int(time.time())
+        self.referred_by = str(referred_by) if referred_by else None # Ensure referred_by is string
+        self.referral_count = int(referral_count) # Ensure referral_count is integer
+        self.referral_earnings = int(referral_earnings) # Ensure referral_earnings is integer
         self.upi_id = upi_id
 
     @classmethod
@@ -32,7 +31,7 @@ class User:
         Get user by Telegram ID
         """
         try:
-            response = supabase.table("users").select("*").eq("telegram_id", telegram_id).execute()
+            response = supabase.table("users").select("*").eq("telegram_id", str(telegram_id)).execute()
             
             if response.data and len(response.data) > 0:
                 user_data = response.data[0]
@@ -69,59 +68,20 @@ class User:
                 last_energy_update=int(time.time())
             )
 
-    @classmethod
-    def get_all_users(cls):
-        """
-        Get all users
-        """
-        try:
-            response = supabase.table("users").select("*").execute()
-            
-            if response.data:
-                users = []
-                for user_data in response.data:
-                    users.append(cls(
-                        id=user_data.get("id"),
-                        telegram_id=user_data.get("telegram_id"),
-                        username=user_data.get("username"),
-                        first_name=user_data.get("first_name"),
-                        coins=user_data.get("coins", 0),
-                        energy=user_data.get("energy", 100),
-                        max_energy=user_data.get("max_energy", 100),
-                        tap_power=user_data.get("tap_power", 1),
-                        energy_regen_rate=user_data.get("energy_regen_rate", 1),
-                        last_energy_update=user_data.get("last_energy_update"),
-                        referred_by=user_data.get("referred_by"),
-                        referral_count=user_data.get("referral_count", 0),
-                        referral_earnings=user_data.get("referral_earnings", 0),
-                        upi_id=user_data.get("upi_id")
-                    ))
-                return users
-            return []
-        except Exception as e:
-            logger.error(f"Error in get_all_users: {str(e)}")
-            return []
-
     def save(self):
         """
         Save user to database
         """
         try:
-            # Ensure all numeric fields are integers
-            self.coins = int(self.coins) if self.coins is not None else 0
-            self.energy = int(self.energy) if self.energy is not None else 100
-            self.max_energy = int(self.max_energy) if self.max_energy is not None else 100
-            self.tap_power = int(self.tap_power) if self.tap_power is not None else 1
-            self.energy_regen_rate = int(self.energy_regen_rate) if self.energy_regen_rate is not None else 1
-            self.last_energy_update = int(self.last_energy_update) if self.last_energy_update is not None else int(time.time())
-            self.referral_count = int(self.referral_count) if self.referral_count is not None else 0
-            self.referral_earnings = int(self.referral_earnings) if self.referral_earnings is not None else 0
-            
             user_data = self.to_dict()
             
             # Remove id from dict if it's None
             if "id" in user_data and user_data["id"] is None:
                 del user_data["id"]
+            
+            # Ensure last_energy_update is an integer
+            if "last_energy_update" in user_data and user_data["last_energy_update"] is not None:
+                user_data["last_energy_update"] = int(user_data["last_energy_update"])
             
             # Check if user already exists
             existing_user = None
@@ -161,22 +121,6 @@ class User:
                 if "upi_id" in user_data and "upi_id" in str(e):
                     del user_data["upi_id"]
                 
-                # Ensure all numeric fields are integers
-                if "coins" in user_data:
-                    user_data["coins"] = int(user_data["coins"])
-                if "energy" in user_data:
-                    user_data["energy"] = int(user_data["energy"])
-                if "max_energy" in user_data:
-                    user_data["max_energy"] = int(user_data["max_energy"])
-                if "tap_power" in user_data:
-                    user_data["tap_power"] = int(user_data["tap_power"])
-                if "energy_regen_rate" in user_data:
-                    user_data["energy_regen_rate"] = int(user_data["energy_regen_rate"])
-                if "referral_count" in user_data:
-                    user_data["referral_count"] = int(user_data["referral_count"])
-                if "referral_earnings" in user_data:
-                    user_data["referral_earnings"] = int(user_data["referral_earnings"])
-                
                 # Check if user already exists
                 existing_user = None
                 if self.id:
@@ -212,15 +156,17 @@ class User:
             "telegram_id": self.telegram_id,
             "username": self.username,
             "first_name": self.first_name,
-            "coins": int(self.coins) if self.coins is not None else 0,
-            "energy": int(self.energy) if self.energy is not None else 100,
-            "max_energy": int(self.max_energy) if self.max_energy is not None else 100,
-            "tap_power": int(self.tap_power) if self.tap_power is not None else 1,
-            "energy_regen_rate": int(self.energy_regen_rate) if self.energy_regen_rate is not None else 1,
-            "last_energy_update": int(self.last_energy_update) if self.last_energy_update is not None else int(time.time()),
+            "coins": self.coins,
+            "energy": self.energy,
+            "max_energy": self.max_energy,
+            "tap_power": self.tap_power,
+            "energy_regen_rate": self.energy_regen_rate,
+            "last_energy_update": self.last_energy_update,
             "referred_by": self.referred_by,
-            "referral_count": int(self.referral_count) if self.referral_count is not None else 0,
-            "referral_earnings": int(self.referral_earnings) if self.referral_earnings is not None else 0,
+            "referral_count": self.referral_count,
+            "referral_earnings": self.referral_earnings,
             "upi_id": self.upi_id
         }
+
+
 

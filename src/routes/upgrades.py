@@ -6,15 +6,15 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-upgrades_bp = Blueprint('upgrades', __name__)
+upgrades_bp = Blueprint("upgrades", __name__)
 
-@upgrades_bp.route('/api/upgrade', methods=['POST'])
+@upgrades_bp.route("/api/upgrade", methods=["POST"])
 def upgrade():
     try:
         # Get upgrade data from request
         data = request.json
-        telegram_id = data.get('telegram_id')
-        upgrade_type = data.get('upgrade_type')
+        telegram_id = str(data.get("telegram_id")) # Ensure telegram_id is string
+        upgrade_type = data.get("upgrade_type")
         
         if not telegram_id or not upgrade_type:
             return jsonify({"error": "Telegram ID and upgrade type are required"}), 400
@@ -29,35 +29,39 @@ def upgrade():
         current_level = 0
         cost = 0
         
-        if upgrade_type == 'tap_power':
+        if upgrade_type == "tap_power":
             current_level = user.tap_power
             cost = 100 * (current_level + 1)
-        elif upgrade_type == 'max_energy':
-            current_level = user.max_energy // 100
+        elif upgrade_type == "max_energy":
+            # Assuming max_energy increases by 100 per level, so level is max_energy / 100
+            current_level = user.max_energy // 100 
             cost = 200 * (current_level + 1)
-        elif upgrade_type == 'energy_regen_rate':
+        elif upgrade_type == "energy_regen_rate":
             current_level = user.energy_regen_rate
             cost = 300 * (current_level + 1)
         else:
             return jsonify({"error": "Invalid upgrade type"}), 400
         
+        # Ensure cost is an integer
+        cost = int(cost)
+
         # Check if user has enough coins
         if user.coins < cost:
             return jsonify({
                 "success": False,
                 "message": "Not enough coins",
-                "coins": user.coins,
+                "coins": int(user.coins),
                 "cost": cost
             })
         
         # Apply upgrade
         user.coins -= cost
         
-        if upgrade_type == 'tap_power':
+        if upgrade_type == "tap_power":
             user.tap_power += 1
-        elif upgrade_type == 'max_energy':
+        elif upgrade_type == "max_energy":
             user.max_energy += 100
-        elif upgrade_type == 'energy_regen_rate':
+        elif upgrade_type == "energy_regen_rate":
             user.energy_regen_rate += 1
         
         # Save updated user
@@ -67,13 +71,15 @@ def upgrade():
         return jsonify({
             "success": True,
             "message": "Upgrade successful",
-            "coins": user.coins,
-            "energy": user.energy,
-            "max_energy": user.max_energy,
-            "tap_power": user.tap_power,
-            "energy_regen_rate": user.energy_regen_rate
+            "coins": int(user.coins),
+            "energy": float(user.energy),
+            "max_energy": int(user.max_energy),
+            "tap_power": int(user.tap_power),
+            "energy_regen_rate": float(user.energy_regen_rate)
         })
     except Exception as e:
         logger.error(f"Error in upgrade: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
+
 
