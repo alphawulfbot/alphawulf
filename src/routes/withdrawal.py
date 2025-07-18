@@ -1,9 +1,8 @@
 from flask import Blueprint, request, jsonify
-from src.models.user import User
 from src.config.database import supabase
+from src.models.user import User
 import logging
 import time
-import uuid
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -12,26 +11,26 @@ logger = logging.getLogger(__name__)
 withdraw_bp = Blueprint("withdraw", __name__)
 
 @withdraw_bp.route("/api/withdraw", methods=["POST"])
-def withdraw():
+def request_withdrawal():
+    """Handle withdrawal request"""
     try:
-        # Get withdrawal data from request
         data = request.json
-        telegram_id = data.get("telegram_id")
-        amount_str = data.get("amount") # Get as string first
+        telegram_id = str(data.get("telegram_id", "")).strip()
+        amount = data.get("amount")  # Coins to withdraw
         upi_id = data.get("upi_id")
         
-        if not telegram_id or not amount_str or not upi_id:
-            return jsonify({"error": "Telegram ID, amount, and UPI ID are required"}), 400
+        logger.info(f"Withdrawal request for user {telegram_id}: amount={amount}, upi_id={upi_id}")
         
-        # Convert amount to integer, handling potential float strings
+        if not telegram_id or not amount or not upi_id:
+            return jsonify({"error": "Missing required fields"}), 400
+        
+        # Ensure amount is a valid number and convert to float for calculations
         try:
-            amount = int(float(amount_str))
+            amount = float(amount)
+            if amount <= 0:
+                return jsonify({"error": "Withdrawal amount must be positive"}), 400
         except ValueError:
-            return jsonify({"error": "Amount must be a valid number"}), 400
-        
-        # Check if amount is valid
-        if amount < 1000:
-            return jsonify({"error": "Minimum withdrawal amount is 1,000 coins"}), 400
+            return jsonify({"error": "Invalid amount format"}), 400
         
         # Get user from database
         user = User.get_by_telegram_id(telegram_id)
@@ -41,89 +40,106 @@ def withdraw():
         
         # Check if user has enough coins
         if user.coins < amount:
-            return jsonify({
-                "success": False,
-                "message": "Not enough coins",
-                "coins": user.coins
-            })
+            return jsonify({"error": "Insufficient coins"}), 400
         
-        # Calculate fee (2%)
-        fee = int(amount * 0.02)
-        final_amount = amount - fee
+        # Calculate processing fee (2%)
+        processing_fee = amount * 0.02
+        final_amount = amount - processing_fee
         
-        # Convert coins to INR (1000 coins = ₹10)
-        rupee_amount = (final_amount / 1000) * 10
+        # Convert coins to rupees (assuming 1000 coins = 10 rupees)
+        rupee_amount = final_amount / 100
         
-        # Update user coins
+        # Deduct coins from user balance
         user.coins -= amount
-        user.save()
+        if not user.save():
+            logger.error(f"Failed to deduct coins for withdrawal for user {telegram_id}")
+            return jsonify({"error": "Failed to process withdrawal"}), 500
         
-        # Create withdrawal record
-        withdrawal_id = str(uuid.uuid4())
+        # Record withdrawal in database
         withdrawal_data = {
-            "id": withdrawal_id,
             "telegram_id": telegram_id,
             "amount": amount,
-            "rupee_amount": rupee_amount,
-            "fee": fee,
             "final_amount": final_amount,
+            "rupee_amount": rupee_amount,
             "upi_id": upi_id,
             "status": "pending",
             "created_at": int(time.time())
         }
         
-        try:
-            response = supabase.table("withdrawals").insert(withdrawal_data).execute()
-            if not response.data:
-                logger.error(f"Supabase insert response data empty: {response}")
-                raise Exception("Failed to create withdrawal record in Supabase.")
-        except Exception as e:
-            logger.error(f"Error creating withdrawal record: {str(e)}")
-            # If withdrawal record creation fails, log and proceed, but inform user
+        response = supabase.table("withdrawals").insert(withdrawal_data).execute()
+        
+        if response.data:
+            logger.info(f"Withdrawal request successful for user {telegram_id}, ID: {response.data[0].get("id")}")
             return jsonify({
                 "success": True,
-                "message": "Withdrawal processed, but record not saved. Contact support.",
-                "coins": user.coins,
-                "amount": amount,
-                "fee": fee,
-                "final_amount": final_amount,
-                "rupee_amount": rupee_amount
+                "message": "Withdrawal request submitted successfully",
+                "withdrawal_id": response.data[0].get("id"),
+                "new_balance": user.coins
             })
-        
-        # Return success message
-        return jsonify({
-            "success": True,
-            "message": "Withdrawal processed successfully",
-            "coins": user.coins,
-            "amount": amount,
-            "fee": fee,
-            "final_amount": final_amount,
-            "rupee_amount": rupee_amount
-        })
+        else:
+            logger.error(f"Failed to record withdrawal in database for user {telegram_id}")
+            return jsonify({"error": "Failed to record withdrawal"}), 500
+            
     except Exception as e:
-        logger.error(f"Error in withdraw: {str(e)}")
+        logger.error(f"Error processing withdrawal request: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-@withdraw_bp.route("/api/withdrawal_history/<telegram_id>", methods=["GET"])
-def withdrawal_history(telegram_id):
+@withdraw_bp.route("/api/withdrawals/<telegram_id>", methods=["GET"])
+def get_withdrawals(telegram_id):
+    """Get withdrawal history for a user"""
     try:
-        # Get user from database
-        user = User.get_by_telegram_id(telegram_id)
+        telegram_id = str(telegram_id).strip()
+        logger.info(f"Fetching withdrawal history for user: {telegram_id}")
         
-        if not user:
-            return jsonify({"error": "User not found"}), 404
+        if not telegram_id:
+            return jsonify({"error": "Missing telegram ID"}), 400
         
-        # Get withdrawal history from database
         response = supabase.table("withdrawals").select("*").eq("telegram_id", telegram_id).order("created_at", desc=True).execute()
         
         if response.data:
-            withdrawals = response.data
-            return jsonify({"withdrawals": withdrawals})
+            withdrawals = []
+            for withdrawal_data in response.data:
+                # Ensure all fields are properly formatted
+                withdrawal = {
+                    "id": withdrawal_data.get("id"),
+                    "telegram_id": str(withdrawal_data.get("telegram_id", "")),
+                    "amount": float(str(withdrawal_data.get("amount", 0))),
+                    "final_amount": float(str(withdrawal_data.get("final_amount", 0))),
+                    "rupee_amount": float(str(withdrawal_data.get("rupee_amount", 0))),
+                    "upi_id": withdrawal_data.get("upi_id") or "N/A",
+                    "status": withdrawal_data.get("status", "pending"),
+                    "created_at": withdrawal_data.get("created_at"),
+                    "processed_at": withdrawal_data.get("processed_at")
+                }
+                
+                # Format dates
+                if withdrawal["created_at"]:
+                    try:
+                        if isinstance(withdrawal["created_at"], (int, float)):
+                            withdrawal["created_at"] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(withdrawal["created_at"]))
+                        else:
+                            withdrawal["created_at"] = str(withdrawal["created_at"])[:19]
+                    except:
+                        withdrawal["created_at"] = "N/A"
+                
+                if withdrawal["processed_at"]:
+                    try:
+                        if isinstance(withdrawal["processed_at"], (int, float)):
+                            withdrawal["processed_at"] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(withdrawal["processed_at"]))
+                        else:
+                            withdrawal["processed_at"] = str(withdrawal["processed_at"])[:19]
+                    except:
+                        withdrawal["processed_at"] = "N/A"
+                
+                withdrawals.append(withdrawal)
+            
+            logger.info(f"Retrieved {len(withdrawals)} withdrawals for user {telegram_id}")
+            return jsonify(withdrawals)
         else:
-            return jsonify({"withdrawals": []})
+            logger.info(f"No withdrawal history found for user: {telegram_id}")
+            return jsonify([])
+            
     except Exception as e:
-        logger.error(f"Error in withdrawal_history: {str(e)}")
+        logger.error(f"Error fetching withdrawal history for user {telegram_id}: {str(e)}")
         return jsonify({"error": str(e)}), 500
-
-
 

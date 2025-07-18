@@ -5,6 +5,94 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alpha Wulf - Withdraw</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        // Disable right-click context menu
+        document.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable text selection and drag
+        document.addEventListener("selectstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable drag
+        document.addEventListener("dragstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+    </script>
+    <script>
+        function goBack() {
+            window.location.href = "index.html";
+        }
+    </script>
+    <script>
+        // Disable right-click context menu
+        document.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable text selection and drag
+        document.addEventListener("selectstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable drag
+        document.addEventListener("dragstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+    </script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3014995575427702"
+     crossorigin="anonymous"></script>
+    <script>
+        // Disable right-click context menu
+        document.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable text selection and drag
+        document.addEventListener("selectstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable drag
+        document.addEventListener("dragstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+    </script>
+    <script>
+        function goBack() {
+            window.location.href = "index.html";
+        }
+    </script>
+    <script>
+        // Disable right-click context menu
+        document.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable text selection and drag
+        document.addEventListener("selectstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable drag
+        document.addEventListener("dragstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+    </script>
     <style>
         * {
             margin: 0;
@@ -153,7 +241,7 @@
 
         .amount-button.selected {
             background: #00BFFF;
-            color: #1a1a1a;
+            color: #0A192F;
         }
 
         .withdraw-button {
@@ -334,6 +422,49 @@
         <script>
              (adsbygoogle = window.adsbygoogle || []).push({});
         </script>
+    <script>
+        // Disable right-click context menu
+        document.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable text selection and drag
+        document.addEventListener("selectstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable drag
+        document.addEventListener("dragstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+    </script>
+    <script>
+        function goBack() {
+            window.location.href = "index.html";
+        }
+    </script>
+    <script>
+        // Disable right-click context menu
+        document.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable text selection and drag
+        document.addEventListener("selectstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable drag
+        document.addEventListener("dragstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+    </script>
 
         <div class="balance-card">
             <div class="balance-amount" id="coinBalance">0</div>
@@ -426,122 +557,120 @@
         let withdrawalData = {};
 
         // API base URL
-        const API_BASE = "https://alphawulf-backend-gfgy.onrender.com/api";
+        const API_BASE = window.location.origin + '/api';
 
         // Initialize page
         async function initWithdraw() {
             try {
                 const telegramUser = tg?.initDataUnsafe?.user;
                 if (!telegramUser) {
-                    showError("Telegram user data not available. Please open the app within Telegram.");
+                    showError('Telegram user data not available');
                     return;
                 }
 
                 // Load user balance
-                const userResponse = await fetch(`${API_BASE}/user/${telegramUser.id}`);
-                if (userResponse.ok) {
-                    const userData = await userResponse.json();
+                const response = await fetch(`${API_BASE}/users/telegram/${telegramUser.id}`);
+                if (response.ok) {
+                    const userData = await response.json();
                     userBalance = userData.coins;
-                    document.getElementById("coinBalance").textContent = userBalance.toLocaleString();
+                    document.getElementById('coinBalance').textContent = userBalance.toLocaleString();
                     
                     // Pre-fill UPI ID if available
                     if (userData.upi_id) {
-                        document.getElementById("upiId").value = userData.upi_id;
+                        document.getElementById('upiId').value = userData.upi_id;
                     }
-                } else {
-                    showError("Failed to load user balance.");
                 }
 
                 // Load withdrawal history
                 loadWithdrawalHistory();
                 
             } catch (error) {
-                console.error("Failed to initialize withdrawal page:", error);
-                showError("Failed to load user data. Please try again.");
+                console.error('Failed to initialize withdrawal page:', error);
+                showError('Failed to load user data');
             }
         }
 
         // Select predefined amount
         function selectAmount(amount) {
             // Remove previous selection
-            document.querySelectorAll(".amount-button").forEach(btn => {
-                btn.classList.remove("selected");
+            document.querySelectorAll('.amount-button').forEach(btn => {
+                btn.classList.remove('selected');
             });
             
             // Select current button
-            event.target.classList.add("selected");
+            event.target.classList.add('selected');
             
             // Set amount
             selectedAmount = amount;
-            document.getElementById("customAmount").value = amount;
+            document.getElementById('customAmount').value = amount;
             
             updateWithdrawalSummary();
         }
 
         // Update withdrawal summary
         function updateWithdrawalSummary() {
-            const amount = parseInt(document.getElementById("customAmount").value) || 0;
-            const upiId = document.getElementById("upiId").value.trim();
+            const amount = parseInt(document.getElementById('customAmount').value) || 0;
+            const upiId = document.getElementById('upiId').value.trim();
             
             if (amount >= 1000 && upiId) {
-                const rupeeAmount = (amount / 1000) * 10; // 1000 coins = ₹10
+                const rupeeAmount = amount / 100; // 100 coins = 1 rupee
                 const fee = rupeeAmount * 0.02; // 2% fee
                 const finalAmount = rupeeAmount - fee;
                 
-                document.getElementById("summaryCoins").textContent = amount.toLocaleString();
-                document.getElementById("summaryAmount").textContent = rupeeAmount.toFixed(2);
-                document.getElementById("summaryFee").textContent = fee.toFixed(2);
-                document.getElementById("summaryFinal").textContent = finalAmount.toFixed(2);
+                document.getElementById('summaryCoins').textContent = amount.toLocaleString();
+                document.getElementById('summaryAmount').textContent = rupeeAmount.toFixed(2);
+                document.getElementById('summaryFee').textContent = fee.toFixed(2);
+                document.getElementById('summaryFinal').textContent = finalAmount.toFixed(2);
                 
-                document.getElementById("withdrawalSummary").style.display = "block";
-                document.getElementById("withdrawButton").disabled = amount > userBalance;
+                document.getElementById('withdrawalSummary').style.display = 'block';
+                document.getElementById('withdrawButton').disabled = amount > userBalance;
                 
                 if (amount > userBalance) {
-                    showError("Insufficient balance");
+                    showError('Insufficient balance');
                 } else {
                     clearMessages();
                 }
             } else {
-                document.getElementById("withdrawalSummary").style.display = "none";
-                document.getElementById("withdrawButton").disabled = true;
+                document.getElementById('withdrawalSummary').style.display = 'none';
+                document.getElementById('withdrawButton').disabled = true;
             }
         }
 
         // Process withdrawal
         async function processWithdrawal() {
-            const amount = parseInt(document.getElementById("customAmount").value);
-            const upiId = document.getElementById("upiId").value.trim();
+            const amount = parseInt(document.getElementById('customAmount').value);
+            const upiId = document.getElementById('upiId').value.trim();
             
             if (!amount || amount < 1000) {
-                showError("Minimum withdrawal amount is 1,000 coins");
+                showError('Minimum withdrawal amount is 1,000 coins');
                 return;
             }
             
             if (!upiId) {
-                showError("Please enter your UPI ID");
+                showError('Please enter your UPI ID');
                 return;
             }
             
             if (amount > userBalance) {
-                showError("Insufficient balance");
+                showError('Insufficient balance');
                 return;
             }
 
             // Validate UPI ID format
             if (!isValidUpiId(upiId)) {
-                showError("Please enter a valid UPI ID (e.g., yourname@paytm)");
+                showError('Please enter a valid UPI ID (e.g., yourname@paytm)');
                 return;
             }
 
             try {
-                document.getElementById("withdrawButton").disabled = true;
-                document.getElementById("withdrawButton").textContent = "Processing...";
+                document.getElementById('withdrawButton').disabled = true;
+                document.getElementById('withdrawButton').textContent = 'Processing...';
                 
                 const telegramUser = tg?.initDataUnsafe?.user;
                 const response = await fetch(`${API_BASE}/withdraw`, {
-                    method: "POST",
+                    method: 'POST',
                     headers: {
-                        "Content-Type": "application/json"
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         telegram_id: telegramUser.id,
@@ -553,32 +682,32 @@
                 const result = await response.json();
                 
                 if (response.ok) {
-                    showSuccess(`Withdrawal request submitted successfully! You will receive ₹${result.rupee_amount.toFixed(2)} in your UPI account within 24-48 hours.`);
+                    showSuccess(`Withdrawal request submitted successfully! You will receive ₹${result.final_amount} in your UPI account within 24-48 hours.`);
                     
                     // Update balance
-                    userBalance = result.coins; // Use coins from response
-                    document.getElementById("coinBalance").textContent = userBalance.toLocaleString();
+                    userBalance = result.new_balance;
+                    document.getElementById('coinBalance').textContent = userBalance.toLocaleString();
                     
                     // Reset form
-                    document.getElementById("customAmount").value = "";
-                    document.getElementById("withdrawalSummary").style.display = "none";
-                    document.querySelectorAll(".amount-button").forEach(btn => {
-                        btn.classList.remove("selected");
+                    document.getElementById('customAmount').value = '';
+                    document.getElementById('withdrawalSummary').style.display = 'none';
+                    document.querySelectorAll('.amount-button').forEach(btn => {
+                        btn.classList.remove('selected');
                     });
                     
                     // Reload history
                     loadWithdrawalHistory();
                     
                 } else {
-                    showError(result.error || "Withdrawal failed");
+                    showError(result.error || 'Withdrawal failed');
                 }
                 
             } catch (error) {
-                console.error("Withdrawal error:", error);
-                showError("Network error. Please try again.");
+                console.error('Withdrawal error:', error);
+                showError('Network error. Please try again.');
             } finally {
-                document.getElementById("withdrawButton").disabled = false;
-                document.getElementById("withdrawButton").textContent = "Process Withdrawal";
+                document.getElementById('withdrawButton').disabled = false;
+                document.getElementById('withdrawButton').textContent = 'Process Withdrawal';
             }
         }
 
@@ -586,56 +715,42 @@
         async function loadWithdrawalHistory() {
             try {
                 const telegramUser = tg?.initDataUnsafe?.user;
-                if (!telegramUser) {
-                    document.getElementById("historyList").innerHTML = 
-                        '<div style="text-align: center; color: #DAA520;">Cannot load history: Telegram user data not available.</div>';
-                    return;
-                }
-
                 const response = await fetch(`${API_BASE}/withdrawal_history/${telegramUser.id}`);
                 
                 if (response.ok) {
                     const history = await response.json();
                     displayWithdrawalHistory(history.withdrawals || []);
                 } else {
-                    document.getElementById("historyList").innerHTML = 
-                        '<div style="text-align: center; color: #DAA520;">No withdrawal history found</div>';
+                    document.getElementById('historyList').innerHTML = '<div style="text-align: center; color: #DAA520;">No withdrawal history found</div>';
                 }
                 
             } catch (error) {
-                console.error("Failed to load withdrawal history:", error);
-                document.getElementById("historyList").innerHTML = 
-                    '<div style="text-align: center; color: #FF6B6B;">Failed to load history</div>';
+                console.error('Failed to load withdrawal history:', error);
+                document.getElementById('historyList').innerHTML = '<div style="text-align: center; color: #FF6B6B;">Failed to load history</div>';
             }
         }
 
         // Display withdrawal history
         function displayWithdrawalHistory(withdrawals) {
-            const historyList = document.getElementById("historyList");
+            const historyList = document.getElementById('historyList');
             
             if (withdrawals.length === 0) {
                 historyList.innerHTML = '<div style="text-align: center; color: #DAA520;">No withdrawals yet</div>';
                 return;
             }
             
-            historyList.innerHTML = withdrawals.map(withdrawal => {
-                const createdAtDate = new Date(withdrawal.created_at * 1000); // Convert Unix timestamp to Date object
-                const formattedDate = createdAtDate.toLocaleDateString();
-                const formattedTime = createdAtDate.toLocaleTimeString();
-
-                return `
-                    <div class="history-item">
-                        <div class="history-details">
-                            <div class="history-amount">₹${(withdrawal.rupee_amount || withdrawal.final_amount || 0).toFixed(2)}</div>
-                            <div class="history-date">${formattedDate} ${formattedTime}</div>
-                            <div style="font-size: 12px; color: #DAA520;">${withdrawal.upi_id || 'N/A'}</div>
-                        </div>
-                        <div class="history-status status-${withdrawal.status}">
-                            ${(withdrawal.status || 'pending').charAt(0).toUpperCase() + (withdrawal.status || 'pending').slice(1)}
-                        </div>
+            historyList.innerHTML = withdrawals.map(withdrawal => `
+                <div class="history-item">
+                    <div class="history-details">
+                        <div class="history-amount">₹${withdrawal.final_amount}</div>
+                        <div class="history-date">${new Date(withdrawal.created_at).toLocaleDateString()}</div>
+                        <div style="font-size: 12px; color: #DAA520;">${withdrawal.upi_id}</div>
                     </div>
-                `;
-            }).join('');
+                    <div class="history-status status-${withdrawal.status}">
+                        ${withdrawal.status.charAt(0).toUpperCase() + withdrawal.status.slice(1)}
+                    </div>
+                </div>
+            `).join('');
         }
 
         // Validate UPI ID
@@ -646,25 +761,25 @@
 
         // Show error message
         function showError(message) {
-            const messagesDiv = document.getElementById("messages");
+            const messagesDiv = document.getElementById('messages');
             messagesDiv.innerHTML = `<div class="error-message">${message}</div>`;
             setTimeout(() => {
-                messagesDiv.innerHTML = "";
+                messagesDiv.innerHTML = '';
             }, 5000);
         }
 
         // Show success message
         function showSuccess(message) {
-            const messagesDiv = document.getElementById("messages");
+            const messagesDiv = document.getElementById('messages');
             messagesDiv.innerHTML = `<div class="success-message">${message}</div>`;
             setTimeout(() => {
-                messagesDiv.innerHTML = "";
+                messagesDiv.innerHTML = '';
             }, 10000);
         }
 
         // Clear messages
         function clearMessages() {
-            document.getElementById("messages").innerHTML = "";
+            document.getElementById('messages').innerHTML = '';
         }
 
         // Go back to main game
@@ -677,11 +792,54 @@
         }
 
         // Event listeners
-        document.getElementById("customAmount").addEventListener("input", updateWithdrawalSummary);
-        document.getElementById("upiId").addEventListener("input", updateWithdrawalSummary);
+        document.getElementById('customAmount').addEventListener('input', updateWithdrawalSummary);
+        document.getElementById('upiId').addEventListener('input', updateWithdrawalSummary);
 
         // Initialize when page loads
-        window.addEventListener("load", initWithdraw);
+        window.addEventListener('load', initWithdraw);
+    </script>
+    <script>
+        // Disable right-click context menu
+        document.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable text selection and drag
+        document.addEventListener("selectstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable drag
+        document.addEventListener("dragstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+    </script>
+    <script>
+        function goBack() {
+            window.location.href = "index.html";
+        }
+    </script>
+    <script>
+        // Disable right-click context menu
+        document.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable text selection and drag
+        document.addEventListener("selectstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable drag
+        document.addEventListener("dragstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
     </script>
 </body>
 </html>
