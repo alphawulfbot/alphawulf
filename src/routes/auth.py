@@ -29,7 +29,7 @@ def health_check():
 
 @auth_bp.route("/api/auth", methods=["POST", "OPTIONS"])
 def authenticate_user():
-    """Enhanced authentication endpoint with better error handling"""
+    """Enhanced authentication endpoint compatible with existing User model"""
     
     # Handle preflight OPTIONS request
     if request.method == "OPTIONS":
@@ -101,31 +101,47 @@ def authenticate_user():
         if user:
             logger.info(f"Existing user found: {telegram_id}")
             
-            # Update user info if provided - FIXED: Check if attributes exist before setting
+            # Update user info if provided - Check if attributes exist before setting
             updated = False
-            if username and hasattr(user, 'username') and user.username != username:
+            if username and hasattr(user, 'username') and getattr(user, 'username', None) != username:
                 user.username = username
                 updated = True
-            if first_name and hasattr(user, 'first_name') and user.first_name != first_name:
+            if first_name and hasattr(user, 'first_name') and getattr(user, 'first_name', None) != first_name:
                 user.first_name = first_name
                 updated = True
-            # FIXED: Only update last_name if the User model has this attribute
-            if last_name and hasattr(user, 'last_name') and user.last_name != last_name:
+            # Only update last_name if the User model has this attribute
+            if last_name and hasattr(user, 'last_name') and getattr(user, 'last_name', None) != last_name:
                 user.last_name = last_name
                 updated = True
             
-            # Update energy before returning
-            user.update_energy()
+            # FIXED: Check if update_energy method exists before calling it
+            if hasattr(user, 'update_energy') and callable(getattr(user, 'update_energy')):
+                try:
+                    user.update_energy()
+                    logger.info(f"Energy updated for user: {telegram_id}")
+                except Exception as e:
+                    logger.warning(f"Failed to update energy for user {telegram_id}: {str(e)}")
+            else:
+                logger.info(f"User model doesn't have update_energy method, skipping energy update")
             
+            # FIXED: Check if save method exists and is callable before calling it
             if updated:
-                user.save()
-                logger.info(f"User info updated for: {telegram_id}")
+                if hasattr(user, 'save') and callable(getattr(user, 'save')):
+                    try:
+                        save_result = user.save()
+                        if save_result is False:
+                            logger.error(f"Failed to save user updates for: {telegram_id}")
+                        else:
+                            logger.info(f"User info updated for: {telegram_id}")
+                    except Exception as e:
+                        logger.error(f"Error saving user updates for {telegram_id}: {str(e)}")
+                else:
+                    logger.warning(f"User model doesn't have save method, cannot persist updates")
             
         else:
             logger.info(f"Creating new user: {telegram_id}")
             
             # Create new user with bonus coins
-            # FIXED: Only pass last_name if the User model supports it
             user_data = {
                 "telegram_id": telegram_id,
                 "username": username,
@@ -142,26 +158,68 @@ def authenticate_user():
             }
             
             # Only add last_name if it's provided and the User model supports it
-            if last_name:
-                # Check if User model has last_name attribute by creating a test instance
+            if last_name and hasattr(User, '__init__'):
+                # Try to create a test instance to see if last_name is supported
                 try:
-                    test_user = User(**user_data, last_name=last_name)
-                    user_data["last_name"] = last_name
-                except TypeError:
-                    # User model doesn't support last_name, skip it
-                    logger.info("User model doesn't support last_name attribute, skipping")
+                    import inspect
+                    sig = inspect.signature(User.__init__)
+                    if 'last_name' in sig.parameters:
+                        user_data["last_name"] = last_name
+                        logger.info("Added last_name to user data")
+                    else:
+                        logger.info("User model doesn't support last_name parameter, skipping")
+                except Exception as e:
+                    logger.warning(f"Could not determine User model parameters: {str(e)}")
             
-            user = User(**user_data)
+            try:
+                user = User(**user_data)
+                logger.info(f"User object created for: {telegram_id}")
+            except Exception as e:
+                logger.error(f"Failed to create User object: {str(e)}")
+                # Try with minimal data
+                try:
+                    minimal_data = {
+                        "telegram_id": telegram_id,
+                        "username": username,
+                        "first_name": first_name,
+                        "coins": 2500,
+                        "energy": 100
+                    }
+                    user = User(**minimal_data)
+                    logger.info(f"User object created with minimal data for: {telegram_id}")
+                except Exception as e2:
+                    logger.error(f"Failed to create User object even with minimal data: {str(e2)}")
+                    return jsonify({
+                        "success": False,
+                        "error": "Failed to create user object",
+                        "details": str(e2)
+                    }), 500
             
             # Save new user
-            if not user.save():
-                logger.error(f"Failed to save new user: {telegram_id}")
+            if hasattr(user, 'save') and callable(getattr(user, 'save')):
+                try:
+                    save_result = user.save()
+                    if save_result is False:
+                        logger.error(f"Failed to save new user: {telegram_id}")
+                        return jsonify({
+                            "success": False,
+                            "error": "Failed to create user account"
+                        }), 500
+                    else:
+                        logger.info(f"New user created successfully: {telegram_id}")
+                except Exception as e:
+                    logger.error(f"Error saving new user {telegram_id}: {str(e)}")
+                    return jsonify({
+                        "success": False,
+                        "error": "Failed to save user account",
+                        "details": str(e)
+                    }), 500
+            else:
+                logger.warning(f"User model doesn't have save method, cannot persist new user")
                 return jsonify({
                     "success": False,
-                    "error": "Failed to create user account"
+                    "error": "User model doesn't support saving"
                 }), 500
-            
-            logger.info(f"New user created successfully: {telegram_id}")
             
             # Handle referral if present
             if referred_by and referred_by != telegram_id:
@@ -171,21 +229,30 @@ def authenticate_user():
                     # Get referrer
                     referrer = User.get_by_telegram_id(referred_by)
                     if referrer:
-                        # Add referral to referrer
-                        referrer.add_referral()
-                        referrer.save()
+                        # Add referral to referrer if method exists
+                        if hasattr(referrer, 'add_referral') and callable(getattr(referrer, 'add_referral')):
+                            try:
+                                referrer.add_referral()
+                                if hasattr(referrer, 'save') and callable(getattr(referrer, 'save')):
+                                    referrer.save()
+                                logger.info(f"Referral reward added to: {referred_by}")
+                            except Exception as e:
+                                logger.error(f"Failed to add referral reward: {str(e)}")
                         
                         # Record the referral relationship
-                        from src.config.database import supabase
-                        referral_data = {
-                            "referrer_id": referred_by,
-                            "referred_id": telegram_id,
-                            "created_at": int(time.time())
-                        }
+                        try:
+                            from src.config.database import supabase
+                            referral_data = {
+                                "referrer_id": referred_by,
+                                "referred_id": telegram_id,
+                                "created_at": int(time.time())
+                            }
+                            
+                            supabase.table("referrals").insert(referral_data).execute()
+                            logger.info(f"Referral relationship recorded: {referred_by} -> {telegram_id}")
+                        except Exception as e:
+                            logger.error(f"Failed to record referral relationship: {str(e)}")
                         
-                        supabase.table("referrals").insert(referral_data).execute()
-                        
-                        logger.info(f"Referral processed successfully: {referred_by} -> {telegram_id}")
                     else:
                         logger.warning(f"Referrer not found: {referred_by}")
                         
@@ -193,9 +260,39 @@ def authenticate_user():
                     logger.error(f"Error processing referral: {str(e)}")
                     # Don't fail authentication if referral processing fails
         
-        # Return user data
-        user_data = user.to_dict()
-        logger.info(f"Authentication successful for: {telegram_id}")
+        # Return user data - FIXED: Use to_dict if available, otherwise create dict manually
+        try:
+            if hasattr(user, 'to_dict') and callable(getattr(user, 'to_dict')):
+                user_data = user.to_dict()
+            else:
+                # Create dict manually from user attributes
+                user_data = {}
+                for attr in ['telegram_id', 'username', 'first_name', 'last_name', 'coins', 'energy', 'max_energy', 'tap_power', 'referral_count', 'referral_earnings', 'last_energy_update']:
+                    if hasattr(user, attr):
+                        user_data[attr] = getattr(user, attr)
+                
+                # Ensure required fields have defaults
+                user_data.setdefault('coins', 0)
+                user_data.setdefault('energy', 100)
+                user_data.setdefault('max_energy', 100)
+                user_data.setdefault('tap_power', 1)
+                user_data.setdefault('referral_count', 0)
+                user_data.setdefault('referral_earnings', 0)
+                
+            logger.info(f"Authentication successful for: {telegram_id}")
+            
+        except Exception as e:
+            logger.error(f"Failed to serialize user data: {str(e)}")
+            # Return minimal user data
+            user_data = {
+                "telegram_id": telegram_id,
+                "username": username,
+                "first_name": first_name,
+                "coins": getattr(user, 'coins', 0),
+                "energy": getattr(user, 'energy', 100),
+                "max_energy": getattr(user, 'max_energy', 100),
+                "tap_power": getattr(user, 'tap_power', 1)
+            }
         
         response = jsonify({
             "success": True,
@@ -231,7 +328,7 @@ def authenticate_user():
 
 @auth_bp.route("/api/tap", methods=["POST", "OPTIONS"])
 def handle_tap():
-    """Enhanced tap endpoint with better error handling"""
+    """Enhanced tap endpoint compatible with existing User model"""
     
     # Handle preflight OPTIONS request
     if request.method == "OPTIONS":
@@ -257,28 +354,60 @@ def handle_tap():
         if not user:
             return jsonify({"success": False, "error": "User not found"}), 404
         
-        # Update energy
-        user.update_energy()
+        # Update energy if method exists
+        if hasattr(user, 'update_energy') and callable(getattr(user, 'update_energy')):
+            try:
+                user.update_energy()
+            except Exception as e:
+                logger.warning(f"Failed to update energy: {str(e)}")
         
-        # Process taps
+        # Process taps - check if methods exist
         coins_earned = 0
+        current_energy = getattr(user, 'energy', 100)
+        tap_power = getattr(user, 'tap_power', 1)
+        
         for _ in range(taps):
-            if user.can_tap():
-                if user.tap():
-                    coins_earned += user.tap_power
+            if current_energy > 0:
+                # Check if can_tap method exists
+                if hasattr(user, 'can_tap') and callable(getattr(user, 'can_tap')):
+                    if user.can_tap():
+                        if hasattr(user, 'tap') and callable(getattr(user, 'tap')):
+                            if user.tap():
+                                coins_earned += tap_power
+                            else:
+                                break
+                        else:
+                            # Manual tap processing
+                            user.coins = getattr(user, 'coins', 0) + tap_power
+                            user.energy = max(0, getattr(user, 'energy', 100) - 1)
+                            coins_earned += tap_power
+                            current_energy = user.energy
+                    else:
+                        break
                 else:
-                    break
+                    # Manual tap processing without can_tap method
+                    if current_energy > 0:
+                        user.coins = getattr(user, 'coins', 0) + tap_power
+                        user.energy = max(0, current_energy - 1)
+                        coins_earned += tap_power
+                        current_energy = user.energy
+                    else:
+                        break
             else:
                 break
         
-        # Save user data
-        user.save()
+        # Save user data if method exists
+        if hasattr(user, 'save') and callable(getattr(user, 'save')):
+            try:
+                user.save()
+            except Exception as e:
+                logger.error(f"Failed to save tap data: {str(e)}")
         
         response = jsonify({
             "success": True,
             "coins_earned": coins_earned,
-            "total_coins": user.coins,
-            "energy": user.energy
+            "total_coins": getattr(user, 'coins', 0),
+            "energy": getattr(user, 'energy', 100)
         })
         
         # Add CORS headers
