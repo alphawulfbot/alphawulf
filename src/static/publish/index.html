@@ -257,6 +257,19 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
+        .error-details {
+            font-size: 12px;
+            color: #DAA520;
+            margin-top: 10px;
+            text-align: left;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
         /* Loading Screen Styles */
         .loading {
             position: fixed;
@@ -580,8 +593,10 @@
 
         <div id="error" class="error" style="display: none;">
             <h3>Connection Error</h3>
-            <p>Unable to connect to Alpha Wulf servers. Please try again later.</p>
+            <p id="errorMessage">Unable to connect to Alpha Wulf servers. Please try again later.</p>
+            <div id="errorDetails" class="error-details" style="display: none;"></div>
             <button onclick="location.reload()" style="margin-top: 10px; padding: 10px 20px; background: #00BFFF; border: none; border-radius: 5px; color: white; cursor: pointer;">Retry</button>
+            <button onclick="toggleErrorDetails()" style="margin-top: 10px; margin-left: 10px; padding: 10px 20px; background: #FFD700; border: none; border-radius: 5px; color: #1a1a1a; cursor: pointer;">Debug Info</button>
         </div>
     </div>
 
@@ -598,18 +613,61 @@
             userInfo: null
         };
 
+        // Debug information
+        let debugInfo = {
+            telegramAvailable: false,
+            webAppAvailable: false,
+            userDataAvailable: false,
+            backendReachable: false,
+            lastError: null,
+            apiResponses: []
+        };
+
         // Telegram Web App initialization
         let tg = window.Telegram?.WebApp;
+        debugInfo.telegramAvailable = !!window.Telegram;
+        debugInfo.webAppAvailable = !!tg;
+
         if (tg) {
             tg.ready();
             tg.expand();
             tg.MainButton.hide();
         }
 
-        // API base URL
+        // API base URL with health check
         const API_BASE = "https://alphawulf-backend-gfgy.onrender.com/api";
 
-        // Initialize game with robust error handling
+        // Health check function
+        async function checkBackendHealth() {
+            try {
+                console.log('Checking backend health...');
+                const response = await fetch(`${API_BASE}/health`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    mode: 'cors',
+                    credentials: 'omit'
+                });
+                
+                debugInfo.backendReachable = response.ok;
+                debugInfo.apiResponses.push({
+                    endpoint: '/health',
+                    status: response.status,
+                    timestamp: new Date().toISOString()
+                });
+                
+                console.log('Backend health check:', response.ok ? 'OK' : 'Failed');
+                return response.ok;
+            } catch (error) {
+                console.error('Backend health check failed:', error);
+                debugInfo.backendReachable = false;
+                debugInfo.lastError = error.message;
+                return false;
+            }
+        }
+
+        // Initialize game with enhanced error handling and debugging
         async function initGame() {
             try {
                 console.log('Initializing Alpha Wulf game...');
@@ -617,71 +675,130 @@
                     isTelegram: !!window.Telegram,
                     hasWebApp: !!window.Telegram?.WebApp,
                     userAgent: navigator.userAgent,
-                    origin: window.location.origin
+                    origin: window.location.origin,
+                    href: window.location.href
                 });
 
-                // Get user data from Telegram
+                // Check backend health first
+                const backendHealthy = await checkBackendHealth();
+                if (!backendHealthy) {
+                    throw new Error('Backend server is not responding. Please try again later.');
+                }
+
+                // Get user data from Telegram with enhanced validation
                 const telegramUser = tg?.initDataUnsafe?.user;
+                debugInfo.userDataAvailable = !!telegramUser;
+                
                 console.log('Telegram user data:', telegramUser);
+                console.log('Telegram initData:', tg?.initData);
+                console.log('Telegram initDataUnsafe:', tg?.initDataUnsafe);
                 
                 if (!telegramUser) {
-                    throw new Error('This app can only be used within Telegram. Please open it through the Telegram bot.');
+                    // Try alternative methods to get user data
+                    const altUser = tg?.WebAppUser || tg?.user;
+                    if (altUser) {
+                        console.log('Using alternative user data:', altUser);
+                        telegramUser = altUser;
+                        debugInfo.userDataAvailable = true;
+                    } else {
+                        throw new Error('This app can only be used within Telegram. Please open it through the Telegram bot.\n\nDebug Info:\n- Telegram available: ' + debugInfo.telegramAvailable + '\n- WebApp available: ' + debugInfo.webAppAvailable + '\n- User data available: ' + debugInfo.userDataAvailable);
+                    }
                 }
 
                 console.log('Attempting authentication with backend...');
                 
-                // Authentication with backend
+                // Authentication with backend - enhanced with multiple retry attempts
                 const authRequestData = {
                     telegram_id: telegramUser.id,
-                    username: telegramUser.username,
-                    first_name: telegramUser.first_name,
-                    last_name: telegramUser.last_name
+                    username: telegramUser.username || null,
+                    first_name: telegramUser.first_name || 'User',
+                    last_name: telegramUser.last_name || null
                 };
 
+                console.log('Auth request data:', authRequestData);
+
                 let authResponse;
-                try {
-                    // Primary authentication attempt
-                    authResponse = await fetch(`${API_BASE}/auth`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify(authRequestData),
-                        mode: 'cors',
-                        credentials: 'omit'
-                    });
-                    console.log('Auth response status:', authResponse.status);
-                } catch (fetchError) {
-                    console.error('Primary fetch failed:', fetchError);
-                    
-                    // Fallback: try with different configuration
-                    try {
-                        authResponse = await fetch(`${API_BASE}/auth`, {
+                let lastError;
+                
+                // Try multiple authentication methods
+                const authMethods = [
+                    // Method 1: Standard CORS request
+                    {
+                        name: 'Standard CORS',
+                        config: {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify(authRequestData),
+                            mode: 'cors',
+                            credentials: 'omit'
+                        }
+                    },
+                    // Method 2: Simple request
+                    {
+                        name: 'Simple Request',
+                        config: {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
                             },
                             body: JSON.stringify(authRequestData)
+                        }
+                    },
+                    // Method 3: No-cors mode (last resort)
+                    {
+                        name: 'No-CORS',
+                        config: {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(authRequestData),
+                            mode: 'no-cors'
+                        }
+                    }
+                ];
+
+                for (const method of authMethods) {
+                    try {
+                        console.log(`Trying authentication method: ${method.name}`);
+                        authResponse = await fetch(`${API_BASE}/auth`, method.config);
+                        
+                        debugInfo.apiResponses.push({
+                            endpoint: '/auth',
+                            method: method.name,
+                            status: authResponse.status,
+                            timestamp: new Date().toISOString()
                         });
-                        console.log('Fallback auth response status:', authResponse.status);
-                    } catch (fallbackError) {
-                        console.error('Fallback fetch also failed:', fallbackError);
-                        throw new Error('Network connection failed. Please check your internet connection.');
+                        
+                        console.log(`Auth response (${method.name}):`, authResponse.status);
+                        
+                        if (authResponse.ok) {
+                            console.log(`Authentication successful with method: ${method.name}`);
+                            break;
+                        } else {
+                            const errorText = await authResponse.text();
+                            console.error(`Auth failed with ${method.name}:`, errorText);
+                            lastError = `${method.name}: ${authResponse.status} - ${errorText}`;
+                        }
+                    } catch (fetchError) {
+                        console.error(`${method.name} failed:`, fetchError);
+                        lastError = `${method.name}: ${fetchError.message}`;
+                        continue;
                     }
                 }
                 
-                if (!authResponse.ok) {
-                    const errorText = await authResponse.text();
-                    console.error('Auth error:', errorText);
-                    throw new Error(`Failed to authenticate user: ${authResponse.status}`);
+                if (!authResponse || !authResponse.ok) {
+                    throw new Error(`All authentication methods failed.\n\nLast error: ${lastError}\n\nPlease check your internet connection and try again.`);
                 }
                 
                 const authResponseData = await authResponse.json();
-                console.log('Auth response:', authResponseData);
+                console.log('Auth response data:', authResponseData);
                 
                 if (!authResponseData.success || !authResponseData.user) {
-                    throw new Error('Invalid authentication response');
+                    throw new Error(`Invalid authentication response: ${JSON.stringify(authResponseData)}`);
                 }
                 
                 const userData = authResponseData.user;
@@ -714,24 +831,28 @@
                 
             } catch (error) {
                 console.error('Failed to initialize game:', error);
+                debugInfo.lastError = error.message;
+                
                 console.error('Error details:', {
                     message: error.message,
                     stack: error.stack,
                     name: error.name
                 });
                 
-                // Provide specific error messages
+                // Provide specific error messages with debug info
                 let errorMessage = 'Unable to connect to Alpha Wulf servers. Please try again later.';
                 
-                if (error.message.includes('Network connection failed')) {
-                    errorMessage = 'Network connection failed. Please check your internet connection and try again.';
-                } else if (error.message.includes('Failed to authenticate')) {
-                    errorMessage = 'Authentication failed. Please restart the app and try again.';
+                if (error.message.includes('Backend server is not responding')) {
+                    errorMessage = 'Backend server is not responding. Please check your internet connection and try again.';
+                } else if (error.message.includes('All authentication methods failed')) {
+                    errorMessage = 'Authentication failed with all methods. Please restart the app and try again.';
                 } else if (error.message.includes('only be used within Telegram')) {
                     errorMessage = error.message;
+                } else if (error.message.includes('Network connection failed')) {
+                    errorMessage = 'Network connection failed. Please check your internet connection and try again.';
                 }
                 
-                showError(errorMessage);
+                showError(errorMessage, error.message);
                 hideLoading();
             }
         }
@@ -762,7 +883,7 @@
             }
         }
 
-        // Handle tap
+        // Handle tap with enhanced error handling
         async function handleTap(event) {
             if (gameState.energy <= 0) return;
             
@@ -779,9 +900,9 @@
             // Update UI
             updateDisplay();
             
-            // Send tap to backend
+            // Send tap to backend with error handling
             try {
-                await fetch(`${API_BASE}/tap`, {
+                const response = await fetch(`${API_BASE}/tap`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -791,8 +912,13 @@
                         taps: 1
                     })
                 });
+                
+                if (!response.ok) {
+                    console.warn('Tap sync failed:', response.status);
+                }
             } catch (error) {
                 console.error('Failed to send tap to backend:', error);
+                // Don't show error to user for tap sync failures
             }
         }
 
@@ -877,17 +1003,50 @@ Telegram ID: ${gameState.userInfo.telegramId}
             }
         }
 
-        function showError(message) {
+        function showError(message, debugDetails) {
             const loadingScreen = document.getElementById('loading');
             const gameScreen = document.getElementById('game');
             const errorDiv = document.getElementById('error');
+            const errorMessage = document.getElementById('errorMessage');
+            const errorDetailsDiv = document.getElementById('errorDetails');
             
             if (loadingScreen) loadingScreen.style.display = 'none';
             if (gameScreen) gameScreen.style.display = 'none';
             
-            if (errorDiv) {
-                errorDiv.querySelector('p').textContent = message;
+            if (errorDiv && errorMessage) {
+                errorMessage.textContent = message;
+                
+                // Add debug information
+                if (debugDetails && errorDetailsDiv) {
+                    const debugText = `Debug Information:
+Telegram Available: ${debugInfo.telegramAvailable}
+WebApp Available: ${debugInfo.webAppAvailable}
+User Data Available: ${debugInfo.userDataAvailable}
+Backend Reachable: ${debugInfo.backendReachable}
+
+Last Error: ${debugInfo.lastError || 'None'}
+
+API Responses:
+${debugInfo.apiResponses.map(r => `${r.endpoint} (${r.method || 'GET'}): ${r.status} at ${r.timestamp}`).join('\n')}
+
+Full Error: ${debugDetails}
+
+Environment:
+User Agent: ${navigator.userAgent}
+URL: ${window.location.href}
+Origin: ${window.location.origin}`;
+                    
+                    errorDetailsDiv.textContent = debugText;
+                }
+                
                 errorDiv.style.display = 'block';
+            }
+        }
+
+        function toggleErrorDetails() {
+            const errorDetailsDiv = document.getElementById('errorDetails');
+            if (errorDetailsDiv) {
+                errorDetailsDiv.style.display = errorDetailsDiv.style.display === 'none' ? 'block' : 'none';
             }
         }
 
@@ -934,8 +1093,19 @@ Telegram ID: ${gameState.userInfo.telegramId}
             console.log('Window loaded');
             if (!gameState.userId) {
                 console.log('Game not initialized yet, trying again...');
-                initGame();
+                setTimeout(initGame, 1000); // Wait 1 second before retry
             }
+        });
+
+        // Add error event listeners for debugging
+        window.addEventListener('error', function(e) {
+            console.error('Global error:', e.error);
+            debugInfo.lastError = e.error?.message || 'Unknown error';
+        });
+
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error('Unhandled promise rejection:', e.reason);
+            debugInfo.lastError = e.reason?.message || 'Promise rejection';
         });
     </script>
 </body>

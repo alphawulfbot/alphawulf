@@ -4,396 +4,793 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alpha Wulf Admin Panel</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            background-color: #1a1a1a;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
             color: #FFD700;
-            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
         }
-        .navbar {
-            background-color: #2d2d2d;
-            border-bottom: 1px solid #FFD700;
+
+        .header {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%);
+            padding: 20px;
+            border-bottom: 2px solid #FFD700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .card {
-            background-color: #2d2d2d;
+
+        .header h1 {
+            font-size: 24px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .nav {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-button {
+            background: rgba(255, 215, 0, 0.1);
             border: 1px solid #FFD700;
-            margin-bottom: 20px;
-        }
-        .card-header {
-            background-color: rgba(255, 215, 0, 0.2);
-            border-bottom: 1px solid #FFD700;
-            font-weight: bold;
-        }
-        .table {
             color: #FFD700;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
         }
-        .table thead {
-            background-color: rgba(255, 215, 0, 0.2);
+
+        .nav-button:hover, .nav-button.active {
+            background: rgba(255, 215, 0, 0.2);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
         }
-        .table-dark {
-            background-color: #2d2d2d;
-        }
-        .btn-primary {
-            background-color: #FFD700;
-            border-color: #DAA520;
-            color: #1a1a1a;
-        }
-        .btn-primary:hover {
-            background-color: #DAA520;
-            border-color: #B8860B;
-            color: #1a1a1a;
-        }
-        .btn-success {
-            background-color: #00FF88;
-            border-color: #00CC66;
-            color: #1a1a1a;
-        }
-        .btn-success:hover {
-            background-color: #00CC66;
-            border-color: #009944;
-            color: #1a1a1a;
-        }
-        .btn-danger {
-            background-color: #FF6B6B;
-            border-color: #FF4444;
-            color: #1a1a1a;
-        }
-        .btn-danger:hover {
-            background-color: #FF4444;
-            border-color: #CC0000;
-            color: #1a1a1a;
-        }
-        .stat-card {
-            text-align: center;
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
             padding: 20px;
         }
-        .stat-value {
-            font-size: 2rem;
-            font-weight: bold;
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
         }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(218, 165, 32, 0.05) 100%);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
         .stat-label {
-            font-size: 1rem;
+            font-size: 14px;
+            color: #DAA520;
+            margin-top: 5px;
+        }
+
+        .section {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(0, 0, 0, 0.2) 100%);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .section h2 {
+            color: #FFD700;
+            margin-bottom: 15px;
+            text-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
+        }
+
+        .table-container {
+            overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        th {
+            background: rgba(255, 215, 0, 0.1);
+            color: #FFD700;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
             color: #DAA520;
         }
-        .badge {
-            font-size: 0.8rem;
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #FFD700;
+            font-size: 18px;
+        }
+
+        .error {
+            background: linear-gradient(135deg, rgba(255, 0, 0, 0.1) 0%, rgba(139, 0, 0, 0.1) 100%);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            color: #FFD700;
+        }
+
+        .error-details {
+            font-size: 12px;
+            color: #DAA520;
+            margin-top: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .action-button {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid #FFD700;
+            color: #FFD700;
             padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            margin: 2px;
+            transition: all 0.3s ease;
         }
-        .badge-pending {
-            background-color: #FFA500;
-            color: #1a1a1a;
+
+        .action-button:hover {
+            background: rgba(255, 215, 0, 0.2);
         }
-        .badge-completed {
-            background-color: #00FF88;
-            color: #1a1a1a;
+
+        .action-button.danger {
+            border-color: #ff4444;
+            color: #ff4444;
         }
-        .badge-failed {
-            background-color: #FF6B6B;
-            color: #1a1a1a;
+
+        .action-button.danger:hover {
+            background: rgba(255, 68, 68, 0.1);
+        }
+
+        .refresh-button {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid #FFD700;
+            color: #FFD700;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .refresh-button:hover {
+            background: rgba(255, 215, 0, 0.2);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        .debug-info {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #DAA520;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+
+            .container {
+                padding: 10px;
+            }
         }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark mb-4">
-        <div class="container">
-            <a class="navbar-brand" href="#">🐺 Alpha Wulf Admin</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#dashboard">Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#users">Users</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#withdrawals">Withdrawals</a>
-                    </li>
-                </ul>
-            </div>
+    <div class="header">
+        <h1>🐺 Alpha Wulf Admin</h1>
+        <div class="nav">
+            <button class="nav-button active" onclick="showSection('dashboard')">Dashboard</button>
+            <button class="nav-button" onclick="showSection('users')">Users</button>
+            <button class="nav-button" onclick="showSection('withdrawals')">Withdrawals</button>
+            <button class="nav-button" onclick="logout()">Logout</button>
         </div>
-    </nav>
-
-    <div class="container">
-        <!-- Dashboard -->
-        <section id="dashboard" class="mb-5">
-            <h2 class="mb-4">Dashboard</h2>
-            <div class="row" id="stats-container">
-                <div class="col-md-4 mb-3">
-                    <div class="card stat-card">
-                        <div class="stat-value" id="total-users">0</div>
-                        <div class="stat-label">Total Users</div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <div class="card stat-card">
-                        <div class="stat-value" id="active-users">0</div>
-                        <div class="stat-label">Active Users (24h)</div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <div class="card stat-card">
-                        <div class="stat-value" id="total-coins">0</div>
-                        <div class="stat-label">Total Coins</div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <div class="card stat-card">
-                        <div class="stat-value" id="total-withdrawals">0</div>
-                        <div class="stat-label">Total Withdrawals</div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <div class="card stat-card">
-                        <div class="stat-value" id="pending-withdrawals">0</div>
-                        <div class="stat-label">Pending Withdrawals</div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <div class="card stat-card">
-                        <div class="stat-value" id="total-withdrawn">₹0</div>
-                        <div class="stat-label">Total Withdrawn</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Users -->
-        <section id="users" class="mb-5">
-            <h2 class="mb-4">Users</h2>
-            <div class="card">
-                <div class="card-header">
-                    User List
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-dark table-striped">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Username</th>
-                                    <th>Name</th>
-                                    <th>Coins</th>
-                                    <th>Energy</th>
-                                    <th>Tap Power</th>
-                                    <th>Referrals</th>
-                                    <th>Last Active</th>
-                                </tr>
-                            </thead>
-                            <tbody id="users-table-body">
-                                <tr>
-                                    <td colspan="8" class="text-center">Loading users...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Withdrawals -->
-        <section id="withdrawals" class="mb-5">
-            <h2 class="mb-4">Withdrawals</h2>
-            <div class="card">
-                <div class="card-header">
-                    Withdrawal Requests
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-dark table-striped">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>User</th>
-                                    <th>Amount</th>
-                                    <th>Final Amount</th>
-                                    <th>UPI ID</th>
-                                    <th>Date</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="withdrawals-table-body">
-                                <tr>
-                                    <td colspan="8" class="text-center">Loading withdrawals...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </section>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="container">
+        <!-- Dashboard Section -->
+        <div id="dashboard" class="section">
+            <h2>Dashboard</h2>
+            <button class="refresh-button" onclick="loadStats()">🔄 Refresh Stats</button>
+            
+            <div id="stats-loading" class="loading" style="display: none;">Loading statistics...</div>
+            <div id="stats-error" class="error" style="display: none;">
+                <h3>Error Loading Statistics</h3>
+                <p id="stats-error-message"></p>
+                <div id="stats-error-details" class="error-details" style="display: none;"></div>
+                <button onclick="toggleStatsErrorDetails()">Show Debug Info</button>
+            </div>
+            
+            <div id="stats-grid" class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalUsers">0</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="activeUsers">0</div>
+                    <div class="stat-label">Active Users (24h)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalCoins">0</div>
+                    <div class="stat-label">Total Coins</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalWithdrawals">0</div>
+                    <div class="stat-label">Total Withdrawals</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="pendingWithdrawals">0</div>
+                    <div class="stat-label">Pending Withdrawals</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalWithdrawn">₹0</div>
+                    <div class="stat-label">Total Withdrawn</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Section -->
+        <div id="users" class="section" style="display: none;">
+            <h2>User List</h2>
+            <button class="refresh-button" onclick="loadUsers()">🔄 Refresh Users</button>
+            
+            <div id="users-loading" class="loading" style="display: none;">Loading users...</div>
+            <div id="users-error" class="error" style="display: none;">
+                <h3>Error Loading Users</h3>
+                <p id="users-error-message"></p>
+                <div id="users-error-details" class="error-details" style="display: none;"></div>
+                <button onclick="toggleUsersErrorDetails()">Show Debug Info</button>
+            </div>
+            
+            <div class="table-container">
+                <table id="users-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>Name</th>
+                            <th>Coins</th>
+                            <th>Energy</th>
+                            <th>Tap Power</th>
+                            <th>Referrals</th>
+                            <th>Last Active</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-tbody">
+                        <!-- Users will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Withdrawals Section -->
+        <div id="withdrawals" class="section" style="display: none;">
+            <h2>Withdrawal Requests</h2>
+            <button class="refresh-button" onclick="loadWithdrawals()">🔄 Refresh Withdrawals</button>
+            
+            <div id="withdrawals-loading" class="loading" style="display: none;">Loading withdrawals...</div>
+            <div id="withdrawals-error" class="error" style="display: none;">
+                <h3>Error Loading Withdrawals</h3>
+                <p id="withdrawals-error-message"></p>
+                <div id="withdrawals-error-details" class="error-details" style="display: none;"></div>
+                <button onclick="toggleWithdrawalsErrorDetails()">Show Debug Info</button>
+            </div>
+            
+            <div class="table-container">
+                <table id="withdrawals-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>User</th>
+                            <th>Amount</th>
+                            <th>Final Amount</th>
+                            <th>UPI ID</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="withdrawals-tbody">
+                        <!-- Withdrawals will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <script>
         // API base URL
-        const API_BASE = window.location.origin + '/api';
+        const API_BASE = '/api';
+        
+        // Debug information
+        let debugInfo = {
+            lastError: null,
+            apiResponses: [],
+            loadAttempts: {
+                stats: 0,
+                users: 0,
+                withdrawals: 0
+            }
+        };
 
-        // Load dashboard stats
-        async function loadStats() {
+        // Show/hide sections
+        function showSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Remove active class from all nav buttons
+            document.querySelectorAll('.nav-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionName).style.display = 'block';
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+            
+            // Load data for the section
+            switch(sectionName) {
+                case 'dashboard':
+                    loadStats();
+                    break;
+                case 'users':
+                    loadUsers();
+                    break;
+                case 'withdrawals':
+                    loadWithdrawals();
+                    break;
+            }
+        }
+
+        // Enhanced API call function with better error handling
+        async function apiCall(endpoint, options = {}) {
+            const url = `${API_BASE}${endpoint}`;
+            const startTime = Date.now();
+            
             try {
-                const response = await fetch(`${API_BASE}/admin/stats`);
-                const data = await response.json();
+                console.log(`Making API call to: ${url}`);
                 
-                if (data.success) {
-                    const stats = data.stats;
-                    document.getElementById('total-users').textContent = stats.total_users.toLocaleString();
-                    document.getElementById('active-users').textContent = stats.active_users.toLocaleString();
-                    document.getElementById('total-coins').textContent = stats.total_coins.toLocaleString();
-                    document.getElementById('total-withdrawals').textContent = stats.total_withdrawals.toLocaleString();
-                    document.getElementById('pending-withdrawals').textContent = stats.pending_withdrawals.toLocaleString();
-                    document.getElementById('total-withdrawn').textContent = '₹' + stats.total_withdrawn.toLocaleString();
+                const defaultOptions = {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                };
+                
+                const finalOptions = { ...defaultOptions, ...options };
+                
+                const response = await fetch(url, finalOptions);
+                const duration = Date.now() - startTime;
+                
+                // Log API response
+                debugInfo.apiResponses.push({
+                    endpoint,
+                    status: response.status,
+                    duration,
+                    timestamp: new Date().toISOString()
+                });
+                
+                console.log(`API response: ${response.status} (${duration}ms)`);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
                 }
+                
+                const data = await response.json();
+                return { success: true, data };
+                
+            } catch (error) {
+                const duration = Date.now() - startTime;
+                console.error(`API call failed: ${error.message}`);
+                
+                debugInfo.lastError = {
+                    endpoint,
+                    error: error.message,
+                    duration,
+                    timestamp: new Date().toISOString()
+                };
+                
+                return { success: false, error: error.message };
+            }
+        }
+
+        // Load dashboard statistics
+        async function loadStats() {
+            debugInfo.loadAttempts.stats++;
+            
+            const loadingEl = document.getElementById('stats-loading');
+            const errorEl = document.getElementById('stats-error');
+            const statsGrid = document.getElementById('stats-grid');
+            
+            // Show loading state
+            loadingEl.style.display = 'block';
+            errorEl.style.display = 'none';
+            statsGrid.style.opacity = '0.5';
+            
+            try {
+                const result = await apiCall('/admin/stats');
+                
+                if (result.success) {
+                    const stats = result.data;
+                    
+                    // Update stat values
+                    document.getElementById('totalUsers').textContent = stats.total_users || 0;
+                    document.getElementById('activeUsers').textContent = stats.new_users_today || 0;
+                    document.getElementById('totalCoins').textContent = (stats.total_coins || 0).toLocaleString();
+                    document.getElementById('totalWithdrawals').textContent = stats.total_withdrawals || 0;
+                    document.getElementById('pendingWithdrawals').textContent = stats.pending_withdrawals || 0;
+                    document.getElementById('totalWithdrawn').textContent = `₹${stats.total_withdrawn || 0}`;
+                    
+                    console.log('Stats loaded successfully');
+                } else {
+                    throw new Error(result.error);
+                }
+                
             } catch (error) {
                 console.error('Error loading stats:', error);
+                showError('stats', 'Failed to load dashboard statistics', error.message);
+            } finally {
+                loadingEl.style.display = 'none';
+                statsGrid.style.opacity = '1';
             }
         }
 
-        // Load users
+        // Load users list
         async function loadUsers() {
+            debugInfo.loadAttempts.users++;
+            
+            const loadingEl = document.getElementById('users-loading');
+            const errorEl = document.getElementById('users-error');
+            const tbody = document.getElementById('users-tbody');
+            
+            // Show loading state
+            loadingEl.style.display = 'block';
+            errorEl.style.display = 'none';
+            tbody.innerHTML = '';
+            
             try {
-                const response = await fetch(`${API_BASE}/admin/users`);
-                const data = await response.json();
+                const result = await apiCall('/admin/users');
                 
-                if (data.success) {
-                    const users = data.users;
-                    const tableBody = document.getElementById('users-table-body');
+                if (result.success) {
+                    const users = result.data;
                     
                     if (users.length === 0) {
-                        tableBody.innerHTML = '<tr><td colspan="8" class="text-center">No users found</td></tr>';
-                        return;
+                        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center;">No users found</td></tr>';
+                    } else {
+                        tbody.innerHTML = users.map(user => `
+                            <tr>
+                                <td>${user.telegram_id}</td>
+                                <td>@${user.username || 'N/A'}</td>
+                                <td>${user.first_name || 'User'}</td>
+                                <td>${(user.coins || 0).toLocaleString()}</td>
+                                <td>${user.energy || 0}/${user.max_energy || 100}</td>
+                                <td>${user.tap_power || 1}</td>
+                                <td>${user.referral_count || 0}</td>
+                                <td>${user.last_active || 'N/A'}</td>
+                                <td>
+                                    <button class="action-button" onclick="adjustCoins('${user.telegram_id}')">Adjust Coins</button>
+                                    <button class="action-button" onclick="resetUser('${user.telegram_id}')">Reset</button>
+                                    <button class="action-button danger" onclick="deleteUser('${user.telegram_id}')">Delete</button>
+                                </td>
+                            </tr>
+                        `).join('');
                     }
                     
-                    tableBody.innerHTML = users.map(user => `
-                        <tr>
-                            <td>${user.telegram_id}</td>
-                            <td>${user.username || 'N/A'}</td>
-                            <td>${user.first_name || 'N/A'}</td>
-                            <td>${user.coins.toLocaleString()}</td>
-                            <td>${user.energy}/${user.max_energy}</td>
-                            <td>${user.tap_power}</td>
-                            <td>${user.referral_count || 0}</td>
-                            <td>${user.last_energy_update ? new Date(user.last_energy_update * 1000).toLocaleString() : 'Never'}</td>
-                        </tr>
-                    `).join('');
+                    console.log(`Loaded ${users.length} users`);
+                } else {
+                    throw new Error(result.error);
                 }
+                
             } catch (error) {
                 console.error('Error loading users:', error);
-                document.getElementById('users-table-body').innerHTML = '<tr><td colspan="8" class="text-center">Error loading users</td></tr>';
+                showError('users', 'Failed to load users list', error.message);
+            } finally {
+                loadingEl.style.display = 'none';
             }
         }
 
-        // Load withdrawals
+        // Load withdrawals list
         async function loadWithdrawals() {
+            debugInfo.loadAttempts.withdrawals++;
+            
+            const loadingEl = document.getElementById('withdrawals-loading');
+            const errorEl = document.getElementById('withdrawals-error');
+            const tbody = document.getElementById('withdrawals-tbody');
+            
+            // Show loading state
+            loadingEl.style.display = 'block';
+            errorEl.style.display = 'none';
+            tbody.innerHTML = '';
+            
             try {
-                const response = await fetch(`${API_BASE}/admin/withdrawals`);
-                const data = await response.json();
+                const result = await apiCall('/admin/withdrawals');
                 
-                if (data.success) {
-                    const withdrawals = data.withdrawals;
-                    const tableBody = document.getElementById('withdrawals-table-body');
+                if (result.success) {
+                    const withdrawals = result.data;
                     
                     if (withdrawals.length === 0) {
-                        tableBody.innerHTML = '<tr><td colspan="8" class="text-center">No withdrawals found</td></tr>';
-                        return;
+                        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No withdrawals found</td></tr>';
+                    } else {
+                        tbody.innerHTML = withdrawals.map(withdrawal => `
+                            <tr>
+                                <td>${withdrawal.id}</td>
+                                <td>@${withdrawal.username || 'N/A'} (${withdrawal.first_name || 'User'})</td>
+                                <td>${withdrawal.amount || 0}</td>
+                                <td>₹${withdrawal.final_amount || 0}</td>
+                                <td>${withdrawal.upi_id || 'N/A'}</td>
+                                <td>${withdrawal.created_at || 'N/A'}</td>
+                                <td>
+                                    <span style="color: ${getStatusColor(withdrawal.status)}">${withdrawal.status || 'pending'}</span>
+                                </td>
+                                <td>
+                                    <select onchange="updateWithdrawalStatus(${withdrawal.id}, this.value)">
+                                        <option value="">Change Status</option>
+                                        <option value="pending" ${withdrawal.status === 'pending' ? 'selected' : ''}>Pending</option>
+                                        <option value="approved" ${withdrawal.status === 'approved' ? 'selected' : ''}>Approved</option>
+                                        <option value="completed" ${withdrawal.status === 'completed' ? 'selected' : ''}>Completed</option>
+                                        <option value="rejected" ${withdrawal.status === 'rejected' ? 'selected' : ''}>Rejected</option>
+                                    </select>
+                                </td>
+                            </tr>
+                        `).join('');
                     }
                     
-                    tableBody.innerHTML = withdrawals.map(withdrawal => `
-                        <tr>
-                            <td>${withdrawal.id.substring(0, 8)}...</td>
-                            <td>${withdrawal.telegram_id}</td>
-                            <td>${withdrawal.amount.toLocaleString()} coins</td>
-                            <td>₹${withdrawal.final_amount.toLocaleString()}</td>
-                            <td>${withdrawal.upi_id}</td>
-                            <td>${new Date(withdrawal.created_at * 1000).toLocaleString()}</td>
-                            <td>
-                                <span class="badge badge-${withdrawal.status}">
-                                    ${withdrawal.status.charAt(0).toUpperCase() + withdrawal.status.slice(1)}
-                                </span>
-                            </td>
-                            <td>
-                                ${withdrawal.status === 'pending' ? `
-                                    <button class="btn btn-success btn-sm" onclick="updateWithdrawalStatus('${withdrawal.id}', 'completed')">
-                                        Complete
-                                    </button>
-                                    <button class="btn btn-danger btn-sm" onclick="updateWithdrawalStatus('${withdrawal.id}', 'failed')">
-                                        Reject
-                                    </button>
-                                ` : ''}
-                            </td>
-                        </tr>
-                    `).join('');
+                    console.log(`Loaded ${withdrawals.length} withdrawals`);
+                } else {
+                    throw new Error(result.error);
                 }
+                
             } catch (error) {
                 console.error('Error loading withdrawals:', error);
-                document.getElementById('withdrawals-table-body').innerHTML = '<tr><td colspan="8" class="text-center">Error loading withdrawals</td></tr>';
+                showError('withdrawals', 'Failed to load withdrawals list', error.message);
+            } finally {
+                loadingEl.style.display = 'none';
             }
         }
 
-        // Update withdrawal status
-        async function updateWithdrawalStatus(withdrawalId, status) {
+        // Show error with debug information
+        function showError(section, message, details) {
+            const errorEl = document.getElementById(`${section}-error`);
+            const messageEl = document.getElementById(`${section}-error-message`);
+            const detailsEl = document.getElementById(`${section}-error-details`);
+            
+            messageEl.textContent = message;
+            
+            // Add debug information
+            const debugText = `Debug Information:
+Load Attempts: ${debugInfo.loadAttempts[section]}
+Last Error: ${debugInfo.lastError?.error || 'None'}
+Last Error Time: ${debugInfo.lastError?.timestamp || 'None'}
+
+API Responses:
+${debugInfo.apiResponses.slice(-5).map(r => `${r.endpoint}: ${r.status} (${r.duration}ms) at ${r.timestamp}`).join('\n')}
+
+Error Details: ${details}
+
+Environment:
+User Agent: ${navigator.userAgent}
+URL: ${window.location.href}`;
+            
+            detailsEl.textContent = debugText;
+            errorEl.style.display = 'block';
+        }
+
+        // Toggle error details visibility
+        function toggleStatsErrorDetails() {
+            const detailsEl = document.getElementById('stats-error-details');
+            detailsEl.style.display = detailsEl.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function toggleUsersErrorDetails() {
+            const detailsEl = document.getElementById('users-error-details');
+            detailsEl.style.display = detailsEl.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function toggleWithdrawalsErrorDetails() {
+            const detailsEl = document.getElementById('withdrawals-error-details');
+            detailsEl.style.display = detailsEl.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Get status color
+        function getStatusColor(status) {
+            switch(status) {
+                case 'completed': return '#4CAF50';
+                case 'approved': return '#2196F3';
+                case 'rejected': return '#f44336';
+                case 'pending':
+                default: return '#FF9800';
+            }
+        }
+
+        // User management functions
+        async function adjustCoins(telegramId) {
+            const amount = prompt('Enter amount to add (use negative to subtract):');
+            if (amount === null) return;
+            
+            const numAmount = parseInt(amount);
+            if (isNaN(numAmount)) {
+                alert('Please enter a valid number');
+                return;
+            }
+            
             try {
-                const response = await fetch(`${API_BASE}/admin/withdrawal/${withdrawalId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ status })
+                const result = await apiCall(`/admin/user/${telegramId}/coins`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'add',
+                        amount: numAmount
+                    })
                 });
                 
-                const data = await response.json();
-                
-                if (data.success) {
-                    // Reload withdrawals and stats
-                    loadWithdrawals();
-                    loadStats();
+                if (result.success) {
+                    alert('Coins adjusted successfully');
+                    loadUsers();
                 } else {
-                    alert('Error updating withdrawal status: ' + (data.error || 'Unknown error'));
+                    alert(`Error: ${result.error}`);
                 }
             } catch (error) {
-                console.error('Error updating withdrawal status:', error);
-                alert('Error updating withdrawal status: ' + error.message);
+                alert(`Error: ${error.message}`);
             }
         }
 
-        // Navigation
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                // Update active link
-                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-                this.classList.add('active');
-                
-                // Show corresponding section
-                const targetId = this.getAttribute('href').substring(1);
-                document.querySelectorAll('section').forEach(section => {
-                    section.style.display = section.id === targetId ? 'block' : 'none';
-                });
-            });
-        });
-
-        // Initial load
-        window.addEventListener('load', function() {
-            loadStats();
-            loadUsers();
-            loadWithdrawals();
+        async function resetUser(telegramId) {
+            if (!confirm('Are you sure you want to reset this user\'s data?')) return;
             
-            // Show dashboard by default
-            document.querySelectorAll('section').forEach(section => {
-                section.style.display = section.id === 'dashboard' ? 'block' : 'none';
-            });
+            try {
+                const result = await apiCall(`/admin/user/${telegramId}/reset`, {
+                    method: 'POST'
+                });
+                
+                if (result.success) {
+                    alert('User data reset successfully');
+                    loadUsers();
+                } else {
+                    alert(`Error: ${result.error}`);
+                }
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        async function deleteUser(telegramId) {
+            if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
+            
+            try {
+                const result = await apiCall(`/admin/user/${telegramId}/delete`, {
+                    method: 'DELETE'
+                });
+                
+                if (result.success) {
+                    alert('User deleted successfully');
+                    loadUsers();
+                } else {
+                    alert(`Error: ${result.error}`);
+                }
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        async function updateWithdrawalStatus(withdrawalId, newStatus) {
+            if (!newStatus) return;
+            
+            try {
+                const result = await apiCall(`/admin/withdrawal/${withdrawalId}/status`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        status: newStatus
+                    })
+                });
+                
+                if (result.success) {
+                    alert('Withdrawal status updated successfully');
+                    loadWithdrawals();
+                } else {
+                    alert(`Error: ${result.error}`);
+                }
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '/admin/logout';
+            }
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Admin dashboard loaded');
+            loadStats();
         });
 
-        // Refresh data every 30 seconds
+        // Auto-refresh every 30 seconds
         setInterval(() => {
-            loadStats();
-            loadUsers();
-            loadWithdrawals();
+            const activeSection = document.querySelector('.section[style="display: block;"], .section:not([style*="display: none"])');
+            if (activeSection) {
+                const sectionId = activeSection.id;
+                switch(sectionId) {
+                    case 'dashboard':
+                        loadStats();
+                        break;
+                    case 'users':
+                        loadUsers();
+                        break;
+                    case 'withdrawals':
+                        loadWithdrawals();
+                        break;
+                }
+            }
         }, 30000);
     </script>
 </body>
