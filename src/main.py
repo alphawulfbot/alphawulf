@@ -17,7 +17,7 @@ app = Flask(__name__, static_folder='static', template_folder='templates')
 app.secret_key = os.environ.get('SECRET_KEY', 'alphawulf2025secretkey')
 
 # Enable CORS for all routes
-CORS(app, resources={r\"/api/*\": {\"origins\": \"*\"}}, allow_headers=[\"Content-Type\", \"Accept\"], methods=[\"GET\", \"POST\", \"PUT\", \"DELETE\", \"OPTIONS\"])
+CORS(app, resources={r"/api/*": {"origins": "*"}}, allow_headers=["Content-Type", "Accept"], methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 
 # Register blueprints
 app.register_blueprint(user_bp)
@@ -30,15 +30,15 @@ app.register_blueprint(minigames_bp)
 # Register the new auth blueprint
 app.register_blueprint(auth_bp)
 
-@app.route(\'/\')
+@app.route('/')
 def index():
-    return send_from_directory(app.static_folder, \'index.html\')
+    return send_from_directory(app.static_folder, 'index.html')
 
-@app.route(\'/<path:path>\')
+@app.route('/<path:path>')
 def static_files(path):
     return send_from_directory(app.static_folder, path)
 
-if __name__ == \'__main__\':
-    app.run(host=\'0.0.0.0\', port=int(os.environ.get(\'PORT\', 5000)), debug=True)
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=True)
 
 
