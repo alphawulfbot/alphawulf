@@ -13,8 +13,8 @@ from src.routes.minigames import minigames_bp
 # Import the new auth blueprint
 from src.routes.auth import auth_bp
 
-app = Flask(__name__, static_folder=\'static\', template_folder=\'templates\')
-app.secret_key = os.environ.get(\'SECRET_KEY\', \'alphawulf2025secretkey\')
+app = Flask(__name__, static_folder='static', template_folder='templates')
+app.secret_key = os.environ.get('SECRET_KEY', 'alphawulf2025secretkey')
 
 # Enable CORS for all routes
 CORS(app, resources={r\"/api/*\": {\"origins\": \"*\"}}, allow_headers=[\"Content-Type\", \"Accept\"], methods=[\"GET\", \"POST\", \"PUT\", \"DELETE\", \"OPTIONS\"])
