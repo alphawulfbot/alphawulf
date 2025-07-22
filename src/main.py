@@ -6,7 +6,7 @@ import time # Added for health check timestamp
 from src.routes.user import user_bp
 from src.routes.admin import admin_bp
 from src.routes.upgrades import upgrades_bp
-from src.routes.withdrawal import withdraw_bp
+from src.routes.withdraw import withdraw_bp
 from src.routes.referrals import referral_bp
 from src.routes.minigames import minigames_bp
 
@@ -34,7 +34,7 @@ app.register_blueprint(auth_bp)
 def index():
     return send_from_directory(app.static_folder, 'index.html')
 
-@app.route('/<path:path>')
+@app.route('<path:path>')
 def static_files(path):
     return send_from_directory(app.static_folder, path)
 
