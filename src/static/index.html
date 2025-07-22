@@ -193,7 +193,7 @@
             background-position: center;
             width: 30px;
             height: 30px;
-            text-indent: -9999px; /* Hide text, show image */
+            text-indent: -9999px;
         }
 
         @keyframes coinFloat {
@@ -207,7 +207,7 @@
             }
         }
 
-             .bottom-nav {
+        .bottom-nav {
             display: flex;
             justify-content: space-around;
             background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%);
@@ -386,21 +386,6 @@
             100% { width: 100%; }
         }
 
-        /* Fade out animation for loading screen */
-        .loading.fade-out {
-            animation: fadeOut 0.8s ease-out forwards;
-        }
-
-        @keyframes fadeOut {
-            0% { opacity: 1; }
-            100% { opacity: 0; visibility: hidden; }
-        }
-        @media (max-width: 480px) {
-            .container {
-                padding: 15px;
-            }
-        }
-
         /* User Profile Icon Styles */
         .user-profile {
             position: absolute;
@@ -467,6 +452,10 @@
         }
 
         @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            
             .user-profile {
                 top: 10px;
                 right: 10px;
@@ -489,7 +478,7 @@
                 font-size: 9px;
                 max-width: 80px;
             }
-        }    
+            
             .tap-button {
                 width: 180px;
                 height: 180px;
@@ -605,7 +594,8 @@
             tapPower: 1,
             energyRegenRate: 1,
             lastUpdate: Date.now(),
-            userId: null
+            userId: null,
+            userInfo: null
         };
 
         // Telegram Web App initialization
@@ -635,27 +625,20 @@
                 console.log('Telegram user data:', telegramUser);
                 
                 if (!telegramUser) {
-                    console.log('No Telegram user found, using test data');
-                    // For testing without Telegram
-                    gameState.userId = 123456789;
-                    gameState.coins = 2500;
-                    updateDisplay();
-                    hideLoading();
-                    startEnergyRegeneration();
-                    return;
+                    throw new Error('This app can only be used within Telegram. Please open it through the Telegram bot.');
                 }
 
                 console.log('Attempting authentication with backend...');
                 
-                // Try multiple authentication methods
-                let authResponse;
-                const authData = {
+                // Authentication with backend
+                const authRequestData = {
                     telegram_id: telegramUser.id,
                     username: telegramUser.username,
                     first_name: telegramUser.first_name,
                     last_name: telegramUser.last_name
                 };
 
+                let authResponse;
                 try {
                     // Primary authentication attempt
                     authResponse = await fetch(`${API_BASE}/auth`, {
@@ -664,7 +647,7 @@
                             'Content-Type': 'application/json',
                             'Accept': 'application/json'
                         },
-                        body: JSON.stringify(authData),
+                        body: JSON.stringify(authRequestData),
                         mode: 'cors',
                         credentials: 'omit'
                     });
@@ -679,12 +662,12 @@
                             headers: {
                                 'Content-Type': 'application/json'
                             },
-                            body: JSON.stringify(authData)
+                            body: JSON.stringify(authRequestData)
                         });
                         console.log('Fallback auth response status:', authResponse.status);
                     } catch (fallbackError) {
                         console.error('Fallback fetch also failed:', fallbackError);
-                        throw new Error('Network connection failed');
+                        throw new Error('Network connection failed. Please check your internet connection.');
                     }
                 }
                 
@@ -694,14 +677,14 @@
                     throw new Error(`Failed to authenticate user: ${authResponse.status}`);
                 }
                 
-                const authData = await authResponse.json();
-                console.log('Auth response:', authData);
+                const authResponseData = await authResponse.json();
+                console.log('Auth response:', authResponseData);
                 
-                if (!authData.success || !authData.user) {
+                if (!authResponseData.success || !authResponseData.user) {
                     throw new Error('Invalid authentication response');
                 }
                 
-                const userData = authData.user;
+                const userData = authResponseData.user;
                 
                 // Update user profile display
                 updateUserProfile(telegramUser, userData);
@@ -727,6 +710,7 @@
                 updateDisplay();
                 hideLoading();
                 startEnergyRegeneration();
+                setupEventListeners();
                 
             } catch (error) {
                 console.error('Failed to initialize game:', error);
@@ -736,26 +720,28 @@
                     name: error.name
                 });
                 
-                // Try to provide more specific error information
+                // Provide specific error messages
                 let errorMessage = 'Unable to connect to Alpha Wulf servers. Please try again later.';
                 
                 if (error.message.includes('Network connection failed')) {
                     errorMessage = 'Network connection failed. Please check your internet connection and try again.';
                 } else if (error.message.includes('Failed to authenticate')) {
                     errorMessage = 'Authentication failed. Please restart the app and try again.';
+                } else if (error.message.includes('only be used within Telegram')) {
+                    errorMessage = error.message;
                 }
                 
                 showError(errorMessage);
-                
-                // Fallback: Load with default values if authentication fails
-                setTimeout(() => {
-                    console.log('Loading fallback game state...');
-                    gameState.userId = 123456789;
-                    gameState.coins = 2500;
-                    updateDisplay();
-                    hideLoading();
-                    startEnergyRegeneration();
-                }, 3000);
+                hideLoading();
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            const tapButton = document.getElementById('tapButton');
+            if (tapButton) {
+                tapButton.addEventListener('click', handleTap);
+                tapButton.addEventListener('touchstart', handleTap);
             }
         }
 
@@ -779,6 +765,9 @@
         // Handle tap
         async function handleTap(event) {
             if (gameState.energy <= 0) return;
+            
+            // Prevent default touch behavior
+            event.preventDefault();
             
             // Decrease energy and increase coins
             gameState.energy = Math.max(0, gameState.energy - 1);
@@ -814,13 +803,16 @@
             coin.textContent = `+${gameState.tapPower}`;
             
             const rect = event.target.getBoundingClientRect();
+            coin.style.position = 'absolute';
             coin.style.left = (event.clientX - rect.left) + 'px';
             coin.style.top = (event.clientY - rect.top) + 'px';
             
-            event.target.appendChild(coin);
+            event.target.parentElement.appendChild(coin);
             
             setTimeout(() => {
-                coin.remove();
+                if (coin.parentElement) {
+                    coin.remove();
+                }
             }, 1000);
         }
 
@@ -831,7 +823,7 @@
                     gameState.energy = Math.min(gameState.maxEnergy, gameState.energy + 1);
                     updateDisplay();
                 }
-            }, 60000 / gameState.energyRegenRate); // Convert rate per minute to milliseconds
+            }, 60000 / gameState.energyRegenRate);
         }
 
         // Helper functions
@@ -855,8 +847,7 @@
         function showUserStats() {
             if (!gameState.userInfo) return;
             
-            const stats = `
-👤 User Profile:
+            const stats = `👤 User Profile:
 Name: ${gameState.userInfo.firstName || 'N/A'} ${gameState.userInfo.lastName || ''}
 Username: @${gameState.userInfo.username || 'N/A'}
 Telegram ID: ${gameState.userInfo.telegramId}
@@ -865,8 +856,7 @@ Telegram ID: ${gameState.userInfo.telegramId}
 🪙 Total Coins: ${gameState.coins.toLocaleString()}
 ⚡ Energy: ${gameState.energy}/${gameState.maxEnergy}
 💪 Tap Power: ${gameState.tapPower}
-🔋 Energy Regen: ${gameState.energyRegenRate}/min
-            `;
+🔋 Energy Regen: ${gameState.energyRegenRate}/min`;
             
             if (tg) {
                 tg.showAlert(stats);
@@ -879,62 +869,29 @@ Telegram ID: ${gameState.userInfo.telegramId}
             const loadingScreen = document.getElementById('loading');
             const gameScreen = document.getElementById('game');
             
-            // Immediately hide loading screen
-            loadingScreen.style.display = 'none';
-            gameScreen.style.display = 'block';
-            
-            // Force hide any Manus branding elements
-            setTimeout(() => {
-                const manusElements = document.querySelectorAll('[href*="manus"], [class*="manus"], [id*="manus"], a[href*="Create my website"]');
-                manusElements.forEach(el => {
-                    el.style.display = 'none !important';
-                    el.style.visibility = 'hidden !important';
-                    el.style.opacity = '0 !important';
-                    el.style.pointerEvents = 'none !important';
-                    el.remove();
-                });
-            }, 100);
+            if (loadingScreen) {
+                loadingScreen.style.display = 'none';
+            }
+            if (gameScreen) {
+                gameScreen.style.display = 'block';
+            }
         }
-
-        // Force hide loading screen on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(() => {
-                hideLoading();
-                initGame();
-            }, 500);
-        });
-
-        // Additional fallback to ensure game loads
-        window.addEventListener('load', function() {
-            setTimeout(() => {
-                hideLoading();
-                if (!gameState.userId) {
-                    initGame();
-                }
-            }, 1000);
-        });
 
         function showError(message) {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('game').style.display = 'none';
+            const loadingScreen = document.getElementById('loading');
+            const gameScreen = document.getElementById('game');
+            const errorDiv = document.getElementById('error');
             
-            // Create error display if it doesn't exist
-            let errorDiv = document.getElementById('error');
-            if (!errorDiv) {
-                errorDiv = document.createElement('div');
-                errorDiv.id = 'error';
-                errorDiv.className = 'error';
-                errorDiv.innerHTML = `
-                    <h3>Connection Error</h3>
-                    <p>${message}</p>
-                    <button onclick="location.reload()">Retry</button>
-                `;
-                document.querySelector('.container').appendChild(errorDiv);
+            if (loadingScreen) loadingScreen.style.display = 'none';
+            if (gameScreen) gameScreen.style.display = 'none';
+            
+            if (errorDiv) {
+                errorDiv.querySelector('p').textContent = message;
+                errorDiv.style.display = 'block';
             }
-            errorDiv.style.display = 'block';
         }
 
-        // Navigation functions - Make buttons actually work
+        // Navigation functions
         function showUpgrades() {
             window.location.href = 'upgrades.html';
         }
@@ -952,14 +909,12 @@ Telegram ID: ${gameState.userInfo.telegramId}
         }
 
         function showStats() {
-            const stats = `
-🐺 Alpha Wulf Stats 🐺
+            const stats = `🐺 Alpha Wulf Stats 🐺
 
 💰 Total Coins: ${gameState.coins.toLocaleString()}
 ⚡ Energy: ${gameState.energy}/${gameState.maxEnergy}
 💪 Tap Power: ${gameState.tapPower}
-🔋 Energy Regen: ${gameState.energyRegenRate}/min
-            `;
+🔋 Energy Regen: ${gameState.energyRegenRate}/min`;
             
             if (tg) {
                 tg.showAlert(stats);
@@ -968,29 +923,20 @@ Telegram ID: ${gameState.userInfo.telegramId}
             }
         }
 
-        // Event listeners
-        document.getElementById('tapButton').addEventListener('click', handleTap);
-
-        // Disable right-click context menu
-        document.addEventListener('contextmenu', function(e) {
-            e.preventDefault();
-            return false;
-        });
-
-        // Disable text selection and drag
-        document.addEventListener('selectstart', function(e) {
-            e.preventDefault();
-            return false;
-        });
-
-        // Disable drag
-        document.addEventListener('dragstart', function(e) {
-            e.preventDefault();
-            return false;
-        });
-
         // Initialize when page loads
-        window.addEventListener('load', initGame);
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing game...');
+            initGame();
+        });
+
+        // Fallback initialization
+        window.addEventListener('load', function() {
+            console.log('Window loaded');
+            if (!gameState.userId) {
+                console.log('Game not initialized yet, trying again...');
+                initGame();
+            }
+        });
     </script>
 </body>
 </html>
