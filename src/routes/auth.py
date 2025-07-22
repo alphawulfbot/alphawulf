@@ -90,7 +90,7 @@ def authenticate_user():
         # Extract user data with defaults
         username = data.get("username")
         first_name = data.get("first_name", "User")
-        last_name = data.get("last_name")
+        last_name = data.get("last_name")  # This might be None
         referred_by = data.get("referred_by")
         
         logger.info(f"Processing auth for telegram_id: {telegram_id}, username: {username}, first_name: {first_name}")
@@ -101,15 +101,16 @@ def authenticate_user():
         if user:
             logger.info(f"Existing user found: {telegram_id}")
             
-            # Update user info if provided
+            # Update user info if provided - FIXED: Check if attributes exist before setting
             updated = False
-            if username and user.username != username:
+            if username and hasattr(user, 'username') and user.username != username:
                 user.username = username
                 updated = True
-            if first_name and user.first_name != first_name:
+            if first_name and hasattr(user, 'first_name') and user.first_name != first_name:
                 user.first_name = first_name
                 updated = True
-            if last_name and user.last_name != last_name:
+            # FIXED: Only update last_name if the User model has this attribute
+            if last_name and hasattr(user, 'last_name') and user.last_name != last_name:
                 user.last_name = last_name
                 updated = True
             
@@ -124,21 +125,33 @@ def authenticate_user():
             logger.info(f"Creating new user: {telegram_id}")
             
             # Create new user with bonus coins
-            user = User(
-                telegram_id=telegram_id,
-                username=username,
-                first_name=first_name,
-                last_name=last_name,
-                coins=2500,  # New user bonus
-                energy=100,
-                max_energy=100,
-                tap_power=1,
-                energy_regen_rate=1,
-                last_energy_update=int(time.time()),
-                referred_by=referred_by,
-                referral_count=0,
-                referral_earnings=0
-            )
+            # FIXED: Only pass last_name if the User model supports it
+            user_data = {
+                "telegram_id": telegram_id,
+                "username": username,
+                "first_name": first_name,
+                "coins": 2500,  # New user bonus
+                "energy": 100,
+                "max_energy": 100,
+                "tap_power": 1,
+                "energy_regen_rate": 1,
+                "last_energy_update": int(time.time()),
+                "referred_by": referred_by,
+                "referral_count": 0,
+                "referral_earnings": 0
+            }
+            
+            # Only add last_name if it's provided and the User model supports it
+            if last_name:
+                # Check if User model has last_name attribute by creating a test instance
+                try:
+                    test_user = User(**user_data, last_name=last_name)
+                    user_data["last_name"] = last_name
+                except TypeError:
+                    # User model doesn't support last_name, skip it
+                    logger.info("User model doesn't support last_name attribute, skipping")
+            
+            user = User(**user_data)
             
             # Save new user
             if not user.save():
