@@ -1,9 +1,6 @@
 from flask import Blueprint, request, jsonify
 from datetime import datetime, timezone
 import logging
-import json
-
-# Import the User model
 from src.models.user import User
 
 logger = logging.getLogger(__name__)
@@ -13,53 +10,53 @@ auth_bp = Blueprint('auth', __name__)
 @auth_bp.route('/api/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
-    logger.info("Health check requested")
-    return jsonify({
-        "status": "healthy",
-        "timestamp": int(datetime.now(timezone.utc).timestamp()),
-        "service": "Alpha Wulf Backend"
-    }), 200
+    try:
+        logger.info("Health check requested")
+        return jsonify({
+            'status': 'healthy',
+            'timestamp': int(datetime.now(timezone.utc).timestamp()),
+            'service': 'Alpha Wulf Backend',
+            'version': '1.0.0'
+        })
+    except Exception as e:
+        logger.error(f"Health check error: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
 
-@auth_bp.route('/api/auth', methods=['OPTIONS'])
-def auth_options():
-    """Handle CORS preflight requests"""
-    logger.info("CORS preflight request received")
-    response = jsonify({"message": "CORS preflight"})
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-    return response, 200
-
-@auth_bp.route('/api/auth', methods=['POST'])
+@auth_bp.route('/api/auth', methods=['POST', 'OPTIONS'])
 def authenticate():
-    """Authenticate user and return user data"""
+    """Authenticate user and return real-time data"""
+    if request.method == 'OPTIONS':
+        logger.info("CORS preflight request received")
+        response = jsonify({'status': 'ok'})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+        return response
+    
     try:
         logger.info("Authentication request received")
         logger.info(f"Request method: {request.method}")
         logger.info(f"Request headers: {dict(request.headers)}")
         logger.info(f"Request origin: {request.headers.get('Origin', 'No origin')}")
         
-        # Check if request is JSON
-        if not request.is_json:
-            logger.error("Request is not JSON")
-            return jsonify({"error": "Request must be JSON", "success": False}), 400
-        
         data = request.get_json()
+        if not data:
+            logger.error("No JSON data received")
+            return jsonify({'error': 'No data provided'}), 400
+        
         logger.info(f"Auth request data: {data}")
         
-        if not data:
-            logger.error("No data received")
-            return jsonify({"error": "No data received", "success": False}), 400
-        
-        # Extract user data
         telegram_id = data.get('telegram_id')
-        username = data.get('username', '')
-        first_name = data.get('first_name', '')
-        last_name = data.get('last_name', '')
+        username = data.get('username')
+        first_name = data.get('first_name')
+        last_name = data.get('last_name')
         
         if not telegram_id:
             logger.error("No telegram_id provided")
-            return jsonify({"error": "telegram_id is required", "success": False}), 400
+            return jsonify({'error': 'telegram_id is required'}), 400
         
         logger.info(f"Processing auth for telegram_id: {telegram_id}, username: {username}, first_name: {first_name}")
         
@@ -69,171 +66,98 @@ def authenticate():
         if user:
             logger.info(f"Existing user found: {telegram_id}")
             
-            # Update user information
-            user.username = username or user.username
-            user.first_name = first_name or user.first_name
-            if last_name:  # Only update if provided
+            # Update user info if provided
+            updated = False
+            if username and user.username != username:
+                user.username = username
+                updated = True
+            if first_name and user.first_name != first_name:
+                user.first_name = first_name
+                updated = True
+            if last_name and user.last_name != last_name:
                 user.last_name = last_name
+                updated = True
             
-            # Update energy based on time passed
-            user.update_energy()
-            
-            # Save updated user data
-            if user.save():
-                logger.info(f"User data updated successfully for {telegram_id}")
-            else:
-                logger.warning(f"Failed to save user data for {telegram_id}")
+            # Save updates if any
+            if updated:
+                if user.save():
+                    logger.info(f"Updated user info for {telegram_id}")
+                else:
+                    logger.warning(f"Failed to save user updates for {telegram_id}")
         else:
             logger.info(f"Creating new user: {telegram_id}")
-            
-            # Create new user
-            user = User.create_user(
-                telegram_id=telegram_id,
-                username=username,
-                first_name=first_name,
-                last_name=last_name
-            )
+            user = User.create_user(telegram_id, username, first_name, last_name)
             
             if not user:
-                logger.error(f"Failed to create user {telegram_id}")
-                return jsonify({
-                    "error": "Failed to create user",
-                    "success": False
-                }), 500
+                logger.error(f"Failed to create user: {telegram_id}")
+                return jsonify({'error': 'Failed to create user'}), 500
         
-        # Return user data
-        user_data = user.to_dict()
+        # Get real-time user data
+        user_data = user.get_real_time_data()
+        
         logger.info(f"Authentication successful for user {telegram_id}")
         
-        response_data = {
-            "success": True,
-            "user": user_data,
-            "message": "Authentication successful"
-        }
+        response = jsonify({
+            'success': True,
+            'user': user_data
+        })
         
-        response = jsonify(response_data)
+        # Add CORS headers
         response.headers.add('Access-Control-Allow-Origin', '*')
         response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
         response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
         
-        return response, 200
+        return response
         
     except Exception as e:
         logger.error(f"Authentication error: {str(e)}")
-        logger.error(f"Error type: {type(e).__name__}")
-        logger.error(f"Error details: {e.__dict__ if hasattr(e, '__dict__') else {}}")
-        
         return jsonify({
-            "error": "Authentication failed",
-            "message": str(e),
-            "success": False
+            'error': 'Authentication failed',
+            'message': str(e)
         }), 500
 
-@auth_bp.route('/api/user/tap', methods=['POST'])
-def tap():
-    """Handle tap action"""
+@auth_bp.route('/api/user/sync/<int:telegram_id>', methods=['GET'])
+def sync_user_data(telegram_id):
+    """Sync user data - get real-time data"""
     try:
-        data = request.get_json()
-        telegram_id = data.get('telegram_id')
-        
-        if not telegram_id:
-            return jsonify({"error": "telegram_id is required", "success": False}), 400
-        
         user = User.get_by_telegram_id(telegram_id)
         if not user:
-            return jsonify({"error": "User not found", "success": False}), 404
+            return jsonify({'error': 'User not found'}), 404
         
-        if user.tap():
-            return jsonify({
-                "success": True,
-                "user": user.to_dict(),
-                "message": "Tap successful"
-            }), 200
-        else:
-            return jsonify({
-                "error": "Cannot tap - no energy",
-                "success": False
-            }), 400
-            
+        # Get real-time data with energy updates
+        user_data = user.get_real_time_data()
+        
+        return jsonify({
+            'success': True,
+            'user': user_data
+        })
+        
     except Exception as e:
-        logger.error(f"Tap error: {str(e)}")
-        return jsonify({
-            "error": "Tap failed",
-            "message": str(e),
-            "success": False
-        }), 500
+        logger.error(f"Error syncing user data for {telegram_id}: {str(e)}")
+        return jsonify({'error': 'Sync failed'}), 500
 
-@auth_bp.route('/api/user/data', methods=['GET'])
-def get_user_data():
-    """Get user data"""
+@auth_bp.route('/api/user/refresh/<int:telegram_id>', methods=['POST'])
+def refresh_user_data(telegram_id):
+    """Refresh user data - force real-time update"""
     try:
-        telegram_id = request.args.get('telegram_id')
-        
-        if not telegram_id:
-            return jsonify({"error": "telegram_id is required", "success": False}), 400
-        
         user = User.get_by_telegram_id(telegram_id)
         if not user:
-            return jsonify({"error": "User not found", "success": False}), 404
+            return jsonify({'error': 'User not found'}), 404
         
-        # Update energy before returning data
+        # Force energy update and save
         user.update_energy()
         user.save()
         
-        response = jsonify({
-            "success": True,
-            "user": user.to_dict()
+        # Get fresh data
+        user_data = user.get_real_time_data()
+        
+        return jsonify({
+            'success': True,
+            'user': user_data,
+            'refreshed_at': datetime.now(timezone.utc).isoformat()
         })
-        response.headers.add('Access-Control-Allow-Origin', '*')
-        return response, 200
         
     except Exception as e:
-        logger.error(f"Get user data error: {str(e)}")
-        return jsonify({
-            "error": "Failed to get user data",
-            "message": str(e),
-            "success": False
-        }), 500
-
-@auth_bp.route('/api/user/upgrade', methods=['POST'])
-def upgrade():
-    """Handle upgrade action"""
-    try:
-        data = request.get_json()
-        telegram_id = data.get('telegram_id')
-        upgrade_type = data.get('upgrade_type')
-        cost = data.get('cost', 0)
-        
-        if not telegram_id:
-            return jsonify({"error": "telegram_id is required", "success": False}), 400
-        
-        user = User.get_by_telegram_id(telegram_id)
-        if not user:
-            return jsonify({"error": "User not found", "success": False}), 404
-        
-        if upgrade_type == 'tap_power':
-            if user.upgrade_tap_power(cost):
-                return jsonify({
-                    "success": True,
-                    "user": user.to_dict(),
-                    "message": "Upgrade successful"
-                }), 200
-            else:
-                return jsonify({
-                    "error": "Cannot afford upgrade",
-                    "success": False
-                }), 400
-        else:
-            return jsonify({
-                "error": "Invalid upgrade type",
-                "success": False
-            }), 400
-            
-    except Exception as e:
-        logger.error(f"Upgrade error: {str(e)}")
-        return jsonify({
-            "error": "Upgrade failed",
-            "message": str(e),
-            "success": False
-        }), 500
+        logger.error(f"Error refreshing user data for {telegram_id}: {str(e)}")
+        return jsonify({'error': 'Refresh failed'}), 500
 
