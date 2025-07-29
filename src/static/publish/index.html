@@ -3,20 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alpha Wulf V1</title>
+    <title>Alpha Wulf - Tap to Earn</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3014995575427702"
+     crossorigin="anonymous"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
 
         body {
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
-            color: #fff;
-            overflow-x: hidden;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+            color: #FFD700;
             min-height: 100vh;
+            overflow-x: hidden;
+            user-select: none;
         }
 
         .container {
@@ -30,104 +41,80 @@
 
         .header {
             text-align: center;
-            margin-bottom: 30px;
-            position: relative;
-        }
-
-        .user-info {
-            position: absolute;
-            top: 0;
-            right: 0;
-            background: rgba(255, 215, 0, 0.1);
-            border: 1px solid #ffd700;
-            border-radius: 20px;
-            padding: 8px 12px;
-            font-size: 12px;
-            color: #ffd700;
+            margin-bottom: 20px;
         }
 
         .logo {
             width: 80px;
             height: 80px;
-            margin: 0 auto 20px;
-            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            margin: 0 auto 10px;
+            background: url('alpha_wulf_logo.png') center/cover;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
-        }
-
-        .logo::before {
-            content: "🐺";
-            font-size: 40px;
+            border: 3px solid #FFD700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
         }
 
         .title {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: bold;
-            color: #ffd700;
-            margin-bottom: 10px;
+            color: #FFD700;
+            margin-bottom: 5px;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
         }
 
         .subtitle {
-            font-size: 16px;
-            color: #ffd700;
-            opacity: 0.8;
+            font-size: 14px;
+            color: #DAA520;
         }
 
         .stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
+            display: flex;
+            justify-content: space-between;
             margin-bottom: 30px;
+            gap: 10px;
         }
 
         .stat-card {
-            background: rgba(255, 215, 0, 0.1);
-            border: 1px solid #ffd700;
+            flex: 1;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(218, 165, 32, 0.05) 100%);
             border-radius: 15px;
             padding: 15px;
             text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
         .stat-value {
-            font-size: 24px;
+            font-size: 18px;
             font-weight: bold;
-            color: #fff;
-            margin-bottom: 5px;
+            color: #FFD700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
         }
 
         .stat-label {
             font-size: 12px;
-            color: #ffd700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
+            color: #DAA520;
+            margin-top: 5px;
         }
 
         .energy-bar {
             width: 100%;
             height: 20px;
-            background: rgba(255, 215, 0, 0.2);
+            background: rgba(0, 0, 0, 0.3);
             border-radius: 10px;
             margin-bottom: 30px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
             overflow: hidden;
-            border: 1px solid #ffd700;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.3);
         }
 
         .energy-fill {
             height: 100%;
-            background: linear-gradient(90deg, #ffd700, #ffed4e);
-            border-radius: 10px;
+            background: linear-gradient(90deg, #FFD700 0%, #FFA500 100%);
             transition: width 0.3s ease;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
         }
 
         .tap-area {
@@ -142,104 +129,214 @@
             width: 200px;
             height: 200px;
             border-radius: 50%;
-            background: linear-gradient(45deg, #8B4513, #D2691E);
-            border: 5px solid #ffd700;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(218, 165, 32, 0.1) 100%);
+            border: 3px solid #FFD700;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.1s ease;
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
-            position: relative;
-            overflow: hidden;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
+            margin: 0 auto;
+            -webkit-tap-highlight-color: transparent !important;
+            -webkit-touch-callout: none !important;
+            -webkit-user-select: none !important;
+            outline: none !important;
         }
 
         .tap-button:active {
             transform: scale(0.95);
-            box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.8), inset 0 0 30px rgba(255, 215, 0, 0.2);
         }
 
-        .tap-button::before {
-            content: "🐺";
+        .tap-button.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .wolf-icon {
             font-size: 80px;
-            z-index: 2;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
         }
 
-        .tap-effect {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%);
+        .coin-tap-image {
+            width: 160px;
+            height: 160px;
             border-radius: 50%;
-            opacity: 0;
-            animation: tapEffect 0.3s ease-out;
+            object-fit: cover;
+            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
+            transition: all 0.1s ease;
         }
 
-        @keyframes tapEffect {
-            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-            50% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-            100% { opacity: 0; transform: translate(-50%, -50%) scale(1.2); }
+        .tap-button:active .coin-tap-image {
+            transform: scale(0.95);
+            filter: drop-shadow(0 0 30px rgba(255, 215, 0, 1));
         }
 
-        .navigation {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
-            background: rgba(255, 215, 0, 0.1);
-            border: 1px solid #ffd700;
+        .coin-icon-small {
+            width: 20px;
+            height: 20px;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+
+        .coin-animation {
+            position: absolute;
+            font-size: 24px;
+            color: #FFD700;
+            pointer-events: none;
+            animation: coinFloat 1s ease-out forwards;
+            background-image: url("wolf_coin_icon.png");
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            width: 30px;
+            height: 30px;
+            text-indent: -9999px;
+        }
+
+        @keyframes coinFloat {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%);
             border-radius: 20px;
             padding: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
-        .nav-item {
+        .nav-button {
+            background: none;
+            border: none;
+            color: #FFD700;
+            font-size: 12px;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 5px;
-            padding: 10px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            color: #ffd700;
+            min-width: 60px;
         }
 
-        .nav-item:hover {
-            background: rgba(255, 215, 0, 0.2);
+        .nav-button:hover {
+            background: rgba(255, 215, 0, 0.1);
             transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(255, 215, 0, 0.2);
         }
 
         .nav-icon {
             font-size: 20px;
+            margin-bottom: 5px;
+            filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.3));
         }
 
-        .nav-label {
-            font-size: 10px;
+        .error {
+            background: linear-gradient(135deg, rgba(255, 0, 0, 0.1) 0%, rgba(139, 0, 0, 0.1) 100%);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
             text-align: center;
+            margin: 20px;
+            color: #FFD700;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
+        /* Loading Screen Styles */
         .loading {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
             display: flex;
             flex-direction: column;
-            align-items: center;
             justify-content: center;
-            z-index: 1000;
+            align-items: center;
+            z-index: 9999;
+            color: #FFD700;
+        }
+
+        .loading-logo {
+            width: 120px;
+            height: 120px;
+            background: url('alpha_wulf_logo.png') center/cover;
+            border-radius: 50%;
+            border: 4px solid #FFD700;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.6), 
+                        0 0 60px rgba(255, 215, 0, 0.4),
+                        0 0 90px rgba(255, 215, 0, 0.2);
+            animation: logoGlow 2s ease-in-out infinite alternate, logoSpin 4s linear infinite;
+            margin-bottom: 30px;
+        }
+
+        @keyframes logoGlow {
+            0% {
+                box-shadow: 0 0 30px rgba(255, 215, 0, 0.6), 
+                           0 0 60px rgba(255, 215, 0, 0.4),
+                           0 0 90px rgba(255, 215, 0, 0.2);
+                transform: scale(1);
+            }
+            100% {
+                box-shadow: 0 0 40px rgba(255, 215, 0, 0.8), 
+                           0 0 80px rgba(255, 215, 0, 0.6),
+                           0 0 120px rgba(255, 215, 0, 0.4);
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes logoSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            margin-bottom: 10px;
+            animation: titlePulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes titlePulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .loading-subtitle {
+            font-size: 16px;
+            color: #DAA520;
+            margin-bottom: 40px;
+            animation: subtitleFade 2s ease-in-out infinite;
+        }
+
+        @keyframes subtitleFade {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 0.4; }
         }
 
         .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid rgba(255, 215, 0, 0.3);
-            border-top: 3px solid #ffd700;
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 215, 0, 0.2);
+            border-top: 4px solid #FFD700;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin-bottom: 20px;
@@ -250,452 +347,599 @@
             100% { transform: rotate(360deg); }
         }
 
-        .loading-text {
-            color: #ffd700;
-            font-size: 16px;
+        .loading-dots {
+            font-size: 18px;
+            color: #FFD700;
         }
 
-        .error-message {
-            background: rgba(220, 53, 69, 0.1);
-            border: 1px solid #dc3545;
-            border-radius: 10px;
-            padding: 15px;
-            margin: 20px 0;
-            color: #dc3545;
-            text-align: center;
-            display: none;
+        .loading-dots::after {
+            content: '';
+            animation: dots 1.5s steps(4, end) infinite;
         }
 
-        .debug-panel {
-            background: rgba(0, 0, 0, 0.8);
-            border: 1px solid #ffd700;
-            border-radius: 10px;
-            padding: 15px;
-            margin: 20px 0;
-            font-size: 12px;
-            color: #ffd700;
-            display: none;
-            max-height: 200px;
-            overflow-y: auto;
+        @keyframes dots {
+            0%, 20% { content: ''; }
+            40% { content: '.'; }
+            60% { content: '..'; }
+            80%, 100% { content: '...'; }
         }
 
-        .debug-toggle {
-            background: #ffd700;
-            color: #1a1a2e;
-            border: none;
-            border-radius: 5px;
-            padding: 5px 10px;
+        .loading-progress {
+            width: 200px;
+            height: 4px;
+            background: rgba(255, 215, 0, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .loading-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #FFD700 0%, #FFA500 100%);
+            border-radius: 2px;
+            animation: progressFill 3s ease-in-out infinite;
+        }
+
+        @keyframes progressFill {
+            0% { width: 0%; }
+            50% { width: 70%; }
+            100% { width: 100%; }
+        }
+
+        /* User Profile Icon Styles */
+        .user-profile {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px solid #FFD700;
+            border-radius: 25px;
+            padding: 8px 12px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
             cursor: pointer;
+            transition: all 0.3s ease;
+            max-width: 200px;
+            z-index: 1000;
+        }
+
+        .user-profile:hover {
+            background: rgba(255, 215, 0, 0.2);
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+            color: #1a1a1a;
+            margin-right: 8px;
+            border: 2px solid #FFD700;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .user-name {
             font-size: 12px;
-            margin: 10px 0;
+            font-weight: bold;
+            color: #FFD700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
         }
 
-        .connection-status {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(220, 53, 69, 0.9);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            z-index: 1001;
-            display: none;
+        .user-id {
+            font-size: 10px;
+            color: #DAA520;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
         }
 
-        .connection-status.success {
-            background: rgba(40, 167, 69, 0.9);
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .user-profile {
+                top: 10px;
+                right: 10px;
+                padding: 6px 10px;
+                max-width: 150px;
+            }
+            
+            .user-avatar {
+                width: 28px;
+                height: 28px;
+                font-size: 14px;
+            }
+            
+            .user-name {
+                font-size: 11px;
+                max-width: 80px;
+            }
+            
+            .user-id {
+                font-size: 9px;
+                max-width: 80px;
+            }
+            
+            .tap-button {
+                width: 180px;
+                height: 180px;
+            }
+            
+            .wolf-icon {
+                font-size: 70px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="loading" id="loading">
-        <div class="loading-spinner"></div>
-        <div class="loading-text">Loading...</div>
-        <div class="user-info" id="loadingUserInfo">ID: ---</div>
+    <div class="container">
+        <div id="loading" class="loading">
+            <div class="loading-logo"></div>
+            <div class="loading-title">Alpha Wulf</div>
+            <div class="loading-subtitle">Connecting to the pack</div>
+            <div class="loading-spinner"></div>
+            <div class="loading-dots">Loading</div>
+            <div class="loading-progress">
+                <div class="loading-progress-bar"></div>
+            </div>
+        </div>
+
+        <div id="game" style="display: none;">
+            <!-- User Profile Icon -->
+            <div class="user-profile" id="userProfile" onclick="showUserStats()">
+                <div class="user-avatar" id="userAvatar">?</div>
+                <div class="user-info">
+                    <div class="user-name" id="userName">Loading...</div>
+                    <div class="user-id" id="userId">ID: ---</div>
+                </div>
+            </div>
+
+            <div class="header">
+                <div class="logo"></div>
+                <div class="title">Alpha Wulf</div>
+                <div class="subtitle">Tap to Earn Wolf Coins</div>
+            </div>
+
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-format="fluid"
+                 data-ad-layout-key="-fb+5w+4e-db+86"
+                 data-ad-client="ca-pub-3014995575427702"
+                 data-ad-slot="5023799767"></ins>
+            <script>
+                 (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="coins">0</div>
+                    <div class="stat-label"><img src="wolf_coin_icon.png" alt="Coins" class="coin-icon-small"> Coins</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="energy">100</div>
+                    <div class="stat-label">⚡ Energy</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="tapPower">1</div>
+                    <div class="stat-label">💪 Power</div>
+                </div>
+            </div>
+
+            <div class="energy-bar">
+                <div class="energy-fill" id="energyFill" style="width: 100%"></div>
+            </div>
+
+            <div class="tap-area">
+                <div class="tap-button" id="tapButton">
+                    <img src="wolf_coin_icon.png" alt="Wolf Coin" class="coin-tap-image">
+                </div>
+            </div>
+
+            <div class="bottom-nav">
+                <button class="nav-button" onclick="showUpgrades()">
+                    <div class="nav-icon">⬆️</div>
+                    <div>Upgrades</div>
+                </button>
+                <button class="nav-button" onclick="showMiniGames()">
+                    <div class="nav-icon">🎮</div>
+                    <div>Games</div>
+                </button>
+                <button class="nav-button" onclick="showWithdraw()">
+                    <div class="nav-icon">💳</div>
+                    <div>Withdraw</div>
+                </button>
+                <button class="nav-button" onclick="showReferrals()">
+                    <div class="nav-icon">👥</div>
+                    <div>Referrals</div>
+                </button>
+                <button class="nav-button" onclick="showStats()">
+                    <div class="nav-icon">📊</div>
+                    <div>Stats</div>
+                </button>
+            </div>
+        </div>
+
+        <div id="error" class="error" style="display: none;">
+            <h3>Connection Error</h3>
+            <p>Unable to connect to Alpha Wulf servers. Please try again later.</p>
+            <button onclick="location.reload()" style="margin-top: 10px; padding: 10px 20px; background: #00BFFF; border: none; border-radius: 5px; color: white; cursor: pointer;">Retry</button>
+        </div>
     </div>
 
-    <div class="container" id="gameContainer" style="display: none;">
-        <div class="header">
-            <div class="user-info" id="userInfo">Loading...</div>
-            <div class="logo"></div>
-            <div class="title">Alpha Wulf</div>
-            <div class="subtitle">Tap to Earn Wolf Coins</div>
-        </div>
-
-        <div class="stats">
-            <div class="stat-card">
-                <div class="stat-value" id="coinsDisplay">0</div>
-                <div class="stat-label">🪙 Coins</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="energyDisplay">100</div>
-                <div class="stat-label">⚡ Energy</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="powerDisplay">1</div>
-                <div class="stat-label">💪 Power</div>
-            </div>
-        </div>
-
-        <div class="energy-bar">
-            <div class="energy-fill" id="energyFill"></div>
-        </div>
-
-        <div class="tap-area">
-            <div class="tap-button" id="tapButton">
-                <div class="tap-effect" id="tapEffect"></div>
-            </div>
-        </div>
-
-        <div class="navigation">
-            <a href="#" class="nav-item" onclick="showSection('upgrades')">
-                <div class="nav-icon">⬆️</div>
-                <div class="nav-label">Upgrades</div>
-            </a>
-            <a href="#" class="nav-item" onclick="showSection('games')">
-                <div class="nav-icon">🎮</div>
-                <div class="nav-label">Games</div>
-            </a>
-            <a href="#" class="nav-item" onclick="showSection('withdraw')">
-                <div class="nav-icon">💳</div>
-                <div class="nav-label">Withdraw</div>
-            </a>
-            <a href="#" class="nav-item" onclick="showSection('referrals')">
-                <div class="nav-icon">👥</div>
-                <div class="nav-label">Referrals</div>
-            </a>
-            <a href="#" class="nav-item" onclick="showSection('stats')">
-                <div class="nav-icon">📊</div>
-                <div class="nav-label">Stats</div>
-            </a>
-        </div>
-
-        <div class="error-message" id="errorMessage"></div>
-        
-        <button class="debug-toggle" onclick="toggleDebug()">Debug Info</button>
-        <div class="debug-panel" id="debugPanel"></div>
-    </div>
-
-    <div class="connection-status" id="connectionStatus"></div>
-
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        // Global variables
-        let userData = {
-            telegram_id: null,
-            username: '',
-            first_name: '',
-            last_name: '',
+        // Game state
+        let gameState = {
             coins: 0,
             energy: 100,
-            max_energy: 100,
-            tap_power: 1,
-            energy_regen_rate: 1,
-            total_taps: 0,
-            referral_count: 0,
-            referral_earnings: 0,
-            last_energy_update: 0
+            maxEnergy: 100,
+            tapPower: 1,
+            energyRegenRate: 1,
+            lastUpdate: Date.now(),
+            userId: null,
+            userInfo: null
         };
 
-        let isAuthenticated = false;
-        let debugMode = false;
-        let energyRegenInterval = null;
+        // Telegram Web App initialization
+        let tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            tg.MainButton.hide();
+        }
 
-        // Backend configuration
-        const BACKEND_URL = 'https://alphawulf-backend-gfgy.onrender.com';
+        // API base URL
+        const API_BASE = "https://alphawulf-backend-gfgy.onrender.com/api";
 
-        // Utility functions
-        function log(message, type = 'info') {
-            console.log(`[${type.toUpperCase()}] ${message}`);
-            if (debugMode) {
-                updateDebugPanel(`[${type.toUpperCase()}] ${message}`);
+        // Initialize game with robust error handling
+        async function initGame() {
+            try {
+                console.log('Initializing Alpha Wulf game...');
+                console.log('Environment:', {
+                    isTelegram: !!window.Telegram,
+                    hasWebApp: !!window.Telegram?.WebApp,
+                    userAgent: navigator.userAgent,
+                    origin: window.location.origin
+                });
+
+                // Get user data from Telegram
+                const telegramUser = tg?.initDataUnsafe?.user;
+                console.log('Telegram user data:', telegramUser);
+                
+                if (!telegramUser) {
+                    throw new Error('This app can only be used within Telegram. Please open it through the Telegram bot.');
+                }
+
+                console.log('Attempting authentication with backend...');
+                
+                // Authentication with backend
+                const authRequestData = {
+                    telegram_id: telegramUser.id,
+                    username: telegramUser.username,
+                    first_name: telegramUser.first_name,
+                    last_name: telegramUser.last_name
+                };
+
+                let authResponse;
+                try {
+                    // Primary authentication attempt
+                    authResponse = await fetch(`${API_BASE}/auth`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(authRequestData),
+                        mode: 'cors',
+                        credentials: 'omit'
+                    });
+                    console.log('Auth response status:', authResponse.status);
+                } catch (fetchError) {
+                    console.error('Primary fetch failed:', fetchError);
+                    
+                    // Fallback: try with different configuration
+                    try {
+                        authResponse = await fetch(`${API_BASE}/auth`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(authRequestData)
+                        });
+                        console.log('Fallback auth response status:', authResponse.status);
+                    } catch (fallbackError) {
+                        console.error('Fallback fetch also failed:', fallbackError);
+                        throw new Error('Network connection failed. Please check your internet connection.');
+                    }
+                }
+                
+                if (!authResponse.ok) {
+                    const errorText = await authResponse.text();
+                    console.error('Auth error:', errorText);
+                    throw new Error(`Failed to authenticate user: ${authResponse.status}`);
+                }
+                
+                const authResponseData = await authResponse.json();
+                console.log('Auth response:', authResponseData);
+                
+                if (!authResponseData.success || !authResponseData.user) {
+                    throw new Error('Invalid authentication response');
+                }
+                
+                const userData = authResponseData.user;
+                
+                // Update user profile display
+                updateUserProfile(telegramUser, userData);
+                
+                // Update game state with user data
+                gameState = {
+                    coins: userData.coins || 2500,
+                    energy: userData.energy || 100,
+                    maxEnergy: userData.max_energy || 100,
+                    tapPower: userData.tap_power || 1,
+                    energyRegenRate: userData.energy_regen_rate || 1,
+                    lastUpdate: Date.now(),
+                    userId: userData.telegram_id,
+                    userInfo: {
+                        username: telegramUser.username,
+                        firstName: telegramUser.first_name,
+                        lastName: telegramUser.last_name,
+                        telegramId: telegramUser.id
+                    }
+                };
+                
+                console.log('Game state initialized:', gameState);
+                updateDisplay();
+                hideLoading();
+                startEnergyRegeneration();
+                setupEventListeners();
+                
+            } catch (error) {
+                console.error('Failed to initialize game:', error);
+                console.error('Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    name: error.name
+                });
+                
+                // Provide specific error messages
+                let errorMessage = 'Unable to connect to Alpha Wulf servers. Please try again later.';
+                
+                if (error.message.includes('Network connection failed')) {
+                    errorMessage = 'Network connection failed. Please check your internet connection and try again.';
+                } else if (error.message.includes('Failed to authenticate')) {
+                    errorMessage = 'Authentication failed. Please restart the app and try again.';
+                } else if (error.message.includes('only be used within Telegram')) {
+                    errorMessage = error.message;
+                }
+                
+                showError(errorMessage);
+                hideLoading();
             }
         }
 
-        function updateDebugPanel(message) {
-            const debugPanel = document.getElementById('debugPanel');
-            if (debugPanel) {
-                debugPanel.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
-                debugPanel.scrollTop = debugPanel.scrollHeight;
+        // Setup event listeners
+        function setupEventListeners() {
+            const tapButton = document.getElementById('tapButton');
+            if (tapButton) {
+                tapButton.addEventListener('click', handleTap);
+                tapButton.addEventListener('touchstart', handleTap);
             }
         }
 
-        function toggleDebug() {
-            debugMode = !debugMode;
-            const debugPanel = document.getElementById('debugPanel');
-            debugPanel.style.display = debugMode ? 'block' : 'none';
-            if (debugMode) {
-                updateDebugPanel('Debug mode enabled');
+        // Update UI elements
+        function updateDisplay() {
+            document.getElementById('coins').textContent = gameState.coins.toLocaleString();
+            document.getElementById('energy').textContent = `${gameState.energy}/${gameState.maxEnergy}`;
+            document.getElementById('tapPower').textContent = gameState.tapPower;
+            
+            const energyPercentage = (gameState.energy / gameState.maxEnergy) * 100;
+            document.getElementById('energyFill').style.width = `${energyPercentage}%`;
+            
+            const tapButton = document.getElementById('tapButton');
+            if (gameState.energy <= 0) {
+                tapButton.classList.add('disabled');
+            } else {
+                tapButton.classList.remove('disabled');
+            }
+        }
+
+        // Handle tap
+        async function handleTap(event) {
+            if (gameState.energy <= 0) return;
+            
+            // Prevent default touch behavior
+            event.preventDefault();
+            
+            // Decrease energy and increase coins
+            gameState.energy = Math.max(0, gameState.energy - 1);
+            gameState.coins += gameState.tapPower;
+            
+            // Create coin animation
+            createCoinAnimation(event);
+            
+            // Update UI
+            updateDisplay();
+            
+            // Send tap to backend
+            try {
+                await fetch(`${API_BASE}/tap`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        telegram_id: gameState.userId,
+                        taps: 1
+                    })
+                });
+            } catch (error) {
+                console.error('Failed to send tap to backend:', error);
+            }
+        }
+
+        // Create coin animation
+        function createCoinAnimation(event) {
+            const coin = document.createElement('div');
+            coin.className = 'coin-animation';
+            coin.textContent = `+${gameState.tapPower}`;
+            
+            const rect = event.target.getBoundingClientRect();
+            coin.style.position = 'absolute';
+            coin.style.left = (event.clientX - rect.left) + 'px';
+            coin.style.top = (event.clientY - rect.top) + 'px';
+            
+            event.target.parentElement.appendChild(coin);
+            
+            setTimeout(() => {
+                if (coin.parentElement) {
+                    coin.remove();
+                }
+            }, 1000);
+        }
+
+        // Energy regeneration
+        function startEnergyRegeneration() {
+            setInterval(() => {
+                if (gameState.energy < gameState.maxEnergy) {
+                    gameState.energy = Math.min(gameState.maxEnergy, gameState.energy + 1);
+                    updateDisplay();
+                }
+            }, 60000 / gameState.energyRegenRate);
+        }
+
+        // Helper functions
+        function updateUserProfile(telegramUser, userData) {
+            const userAvatar = document.getElementById('userAvatar');
+            const userName = document.getElementById('userName');
+            const userId = document.getElementById('userId');
+            
+            // Set avatar initial (first letter of first name or username)
+            const initial = (telegramUser.first_name || telegramUser.username || 'U').charAt(0).toUpperCase();
+            userAvatar.textContent = initial;
+            
+            // Set display name (prefer first name, fallback to username)
+            const displayName = telegramUser.first_name || telegramUser.username || 'User';
+            userName.textContent = displayName;
+            
+            // Set user ID
+            userId.textContent = `ID: ${telegramUser.id}`;
+        }
+
+        function showUserStats() {
+            if (!gameState.userInfo) return;
+            
+            const stats = `👤 User Profile:
+Name: ${gameState.userInfo.firstName || 'N/A'} ${gameState.userInfo.lastName || ''}
+Username: @${gameState.userInfo.username || 'N/A'}
+Telegram ID: ${gameState.userInfo.telegramId}
+
+🎮 Game Stats:
+🪙 Total Coins: ${gameState.coins.toLocaleString()}
+⚡ Energy: ${gameState.energy}/${gameState.maxEnergy}
+💪 Tap Power: ${gameState.tapPower}
+🔋 Energy Regen: ${gameState.energyRegenRate}/min`;
+            
+            if (tg) {
+                tg.showAlert(stats);
+            } else {
+                alert(stats);
+            }
+        }
+
+        function hideLoading() {
+            const loadingScreen = document.getElementById('loading');
+            const gameScreen = document.getElementById('game');
+            
+            if (loadingScreen) {
+                loadingScreen.style.display = 'none';
+            }
+            if (gameScreen) {
+                gameScreen.style.display = 'block';
             }
         }
 
         function showError(message) {
-            const errorElement = document.getElementById('errorMessage');
-            errorElement.textContent = message;
-            errorElement.style.display = 'block';
-            setTimeout(() => {
-                errorElement.style.display = 'none';
-            }, 5000);
-        }
-
-        function showConnectionStatus(message, isSuccess = false) {
-            const statusElement = document.getElementById('connectionStatus');
-            statusElement.textContent = message;
-            statusElement.className = `connection-status ${isSuccess ? 'success' : ''}`;
-            statusElement.style.display = 'block';
-            setTimeout(() => {
-                statusElement.style.display = 'none';
-            }, 3000);
-        }
-
-        function hideLoading() {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('gameContainer').style.display = 'block';
-        }
-
-        function showLoading() {
-            document.getElementById('loading').style.display = 'flex';
-            document.getElementById('gameContainer').style.display = 'none';
-        }
-
-        // API functions with enhanced error handling and proper Content-Type
-        async function makeAPIRequest(endpoint, method = 'GET', data = null) {
-            const url = `${BACKEND_URL}${endpoint}`;
-            log(`Making ${method} request to ${url}`);
-
-            const options = {
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                mode: 'cors',
-                credentials: 'omit'
-            };
-
-            if (data && method !== 'GET') {
-                options.body = JSON.stringify(data);
-                log(`Request data: ${JSON.stringify(data)}`);
-            }
-
-            try {
-                const response = await fetch(url, options);
-                log(`Response status: ${response.status}`);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-
-                const responseData = await response.json();
-                log(`Response data: ${JSON.stringify(responseData)}`);
-                return responseData;
-            } catch (error) {
-                log(`API request failed: ${error.message}`, 'error');
-                throw error;
-            }
-        }
-
-        async function checkBackendHealth() {
-            try {
-                const response = await makeAPIRequest('/api/health');
-                log('Backend health check successful');
-                return true;
-            } catch (error) {
-                log(`Backend health check failed: ${error.message}`, 'error');
-                return false;
-            }
-        }
-
-        async function authenticateUser() {
-            try {
-                log('Starting authentication process');
-
-                // Get Telegram user data
-                const tg = window.Telegram.WebApp;
-                tg.ready();
-
-                if (!tg.initDataUnsafe || !tg.initDataUnsafe.user) {
-                    throw new Error('Telegram user data not available');
-                }
-
-                const user = tg.initDataUnsafe.user;
-                log(`Telegram user data: ${JSON.stringify(user)}`);
-
-                const authData = {
-                    telegram_id: user.id,
-                    username: user.username || '',
-                    first_name: user.first_name || '',
-                    last_name: user.last_name || ''
-                };
-
-                // Update loading user info
-                document.getElementById('loadingUserInfo').textContent = `ID: ${user.id}`;
-
-                // Authenticate with backend
-                const response = await makeAPIRequest('/api/auth', 'POST', authData);
-
-                if (response.success && response.user) {
-                    userData = { ...userData, ...response.user };
-                    isAuthenticated = true;
-                    log('Authentication successful');
-                    showConnectionStatus('Connected successfully!', true);
-                    return true;
-                } else {
-                    throw new Error('Authentication response invalid');
-                }
-            } catch (error) {
-                log(`Authentication failed: ${error.message}`, 'error');
-                showError(`Authentication failed: ${error.message}`);
-                return false;
-            }
-        }
-
-        async function tapCoin() {
-            if (!isAuthenticated || userData.energy <= 0) {
-                log('Cannot tap: not authenticated or no energy', 'warn');
-                return;
-            }
-
-            try {
-                // Optimistic update
-                userData.coins += userData.tap_power;
-                userData.energy = Math.max(0, userData.energy - 1);
-                userData.total_taps += 1;
-                
-                updateUI();
-                showTapEffect();
-
-                // Send to backend
-                const response = await makeAPIRequest('/api/tap', 'POST', {
-                    telegram_id: userData.telegram_id
-                });
-
-                if (response.success && response.user) {
-                    userData = { ...userData, ...response.user };
-                    updateUI();
-                    log('Tap successful');
-                } else {
-                    throw new Error('Tap response invalid');
-                }
-            } catch (error) {
-                log(`Tap failed: ${error.message}`, 'error');
-                // Revert optimistic update
-                userData.coins -= userData.tap_power;
-                userData.energy = Math.min(userData.max_energy, userData.energy + 1);
-                userData.total_taps -= 1;
-                updateUI();
-            }
-        }
-
-        function showTapEffect() {
-            const tapEffect = document.getElementById('tapEffect');
-            tapEffect.style.animation = 'none';
-            tapEffect.offsetHeight; // Trigger reflow
-            tapEffect.style.animation = 'tapEffect 0.3s ease-out';
-        }
-
-        function updateUI() {
-            document.getElementById('coinsDisplay').textContent = userData.coins.toLocaleString();
-            document.getElementById('energyDisplay').textContent = userData.energy;
-            document.getElementById('powerDisplay').textContent = userData.tap_power;
+            const loadingScreen = document.getElementById('loading');
+            const gameScreen = document.getElementById('game');
+            const errorDiv = document.getElementById('error');
             
-            // Update energy bar
-            const energyPercentage = (userData.energy / userData.max_energy) * 100;
-            document.getElementById('energyFill').style.width = `${energyPercentage}%`;
-
-            // Update user info
-            const userInfoText = userData.username ? 
-                `@${userData.username}` : 
-                `${userData.first_name} (${userData.telegram_id})`;
-            document.getElementById('userInfo').textContent = userInfoText;
-        }
-
-        function startEnergyRegeneration() {
-            if (energyRegenInterval) {
-                clearInterval(energyRegenInterval);
+            if (loadingScreen) loadingScreen.style.display = 'none';
+            if (gameScreen) gameScreen.style.display = 'none';
+            
+            if (errorDiv) {
+                errorDiv.querySelector('p').textContent = message;
+                errorDiv.style.display = 'block';
             }
-
-            energyRegenInterval = setInterval(() => {
-                if (userData.energy < userData.max_energy) {
-                    userData.energy = Math.min(userData.max_energy, userData.energy + userData.energy_regen_rate);
-                    updateUI();
-                    log(`Energy regenerated: ${userData.energy}/${userData.max_energy}`);
-                }
-            }, 30000); // 30 seconds
         }
 
-        function showSection(section) {
-            log(`Navigating to section: ${section}`);
-            // Here you would implement section navigation
-            // For now, just log the action
-            showConnectionStatus(`Opening ${section} section...`);
+        // Navigation functions
+        function showUpgrades() {
+            window.location.href = 'upgrades.html';
         }
 
-        // Event listeners
-        document.addEventListener('DOMContentLoaded', async function() {
-            log('DOM loaded, initializing game');
+        function showMiniGames() {
+            window.location.href = 'minigames.html';
+        }
 
-            try {
-                // Check backend health
-                const isHealthy = await checkBackendHealth();
-                if (!isHealthy) {
-                    throw new Error('Backend is not responding');
-                }
+        function showWithdraw() {
+            window.location.href = 'withdraw.html';
+        }
 
-                // Authenticate user
-                const authSuccess = await authenticateUser();
-                if (!authSuccess) {
-                    throw new Error('Authentication failed');
-                }
+        function showReferrals() {
+            window.location.href = 'referrals.html';
+        }
 
-                // Initialize UI
-                updateUI();
-                startEnergyRegeneration();
+        function showStats() {
+            const stats = `🐺 Alpha Wulf Stats 🐺
 
-                // Add tap event listener
-                document.getElementById('tapButton').addEventListener('click', tapCoin);
-
-                // Hide loading screen
-                hideLoading();
-
-                log('Game initialized successfully');
-            } catch (error) {
-                log(`Initialization failed: ${error.message}`, 'error');
-                showError(`Failed to load game: ${error.message}`);
-                hideLoading();
+💰 Total Coins: ${gameState.coins.toLocaleString()}
+⚡ Energy: ${gameState.energy}/${gameState.maxEnergy}
+💪 Tap Power: ${gameState.tapPower}
+🔋 Energy Regen: ${gameState.energyRegenRate}/min`;
+            
+            if (tg) {
+                tg.showAlert(stats);
+            } else {
+                alert(stats);
             }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing game...');
+            initGame();
         });
 
-        // Telegram WebApp event handlers
-        if (window.Telegram && window.Telegram.WebApp) {
-            const tg = window.Telegram.WebApp;
-            
-            tg.onEvent('mainButtonClicked', function() {
-                log('Main button clicked');
-            });
-
-            tg.onEvent('backButtonClicked', function() {
-                log('Back button clicked');
-            });
-
-            // Expand the web app
-            tg.expand();
-        }
-
-        // Handle page visibility changes
-        document.addEventListener('visibilitychange', function() {
-            if (!document.hidden && isAuthenticated) {
-                log('Page became visible, refreshing data');
-                authenticateUser().then(success => {
-                    if (success) {
-                        updateUI();
-                    }
-                });
+        // Fallback initialization
+        window.addEventListener('load', function() {
+            console.log('Window loaded');
+            if (!gameState.userId) {
+                console.log('Game not initialized yet, trying again...');
+                initGame();
             }
         });
     </script>
 </body>
 </html>
+
+
 
