@@ -16,6 +16,11 @@ import time
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Import User model directly from the file path
+import sys
+sys.path.append('/home/ubuntu/') # Assuming comprehensive_user_model.py is in /home/ubuntu/
+from comprehensive_user_model import User
+
 def create_app():
     """Create and configure Flask application with corrected CORS"""
     
@@ -23,9 +28,9 @@ def create_app():
     
     # CORRECTED CORS Configuration - Single setup to prevent duplicate headers
     CORS(app, 
-         origins=['*'],  # Allow all origins
-         methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-         allow_headers=['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+         origins=["*"],  # Allow all origins
+         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+         allow_headers=["Content-Type", "Authorization", "Accept", "Origin", "X-Requested-With"],
          supports_credentials=False,
          max_age=86400)  # Cache preflight for 24 hours
     
@@ -33,7 +38,7 @@ def create_app():
     def get_request_data():
         """Parse request data from different content types"""
         try:
-            if request.content_type and 'application/json' in request.content_type:
+            if request.content_type and "application/json" in request.content_type:
                 return request.get_json()
             else:
                 # Handle text/plain or other content types
@@ -47,34 +52,34 @@ def create_app():
             return None
     
     # Health check endpoint
-    @app.route('/api/health', methods=['GET', 'OPTIONS'])
+    @app.route("/api/health", methods=["GET", "OPTIONS"])
     def health_check():
         """Health check endpoint with proper CORS handling"""
-        if request.method == 'OPTIONS':
+        if request.method == "OPTIONS":
             # Handle preflight request
-            return '', 200
+            return "", 200
             
         try:
             return jsonify({
-                'status': 'healthy',
-                'timestamp': int(time.time()),
-                'service': 'Alpha Wulf Backend'
+                "status": "healthy",
+                "timestamp": int(time.time()),
+                "service": "Alpha Wulf Backend"
             }), 200
         except Exception as e:
             logger.error(f"Health check error: {e}")
             return jsonify({
-                'status': 'error',
-                'message': str(e)
+                "status": "error",
+                "message": str(e)
             }), 500
     
     # Authentication endpoint
-    @app.route('/api/auth', methods=['POST', 'OPTIONS'])
+    @app.route("/api/auth", methods=["POST", "OPTIONS"])
     def authenticate_user():
         """Authenticate user with comprehensive error handling"""
         try:
             # Handle CORS preflight
-            if request.method == 'OPTIONS':
-                return '', 200
+            if request.method == "OPTIONS":
+                return "", 200
             
             logger.info(f"Auth request received - Method: {request.method}, Content-Type: {request.content_type}")
             
@@ -83,35 +88,25 @@ def create_app():
             if not data:
                 logger.error("No data received in auth request")
                 return jsonify({
-                    'success': False,
-                    'error': 'Invalid JSON data'
+                    "success": False,
+                    "error": "Invalid JSON data"
                 }), 400
             
             logger.info(f"Auth data received: {data}")
             
             # Validate required fields
-            telegram_id = data.get('telegram_id')
+            telegram_id = data.get("telegram_id")
             if not telegram_id:
                 return jsonify({
-                    'success': False,
-                    'error': 'Missing telegram_id'
+                    "success": False,
+                    "error": "Missing telegram_id"
                 }), 400
             
-            username = data.get('username', '')
-            first_name = data.get('first_name', '')
-            last_name = data.get('last_name', '')
+            username = data.get("username", "")
+            first_name = data.get("first_name", "")
+            last_name = data.get("last_name", "")
             
             logger.info(f"Authenticating user: {telegram_id}")
-            
-            # Import User model
-            try:
-                from comprehensive_user_model import User
-            except ImportError:
-                logger.error("Failed to import User model")
-                return jsonify({
-                    'success': False,
-                    'error': 'Server configuration error'
-                }), 500
             
             # Get or create user
             user = User.get_by_telegram_id(telegram_id)
@@ -131,8 +126,8 @@ def create_app():
                 if not user.save():
                     logger.error(f"Failed to save existing user: {telegram_id}")
                     return jsonify({
-                        'success': False,
-                        'error': 'Failed to update user data'
+                        "success": False,
+                        "error": "Failed to update user data"
                     }), 500
             else:
                 logger.info(f"Creating new user: {telegram_id}")
@@ -141,8 +136,8 @@ def create_app():
                 if not user:
                     logger.error(f"Failed to create user: {telegram_id}")
                     return jsonify({
-                        'success': False,
-                        'error': 'Failed to create user'
+                        "success": False,
+                        "error": "Failed to create user"
                     }), 500
             
             # Return user data
@@ -150,55 +145,52 @@ def create_app():
             logger.info(f"Authentication successful for user: {telegram_id}")
             
             return jsonify({
-                'success': True,
-                'user': user_data,
-                'message': 'Authentication successful'
+                "success": True,
+                "user": user_data,
+                "message": "Authentication successful"
             }), 200
             
         except Exception as e:
             logger.error(f"Authentication error: {e}")
             return jsonify({
-                'success': False,
-                'error': f'Authentication failed: {str(e)}'
+                "success": False,
+                "error": f"Authentication failed: {str(e)}"
             }), 500
     
     # Tap endpoint
-    @app.route('/api/tap', methods=['POST', 'OPTIONS'])
+    @app.route("/api/tap", methods=["POST", "OPTIONS"])
     def handle_tap():
         """Handle tap requests with proper error handling"""
         try:
             # Handle CORS preflight
-            if request.method == 'OPTIONS':
-                return '', 200
+            if request.method == "OPTIONS":
+                return "", 200
             
             # Parse request data
             data = get_request_data()
             if not data:
                 return jsonify({
-                    'success': False,
-                    'error': 'Invalid JSON data'
+                    "success": False,
+                    "error": "Invalid JSON data"
                 }), 400
             
-            telegram_id = data.get('telegram_id')
-            taps = data.get('taps', 1)
+            telegram_id = data.get("telegram_id")
+            taps = data.get("taps", 1)
             
             if not telegram_id:
                 return jsonify({
-                    'success': False,
-                    'error': 'Missing telegram_id'
+                    "success": False,
+                    "error": "Missing telegram_id"
                 }), 400
             
             logger.info(f"Tap request: user {telegram_id}, taps {taps}")
-            
-            # Import User model
-            from comprehensive_user_model import User
             
             # Get user
             user = User.get_by_telegram_id(telegram_id)
             if not user:
                 return jsonify({
-                    'success': False,
-                    'error': 'User not found'
+                    "success": False,
+                    "error": "User not found"
                 }), 404
             
             # Process tap
@@ -206,43 +198,40 @@ def create_app():
             
             if success:
                 return jsonify({
-                    'success': True,
-                    'user': user.to_dict(),
-                    'message': message
+                    "success": True,
+                    "user": user.to_dict(),
+                    "message": message
                 }), 200
             else:
                 return jsonify({
-                    'success': False,
-                    'error': message
+                    "success": False,
+                    "error": message
                 }), 400
                 
         except Exception as e:
             logger.error(f"Tap error: {e}")
             return jsonify({
-                'success': False,
-                'error': f'Tap failed: {str(e)}'
+                "success": False,
+                "error": f"Tap failed: {str(e)}"
             }), 500
     
     # User data endpoint
-    @app.route('/api/user/<int:telegram_id>', methods=['GET', 'OPTIONS'])
+    @app.route("/api/user/<int:telegram_id>", methods=["GET", "OPTIONS"])
     def get_user_data(telegram_id):
         """Get user data endpoint"""
         try:
             # Handle CORS preflight
-            if request.method == 'OPTIONS':
-                return '', 200
+            if request.method == "OPTIONS":
+                return "", 200
             
             logger.info(f"Getting user data for: {telegram_id}")
-            
-            # Import User model
-            from comprehensive_user_model import User
             
             # Get user
             user = User.get_by_telegram_id(telegram_id)
             if not user:
                 return jsonify({
-                    'success': False,
-                    'error': 'User not found'
+                    "success": False,
+                    "error": "User not found"
                 }), 404
             
             # Update energy
@@ -250,15 +239,15 @@ def create_app():
             user.save()
             
             return jsonify({
-                'success': True,
-                'user': user.to_dict()
+                "success": True,
+                "user": user.to_dict()
             }), 200
             
         except Exception as e:
             logger.error(f"Get user error: {e}")
             return jsonify({
-                'success': False,
-                'error': f'Failed to get user: {str(e)}'
+                "success": False,
+                "error": f"Failed to get user: {str(e)}"
             }), 500
     
     return app
@@ -266,6 +255,7 @@ def create_app():
 # Create the Flask application
 app = create_app()
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0", port=5000)
+
 
