@@ -1,8 +1,11 @@
 """
-Complete Alpha Wulf Flask Application - CORS FIXED VERSION
-Fixes the duplicate CORS headers issue that was causing connection errors
-Integrates all fixes and ensures real-time data synchronization
-Preserves original UI/UX while fixing backend connection issues
+Complete Alpha Wulf Flask Application - Final Fix for Render Deployment
+
+This version addresses the ModuleNotFoundError by ensuring correct relative imports
+for Render's typical 'src' directory structure.
+
+Integrates all previous fixes for CORS, real-time data synchronization,
+and preserves original UI/UX while fixing backend connection issues.
 """
 
 from flask import Flask, request, jsonify
@@ -16,10 +19,8 @@ import time
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Import User model directly from the file path
-import sys
-sys.path.append('/home/ubuntu/') # Assuming comprehensive_user_model.py is in /home/ubuntu/
-from comprehensive_user_model import User
+# Import User model using relative import, assuming both files are in the same 'src' directory
+from .comprehensive_user_model import User
 
 def create_app():
     """Create and configure Flask application with corrected CORS"""
