@@ -1,7 +1,7 @@
 """
 Complete Alpha Wulf Flask Application - Final Fix for Render Deployment
 
-This version addresses the ModuleNotFoundError by ensuring correct relative imports
+This version addresses the ModuleNotFoundError by ensuring correct absolute imports
 for Render's typical 'src' directory structure.
 
 Integrates all previous fixes for CORS, real-time data synchronization,
@@ -19,8 +19,9 @@ import time
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Import User model using relative import, assuming both files are in the same 'src' directory
-from .comprehensive_user_model import User
+# Import User model assuming main.py and comprehensive_user_model.py are both within the 'src' directory
+# and 'src' is treated as a Python package by Render.
+from src.comprehensive_user_model import User
 
 def create_app():
     """Create and configure Flask application with corrected CORS"""
