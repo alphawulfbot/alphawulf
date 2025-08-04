@@ -1,216 +1,312 @@
 """
-Comprehensive User Model for Alpha Wulf Flask Application
-
-This model handles all user-related data, including authentication, game mechanics,
-and database interactions with Supabase.
+Fixed Comprehensive User Model for Alpha Wulf
+Handles all database operations with proper type conversion and error handling
+Compatible with Supabase PostgreSQL database using Supabase client
+Converts datetime objects to Unix timestamps for BIGINT columns
 """
 
 import os
-from supabase import create_client, Client
-from datetime import datetime, timedelta
 import logging
+import time
+from datetime import datetime, timedelta
+from typing import Optional, Dict, Any
+from supabase import create_client, Client
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Function to get Supabase client, ensuring environment variables are loaded
-def get_supabase_client():
-    SUPABASE_URL = os.environ.get("SUPABASE_URL")
-    SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")  # Using SUPABASE_SERVICE_KEY
-
-    if not SUPABASE_URL or not SUPABASE_KEY:
-        logger.error("Supabase URL or Key not found in environment variables.")
-        raise ValueError("Supabase URL or Key not found")
-    
-    return create_client(SUPABASE_URL, SUPABASE_KEY)
+# Initialize Supabase client
+def get_supabase_client() -> Optional[Client]:
+    """Initialize Supabase client with error handling"""
+    try:
+        url = os.environ.get("SUPABASE_URL")
+        key = os.environ.get("SUPABASE_SERVICE_KEY")
+        
+        if not url or not key:
+            logger.error("SUPABASE_URL or SUPABASE_SERVICE_KEY environment variables not set")
+            return None
+            
+        supabase: Client = create_client(url, key)
+        return supabase
+    except Exception as e:
+        logger.error(f"Error initializing Supabase client: {e}")
+        return None
 
 class User:
-    """Represents a user in the Alpha Wulf application."""
-
-    def __init__(self, data):
-        self.telegram_id = data["telegram_id"]
-        self.username = data.get("username", "")
-        self.first_name = data.get("first_name", "")
-        self.last_name = data.get("last_name", "")
-        self.coins = data.get("coins", 0)
-        self.energy = data.get("energy", 100)  # Default energy
+    """User model with comprehensive database operations using Supabase client"""
+    
+    def __init__(self, telegram_id: int, username: str = '', first_name: str = '', last_name: str = ''):
+        self.telegram_id = int(telegram_id)
+        self.username = username or ''
+        self.first_name = first_name or ''
+        self.last_name = last_name or ''
         
-        # Ensure last_energy_update is always a datetime object
-        last_energy_update_raw = data.get("last_energy_update")
-        if isinstance(last_energy_update_raw, str):
-            try:
-                self.last_energy_update = datetime.fromisoformat(last_energy_update_raw)
-            except ValueError:
-                self.last_energy_update = datetime.now()
-        elif isinstance(last_energy_update_raw, datetime):
-            self.last_energy_update = last_energy_update_raw
-        elif isinstance(last_energy_update_raw, (int, float)):
-            # Handle Unix timestamp
-            try:
-                self.last_energy_update = datetime.fromtimestamp(last_energy_update_raw)
-            except (ValueError, OSError):
-                self.last_energy_update = datetime.now()
-        else:
-            self.last_energy_update = datetime.now()
+        # Game attributes with default values
+        self.coins = 2500
+        self.energy = 100
+        self.max_energy = 100
+        self.tap_power = 1
+        self.power = 1  # Additional power attribute
+        self.energy_regen_rate = 1
+        self.energy_recharge_rate = 1  # Additional recharge rate attribute
         
-        self.max_energy = data.get("max_energy", 100)
-        self.energy_recharge_rate = data.get("energy_recharge_rate", 1)  # Energy per minute
-        self.power = data.get("power", 1)
-        self.referrals = data.get("referrals", 0)
+        # Timestamp attributes (stored as Unix timestamps in database)
+        current_time = int(time.time())
+        self.last_energy_update = current_time
+        self.last_tap_time = current_time
+        self.created_at = current_time
+        self.updated_at = current_time
         
-        # Ensure last_tap_time is always a datetime object
-        last_tap_time_raw = data.get("last_tap_time")
-        if isinstance(last_tap_time_raw, str):
-            try:
-                self.last_tap_time = datetime.fromisoformat(last_tap_time_raw)
-            except ValueError:
-                self.last_tap_time = datetime.now()
-        elif isinstance(last_tap_time_raw, datetime):
-            self.last_tap_time = last_tap_time_raw
-        elif isinstance(last_tap_time_raw, (int, float)):
-            # Handle Unix timestamp
-            try:
-                self.last_tap_time = datetime.fromtimestamp(last_tap_time_raw)
-            except (ValueError, OSError):
-                self.last_tap_time = datetime.now()
-        else:
-            self.last_tap_time = datetime.now()
+        # Additional attributes
+        self.is_admin = False
+        self.referral_code = ''
+        self.referred_by = None
+        self.total_taps = 0
+        self.referral_count = 0
+        self.referral_earnings = 0
+        self.referrals = ''  # Store as string or JSON
+    
+    @classmethod
+    def get_by_telegram_id(cls, telegram_id: int):
+        """Get user by telegram ID with proper error handling"""
+        try:
+            supabase = get_supabase_client()
+            if not supabase:
+                return None
+                
+            response = supabase.table('users').select('*').eq('telegram_id', int(telegram_id)).execute()
             
-        self.is_admin = data.get("is_admin", False)
-
-    def to_dict(self):
-        """Converts user object to a dictionary for JSON serialization."""
-        return {
-            "telegram_id": self.telegram_id,
-            "username": self.username,
-            "first_name": self.first_name,
-            "last_name": self.last_name,
-            "coins": self.coins,
-            "energy": self.energy,
-            "last_energy_update": self.last_energy_update.isoformat(),
-            "max_energy": self.max_energy,
-            "energy_recharge_rate": self.energy_recharge_rate,
-            "power": self.power,
-            "referrals": self.referrals,
-            "last_tap_time": self.last_tap_time.isoformat(),
-            "is_admin": self.is_admin
-        }
-
-    @classmethod
-    def get_by_telegram_id(cls, telegram_id):
-        """Retrieves a user by their Telegram ID."""
-        try:
-            supabase_client = get_supabase_client()
-            response = supabase_client.from_("users").select("*").eq("telegram_id", telegram_id).single().execute()
-            if response.data:
-                return cls(response.data)
-            return None
+            if response.data and len(response.data) > 0:
+                row = response.data[0]
+                user = cls(
+                    telegram_id=row['telegram_id'],
+                    username=row.get('username', ''),
+                    first_name=row.get('first_name', ''),
+                    last_name=row.get('last_name', '')
+                )
+                
+                # Load game data with type conversion
+                user.coins = int(float(row.get('coins', 2500)))
+                user.energy = int(float(row.get('energy', 100)))
+                user.max_energy = int(float(row.get('max_energy', 100)))
+                user.tap_power = int(float(row.get('tap_power', 1)))
+                user.power = int(float(row.get('power', 1)))
+                user.energy_regen_rate = int(float(row.get('energy_regen_rate', 1)))
+                user.energy_recharge_rate = int(float(row.get('energy_recharge_rate', 1)))
+                
+                # Load timestamp fields (convert to int if needed)
+                user.last_energy_update = int(float(row.get('last_energy_update', int(time.time()))))
+                user.last_tap_time = int(float(row.get('last_tap_time', int(time.time()))))
+                user.created_at = int(float(row.get('created_at', int(time.time()))))
+                user.updated_at = int(float(row.get('updated_at', int(time.time()))))
+                
+                # Load additional attributes
+                user.is_admin = bool(row.get('is_admin', False))
+                user.referral_code = row.get('referral_code', '')
+                user.referred_by = row.get('referred_by')
+                user.total_taps = int(float(row.get('total_taps', 0)))
+                user.referral_count = int(float(row.get('referral_count', 0)))
+                user.referral_earnings = int(float(row.get('referral_earnings', 0)))
+                user.referrals = row.get('referrals', '')
+                
+                logger.info(f"User found: {telegram_id}")
+                return user
+            else:
+                logger.info(f"User not found: {telegram_id}")
+                return None
+                
         except Exception as e:
-            logger.error(f"Error getting user by Telegram ID {telegram_id}: {e}")
+            logger.error(f"Error getting user {telegram_id}: {e}")
             return None
-
+    
     @classmethod
-    def create_user(cls, telegram_id, username, first_name, last_name):
-        """Creates a new user."""
+    def create_user(cls, telegram_id: int, username: str = '', first_name: str = '', last_name: str = ''):
+        """Create new user with proper error handling"""
         try:
-            supabase_client = get_supabase_client()
-            new_user_data = {
-                "telegram_id": telegram_id,
-                "username": username,
-                "first_name": first_name,
-                "last_name": last_name,
-                "coins": 0,
-                "energy": 100,
-                "last_energy_update": datetime.now().isoformat(),
-                "max_energy": 100,
-                "energy_recharge_rate": 1,
-                "power": 1,
-                "referrals": 0,
-                "last_tap_time": datetime.now().isoformat(),
-                "is_admin": False
+            supabase = get_supabase_client()
+            if not supabase:
+                return None
+                
+            user = cls(telegram_id, username, first_name, last_name)
+            
+            user_data = {
+                'telegram_id': int(user.telegram_id),
+                'username': user.username,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'coins': int(user.coins),
+                'energy': int(user.energy),
+                'max_energy': int(user.max_energy),
+                'tap_power': int(user.tap_power),
+                'power': int(user.power),
+                'energy_regen_rate': int(user.energy_regen_rate),
+                'energy_recharge_rate': int(user.energy_recharge_rate),
+                'last_energy_update': int(user.last_energy_update),
+                'last_tap_time': int(user.last_tap_time),
+                'created_at': int(user.created_at),
+                'updated_at': int(user.updated_at),
+                'is_admin': bool(user.is_admin),
+                'referral_code': user.referral_code,
+                'referred_by': user.referred_by,
+                'total_taps': int(user.total_taps),
+                'referral_count': int(user.referral_count),
+                'referral_earnings': int(user.referral_earnings),
+                'referrals': user.referrals
             }
-            response = supabase_client.from_("users").insert(new_user_data).execute()
+            
+            response = supabase.table('users').insert(user_data).execute()
+            
             if response.data:
-                return cls(response.data[0])
-            return None
+                logger.info(f"User created: {telegram_id}")
+                return user
+            else:
+                logger.error(f"Failed to create user: {telegram_id}")
+                return None
+                
         except Exception as e:
             logger.error(f"Error creating user {telegram_id}: {e}")
             return None
-
+    
     def save(self):
-        """Saves the current state of the user to the database."""
+        """Save user data with comprehensive error handling and type conversion"""
         try:
-            supabase_client = get_supabase_client()
-            update_data = self.to_dict()
-            # Remove telegram_id from update_data as it's the primary key and shouldn't be updated
-            del update_data["telegram_id"]
-            response = supabase_client.from_("users").update(update_data).eq("telegram_id", self.telegram_id).execute()
+            supabase = get_supabase_client()
+            if not supabase:
+                logger.error("Failed to get Supabase client")
+                return False
+                
+            self.updated_at = int(time.time())
+            
+            # Prepare update data with proper type conversion
+            update_data = {
+                'username': self.username,
+                'first_name': self.first_name,
+                'last_name': self.last_name,
+                'coins': int(float(self.coins)),
+                'energy': int(float(self.energy)),
+                'max_energy': int(float(self.max_energy)),
+                'tap_power': int(float(self.tap_power)),
+                'power': int(float(self.power)),
+                'energy_regen_rate': int(float(self.energy_regen_rate)),
+                'energy_recharge_rate': int(float(self.energy_recharge_rate)),
+                'last_energy_update': int(self.last_energy_update),
+                'last_tap_time': int(self.last_tap_time),
+                'updated_at': int(self.updated_at),
+                'is_admin': bool(self.is_admin),
+                'referral_code': self.referral_code,
+                'referred_by': self.referred_by,
+                'total_taps': int(float(self.total_taps)),
+                'referral_count': int(float(self.referral_count)),
+                'referral_earnings': int(float(self.referral_earnings)),
+                'referrals': self.referrals
+            }
+            
+            response = supabase.table('users').update(update_data).eq('telegram_id', int(self.telegram_id)).execute()
+            
             if response.data:
+                logger.info(f"User saved successfully: {self.telegram_id}")
                 return True
-            return False
+            else:
+                logger.error(f"Failed to save user: {self.telegram_id}")
+                return False
+                
         except Exception as e:
             logger.error(f"Error saving user {self.telegram_id}: {e}")
             return False
-
-    def tap(self, taps=1):
-        """Handles user tap, increasing coins and decreasing energy."""
-        self.update_energy()  # Ensure energy is up-to-date
-        
-        if self.energy >= taps:
-            self.coins += (taps * self.power)
-            self.energy -= taps
-            self.last_tap_time = datetime.now()
-            if self.save():
-                return True, "Tap successful"
-            return False, "Failed to save tap data"
-        return False, "Not enough energy"
-
+    
     def update_energy(self):
-        """Recalculates user energy based on time elapsed."""
-        now = datetime.now()
-        
-        # Ensure last_energy_update is a datetime object
-        if not isinstance(self.last_energy_update, datetime):
-            logger.warning(f"last_energy_update is not a datetime object: {type(self.last_energy_update)}")
-            self.last_energy_update = datetime.now()
+        """Update energy based on time elapsed with proper error handling"""
+        try:
+            now = int(time.time())
+            time_diff = now - self.last_energy_update
+            minutes_passed = time_diff / 60
             
-        time_diff = now - self.last_energy_update
-        minutes_passed = int(time_diff.total_seconds() / 60)
-        
-        if minutes_passed > 0:
-            energy_gained = minutes_passed * self.energy_recharge_rate
-            self.energy = min(self.max_energy, self.energy + energy_gained)
-            self.last_energy_update = now
-            self.save()  # Save updated energy to DB
-
-    # Admin functionalities
-    def get_all_users(self):
-        """Retrieves all users (admin only)."""
-        if not self.is_admin:
-            return None, "Unauthorized"
-        try:
-            supabase_client = get_supabase_client()
-            response = supabase_client.from_("users").select("*").execute()
-            return response.data, None
+            # Regenerate energy (1 energy per 30 seconds = 2 energy per minute)
+            energy_to_add = int(minutes_passed * 2)
+            
+            if energy_to_add > 0:
+                self.energy = min(self.max_energy, self.energy + energy_to_add)
+                self.last_energy_update = now
+                logger.info(f"Energy updated for user {self.telegram_id}: +{energy_to_add} energy")
+            
+            return True
+            
         except Exception as e:
-            logger.error(f"Error getting all users: {e}")
-            return None, str(e)
-
-    def update_user_coins(self, target_telegram_id, amount):
-        """Updates a target user's coins (admin only)."""
-        if not self.is_admin:
-            return False, "Unauthorized"
+            logger.error(f"Error updating energy for user {self.telegram_id}: {e}")
+            return False
+    
+    def can_tap(self):
+        """Check if user can tap (has energy)"""
+        return self.energy > 0
+    
+    def tap(self, taps: int = 1):
+        """Process tap with proper validation and error handling"""
         try:
-            supabase_client = get_supabase_client()
-            target_user = User.get_by_telegram_id(target_telegram_id)
-            if not target_user:
-                return False, "Target user not found"
-            target_user.coins += amount
-            if target_user.save():
-                return True, "Coins updated successfully"
-            return False, "Failed to update target user coins"
+            if not self.can_tap():
+                return False, "No energy available"
+            
+            # Update energy first
+            self.update_energy()
+            
+            # Process taps
+            actual_taps = min(taps, self.energy)
+            self.energy = max(0, self.energy - actual_taps)
+            self.coins += actual_taps * self.tap_power
+            self.total_taps += actual_taps
+            self.last_tap_time = int(time.time())
+            
+            # Save to database
+            if self.save():
+                logger.info(f"Tap processed for user {self.telegram_id}: {actual_taps} taps, {self.coins} total coins")
+                return True, f"Tapped {actual_taps} times"
+            else:
+                return False, "Failed to save tap data"
+                
         except Exception as e:
-            logger.error(f"Error updating coins for {target_telegram_id}: {e}")
-            return False, str(e)
+            logger.error(f"Error processing tap for user {self.telegram_id}: {e}")
+            return False, f"Tap error: {str(e)}"
+    
+    def to_dict(self):
+        """Convert user to dictionary with proper serialization"""
+        try:
+            return {
+                'telegram_id': int(self.telegram_id),
+                'username': self.username,
+                'first_name': self.first_name,
+                'last_name': self.last_name,
+                'coins': int(self.coins),
+                'energy': int(self.energy),
+                'max_energy': int(self.max_energy),
+                'tap_power': int(self.tap_power),
+                'power': int(self.power),
+                'energy_regen_rate': int(self.energy_regen_rate),
+                'energy_recharge_rate': int(self.energy_recharge_rate),
+                'last_energy_update': int(self.last_energy_update),
+                'last_tap_time': int(self.last_tap_time),
+                'created_at': int(self.created_at),
+                'updated_at': int(self.updated_at),
+                'is_admin': bool(self.is_admin),
+                'referral_code': self.referral_code,
+                'referred_by': self.referred_by,
+                'total_taps': int(self.total_taps),
+                'referral_count': int(self.referral_count),
+                'referral_earnings': int(self.referral_earnings),
+                'referrals': self.referrals
+            }
+        except Exception as e:
+            logger.error(f"Error converting user to dict: {e}")
+            return {
+                'telegram_id': int(self.telegram_id),
+                'username': self.username,
+                'first_name': self.first_name,
+                'last_name': self.last_name,
+                'coins': 2500,
+                'energy': 100,
+                'max_energy': 100,
+                'tap_power': 1,
+                'power': 1,
+                'energy_regen_rate': 1,
+                'energy_recharge_rate': 1
+            }
 
