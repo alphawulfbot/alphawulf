@@ -14,15 +14,16 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize Supabase client
-SUPABASE_URL = os.environ.get("SUPABASE_URL")
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+# Function to get Supabase client, ensuring environment variables are loaded
+def get_supabase_client():
+    SUPABASE_URL = os.environ.get("SUPABASE_URL")
+    SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY") # Changed to SUPABASE_SERVICE_KEY
 
-if not SUPABASE_URL or not SUPABASE_KEY:
-    logger.error("Supabase URL or Key not found in environment variables.")
-    # Handle this error appropriately, e.g., raise an exception or exit
-
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    if not SUPABASE_URL or not SUPABASE_KEY:
+        logger.error("Supabase URL or Key not found in environment variables.")
+        raise ValueError("Supabase URL or Key not found")
+    
+    return create_client(SUPABASE_URL, SUPABASE_KEY)
 
 class User:
     """Represents a user in the Alpha Wulf application."""
@@ -64,7 +65,8 @@ class User:
     def get_by_telegram_id(cls, telegram_id):
         """Retrieves a user by their Telegram ID."""
         try:
-            response = supabase.from_("users").select("*").eq("telegram_id", telegram_id).single().execute()
+            supabase_client = get_supabase_client()
+            response = supabase_client.from_("users").select("*").eq("telegram_id", telegram_id).single().execute()
             if response.data:
                 return cls(response.data)
             return None
@@ -76,6 +78,7 @@ class User:
     def create_user(cls, telegram_id, username, first_name, last_name):
         """Creates a new user."""
         try:
+            supabase_client = get_supabase_client()
             new_user_data = {
                 "telegram_id": telegram_id,
                 "username": username,
@@ -91,7 +94,7 @@ class User:
                 "last_tap_time": datetime.now().isoformat(),
                 "is_admin": False
             }
-            response = supabase.from_("users").insert(new_user_data).execute()
+            response = supabase_client.from_("users").insert(new_user_data).execute()
             if response.data:
                 return cls(response.data[0])
             return None
@@ -102,10 +105,11 @@ class User:
     def save(self):
         """Saves the current state of the user to the database."""
         try:
+            supabase_client = get_supabase_client()
             update_data = self.to_dict()
             # Remove telegram_id from update_data as it's the primary key and shouldn't be updated
             del update_data["telegram_id"]
-            response = supabase.from_("users").update(update_data).eq("telegram_id", self.telegram_id).execute()
+            response = supabase_client.from_("users").update(update_data).eq("telegram_id", self.telegram_id).execute()
             if response.data:
                 return True
             return False
@@ -144,7 +148,8 @@ class User:
         if not self.is_admin:
             return None, "Unauthorized"
         try:
-            response = supabase.from_("users").select("*").execute()
+            supabase_client = get_supabase_client()
+            response = supabase_client.from_("users").select("*").execute()
             return response.data, None
         except Exception as e:
             logger.error(f"Error getting all users: {e}")
@@ -155,6 +160,7 @@ class User:
         if not self.is_admin:
             return False, "Unauthorized"
         try:
+            supabase_client = get_supabase_client()
             target_user = User.get_by_telegram_id(target_telegram_id)
             if not target_user:
                 return False, "Target user not found"
