@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 # Function to get Supabase client, ensuring environment variables are loaded
 def get_supabase_client():
     SUPABASE_URL = os.environ.get("SUPABASE_URL")
-    SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY") # Changed to SUPABASE_SERVICE_KEY
+    SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")  # Using SUPABASE_SERVICE_KEY
 
     if not SUPABASE_URL or not SUPABASE_KEY:
         logger.error("Supabase URL or Key not found in environment variables.")
@@ -35,12 +35,48 @@ class User:
         self.last_name = data.get("last_name", "")
         self.coins = data.get("coins", 0)
         self.energy = data.get("energy", 100)  # Default energy
-        self.last_energy_update = datetime.fromisoformat(data["last_energy_update"]) if isinstance(data.get("last_energy_update"), str) else data.get("last_energy_update", datetime.now())
+        
+        # Ensure last_energy_update is always a datetime object
+        last_energy_update_raw = data.get("last_energy_update")
+        if isinstance(last_energy_update_raw, str):
+            try:
+                self.last_energy_update = datetime.fromisoformat(last_energy_update_raw)
+            except ValueError:
+                self.last_energy_update = datetime.now()
+        elif isinstance(last_energy_update_raw, datetime):
+            self.last_energy_update = last_energy_update_raw
+        elif isinstance(last_energy_update_raw, (int, float)):
+            # Handle Unix timestamp
+            try:
+                self.last_energy_update = datetime.fromtimestamp(last_energy_update_raw)
+            except (ValueError, OSError):
+                self.last_energy_update = datetime.now()
+        else:
+            self.last_energy_update = datetime.now()
+        
         self.max_energy = data.get("max_energy", 100)
-        self.energy_recharge_rate = data.get("energy_recharge_rate", 1) # Energy per minute
+        self.energy_recharge_rate = data.get("energy_recharge_rate", 1)  # Energy per minute
         self.power = data.get("power", 1)
         self.referrals = data.get("referrals", 0)
-        self.last_tap_time = datetime.fromisoformat(data["last_tap_time"]) if isinstance(data.get("last_tap_time"), str) else data.get("last_tap_time", datetime.now())
+        
+        # Ensure last_tap_time is always a datetime object
+        last_tap_time_raw = data.get("last_tap_time")
+        if isinstance(last_tap_time_raw, str):
+            try:
+                self.last_tap_time = datetime.fromisoformat(last_tap_time_raw)
+            except ValueError:
+                self.last_tap_time = datetime.now()
+        elif isinstance(last_tap_time_raw, datetime):
+            self.last_tap_time = last_tap_time_raw
+        elif isinstance(last_tap_time_raw, (int, float)):
+            # Handle Unix timestamp
+            try:
+                self.last_tap_time = datetime.fromtimestamp(last_tap_time_raw)
+            except (ValueError, OSError):
+                self.last_tap_time = datetime.now()
+        else:
+            self.last_tap_time = datetime.now()
+            
         self.is_admin = data.get("is_admin", False)
 
     def to_dict(self):
@@ -119,7 +155,7 @@ class User:
 
     def tap(self, taps=1):
         """Handles user tap, increasing coins and decreasing energy."""
-        self.update_energy() # Ensure energy is up-to-date
+        self.update_energy()  # Ensure energy is up-to-date
         
         if self.energy >= taps:
             self.coins += (taps * self.power)
@@ -133,6 +169,12 @@ class User:
     def update_energy(self):
         """Recalculates user energy based on time elapsed."""
         now = datetime.now()
+        
+        # Ensure last_energy_update is a datetime object
+        if not isinstance(self.last_energy_update, datetime):
+            logger.warning(f"last_energy_update is not a datetime object: {type(self.last_energy_update)}")
+            self.last_energy_update = datetime.now()
+            
         time_diff = now - self.last_energy_update
         minutes_passed = int(time_diff.total_seconds() / 60)
         
@@ -140,9 +182,9 @@ class User:
             energy_gained = minutes_passed * self.energy_recharge_rate
             self.energy = min(self.max_energy, self.energy + energy_gained)
             self.last_energy_update = now
-            self.save() # Save updated energy to DB
+            self.save()  # Save updated energy to DB
 
-    # Admin functionalities (example)
+    # Admin functionalities
     def get_all_users(self):
         """Retrieves all users (admin only)."""
         if not self.is_admin:
@@ -171,7 +213,4 @@ class User:
         except Exception as e:
             logger.error(f"Error updating coins for {target_telegram_id}: {e}")
             return False, str(e)
-
-    # Add more functionalities as needed, e.g., upgrades, referrals, etc.
-
 
