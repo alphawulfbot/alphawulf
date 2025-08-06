@@ -1,8 +1,7 @@
 """
-Final Fixed Comprehensive User Model for Alpha Wulf
-Handles all database operations with proper type conversion and error handling
+Bulletproof Comprehensive User Model for Alpha Wulf
+Ensures ALL datetime values are converted to Unix timestamps before database operations
 Compatible with Supabase PostgreSQL database using Supabase client
-Properly handles both reading and writing datetime/timestamp data
 """
 
 import os
@@ -33,6 +32,69 @@ def get_supabase_client() -> Optional[Client]:
         logger.error(f"Error initializing Supabase client: {e}")
         return None
 
+def force_unix_timestamp(value, default_timestamp=None):
+    """
+    Force any value to be a Unix timestamp (integer)
+    This is the bulletproof conversion function
+    """
+    try:
+        if default_timestamp is None:
+            default_timestamp = int(time.time())
+            
+        if value is None:
+            return default_timestamp
+            
+        # If it's already an integer, return it
+        if isinstance(value, int):
+            return value
+            
+        # If it's a float, convert to int
+        if isinstance(value, float):
+            return int(value)
+            
+        # If it's a datetime object, convert to timestamp
+        if isinstance(value, datetime):
+            return int(value.timestamp())
+            
+        # If it's a string, try various conversions
+        if isinstance(value, str):
+            # Handle empty strings
+            if not value.strip():
+                return default_timestamp
+                
+            # Try to parse as ISO datetime string
+            if 'T' in value or '+' in value or 'Z' in value or '-' in value:
+                try:
+                    # Handle various datetime string formats
+                    if value.endswith('Z'):
+                        value = value.replace('Z', '+00:00')
+                    elif '+' in value and value.count('+') == 1:
+                        # Already has timezone
+                        pass
+                    elif 'T' in value and '+' not in value and 'Z' not in value:
+                        # Add UTC timezone if missing
+                        value = value + '+00:00'
+                        
+                    dt = datetime.fromisoformat(value)
+                    return int(dt.timestamp())
+                except Exception as e:
+                    logger.warning(f"Failed to parse datetime string '{value}': {e}")
+                    
+            # Try to parse as direct number string
+            try:
+                return int(float(value))
+            except:
+                logger.warning(f"Could not convert string '{value}' to timestamp")
+                return default_timestamp
+                
+        # For any other type, return default
+        logger.warning(f"Unknown type for timestamp conversion: {type(value)} = {value}")
+        return default_timestamp
+        
+    except Exception as e:
+        logger.error(f"Error in force_unix_timestamp: {e}")
+        return default_timestamp if default_timestamp else int(time.time())
+
 def safe_int_conversion(value, default=0):
     """Safely convert value to int, handling various input types"""
     try:
@@ -41,15 +103,8 @@ def safe_int_conversion(value, default=0):
         if isinstance(value, (int, float)):
             return int(value)
         if isinstance(value, str):
-            # Handle timestamp strings
-            if 'T' in value or '+' in value or 'Z' in value:
-                # This looks like an ISO datetime string, convert to timestamp
-                try:
-                    dt = datetime.fromisoformat(value.replace('Z', '+00:00'))
-                    return int(dt.timestamp())
-                except:
-                    return default
-            # Try direct conversion
+            if not value.strip():
+                return default
             return int(float(value))
         return default
     except (ValueError, TypeError):
@@ -78,7 +133,7 @@ def safe_string_conversion(value, default=''):
         return default
 
 class User:
-    """User model with comprehensive database operations using Supabase client"""
+    """User model with bulletproof database operations using Supabase client"""
     
     def __init__(self, telegram_id: int, username: str = '', first_name: str = '', last_name: str = ''):
         self.telegram_id = int(telegram_id)
@@ -91,11 +146,11 @@ class User:
         self.energy = 100
         self.max_energy = 100
         self.tap_power = 1
-        self.power = 1  # Additional power attribute
+        self.power = 1
         self.energy_regen_rate = 1
-        self.energy_recharge_rate = 1  # Additional recharge rate attribute
+        self.energy_recharge_rate = 1
         
-        # Timestamp attributes (stored as Unix timestamps in database)
+        # Timestamp attributes (ALWAYS stored as Unix timestamps)
         current_time = int(time.time())
         self.last_energy_update = current_time
         self.last_tap_time = current_time
@@ -109,11 +164,11 @@ class User:
         self.total_taps = 0
         self.referral_count = 0
         self.referral_earnings = 0
-        self.referrals = ''  # Store as string or JSON
+        self.referrals = ''
     
     @classmethod
     def get_by_telegram_id(cls, telegram_id: int):
-        """Get user by telegram ID with proper error handling"""
+        """Get user by telegram ID with bulletproof error handling"""
         try:
             supabase = get_supabase_client()
             if not supabase:
@@ -139,11 +194,12 @@ class User:
                 user.energy_regen_rate = safe_int_conversion(row.get('energy_regen_rate', 1))
                 user.energy_recharge_rate = safe_int_conversion(row.get('energy_recharge_rate', 1))
                 
-                # Load timestamp fields with safe conversion
-                user.last_energy_update = safe_int_conversion(row.get('last_energy_update', int(time.time())))
-                user.last_tap_time = safe_int_conversion(row.get('last_tap_time', int(time.time())))
-                user.created_at = safe_int_conversion(row.get('created_at', int(time.time())))
-                user.updated_at = safe_int_conversion(row.get('updated_at', int(time.time())))
+                # Load timestamp fields with BULLETPROOF conversion
+                current_time = int(time.time())
+                user.last_energy_update = force_unix_timestamp(row.get('last_energy_update'), current_time)
+                user.last_tap_time = force_unix_timestamp(row.get('last_tap_time'), current_time)
+                user.created_at = force_unix_timestamp(row.get('created_at'), current_time)
+                user.updated_at = force_unix_timestamp(row.get('updated_at'), current_time)
                 
                 # Load additional attributes
                 user.is_admin = safe_bool_conversion(row.get('is_admin', False))
@@ -166,13 +222,16 @@ class User:
     
     @classmethod
     def create_user(cls, telegram_id: int, username: str = '', first_name: str = '', last_name: str = ''):
-        """Create new user with proper error handling"""
+        """Create new user with bulletproof error handling"""
         try:
             supabase = get_supabase_client()
             if not supabase:
                 return None
                 
             user = cls(telegram_id, username, first_name, last_name)
+            
+            # Ensure ALL timestamps are integers
+            current_time = int(time.time())
             
             user_data = {
                 'telegram_id': int(user.telegram_id),
@@ -186,10 +245,10 @@ class User:
                 'power': int(user.power),
                 'energy_regen_rate': int(user.energy_regen_rate),
                 'energy_recharge_rate': int(user.energy_recharge_rate),
-                'last_energy_update': int(user.last_energy_update),
-                'last_tap_time': int(user.last_tap_time),
-                'created_at': int(user.created_at),
-                'updated_at': int(user.updated_at),
+                'last_energy_update': current_time,  # Force to current timestamp
+                'last_tap_time': current_time,       # Force to current timestamp
+                'created_at': current_time,          # Force to current timestamp
+                'updated_at': current_time,          # Force to current timestamp
                 'is_admin': bool(user.is_admin),
                 'referral_code': user.referral_code,
                 'referred_by': user.referred_by,
@@ -213,16 +272,24 @@ class User:
             return None
     
     def save(self):
-        """Save user data with comprehensive error handling and type conversion"""
+        """Save user data with BULLETPROOF timestamp conversion"""
         try:
             supabase = get_supabase_client()
             if not supabase:
                 logger.error("Failed to get Supabase client")
                 return False
                 
-            self.updated_at = int(time.time())
+            # Force update timestamp to current time as integer
+            current_time = int(time.time())
+            self.updated_at = current_time
             
-            # Prepare update data with proper type conversion
+            # BULLETPROOF: Ensure ALL timestamp fields are integers
+            self.last_energy_update = force_unix_timestamp(self.last_energy_update, current_time)
+            self.last_tap_time = force_unix_timestamp(self.last_tap_time, current_time)
+            self.created_at = force_unix_timestamp(self.created_at, current_time)
+            self.updated_at = current_time  # Always current time
+            
+            # Prepare update data with GUARANTEED integer timestamps
             update_data = {
                 'username': self.username,
                 'first_name': self.first_name,
@@ -234,9 +301,9 @@ class User:
                 'power': int(self.power),
                 'energy_regen_rate': int(self.energy_regen_rate),
                 'energy_recharge_rate': int(self.energy_recharge_rate),
-                'last_energy_update': int(self.last_energy_update),
-                'last_tap_time': int(self.last_tap_time),
-                'updated_at': int(self.updated_at),
+                'last_energy_update': int(self.last_energy_update),  # FORCE INTEGER
+                'last_tap_time': int(self.last_tap_time),            # FORCE INTEGER
+                'updated_at': int(self.updated_at),                  # FORCE INTEGER
                 'is_admin': bool(self.is_admin),
                 'referral_code': self.referral_code,
                 'referred_by': self.referred_by,
@@ -245,6 +312,12 @@ class User:
                 'referral_earnings': int(self.referral_earnings),
                 'referrals': self.referrals
             }
+            
+            # Log the data being sent for debugging
+            logger.info(f"Saving user {self.telegram_id} with timestamps: "
+                       f"last_energy_update={update_data['last_energy_update']} "
+                       f"last_tap_time={update_data['last_tap_time']} "
+                       f"updated_at={update_data['updated_at']}")
             
             response = supabase.table('users').update(update_data).eq('telegram_id', int(self.telegram_id)).execute()
             
@@ -260,9 +333,13 @@ class User:
             return False
     
     def update_energy(self):
-        """Update energy based on time elapsed with proper error handling"""
+        """Update energy based on time elapsed with bulletproof error handling"""
         try:
             now = int(time.time())
+            
+            # Ensure last_energy_update is an integer timestamp
+            self.last_energy_update = force_unix_timestamp(self.last_energy_update, now)
+            
             time_diff = now - self.last_energy_update
             minutes_passed = time_diff / 60
             
@@ -285,7 +362,7 @@ class User:
         return self.energy > 0
     
     def tap(self, taps: int = 1):
-        """Process tap with proper validation and error handling"""
+        """Process tap with bulletproof validation and error handling"""
         try:
             if not self.can_tap():
                 return False, "No energy available"
@@ -298,6 +375,8 @@ class User:
             self.energy = max(0, self.energy - actual_taps)
             self.coins += actual_taps * self.tap_power
             self.total_taps += actual_taps
+            
+            # Force last_tap_time to current timestamp
             self.last_tap_time = int(time.time())
             
             # Save to database
@@ -312,8 +391,11 @@ class User:
             return False, f"Tap error: {str(e)}"
     
     def to_dict(self):
-        """Convert user to dictionary with proper serialization"""
+        """Convert user to dictionary with bulletproof serialization"""
         try:
+            # Ensure all timestamps are integers before returning
+            current_time = int(time.time())
+            
             return {
                 'telegram_id': int(self.telegram_id),
                 'username': self.username,
@@ -326,10 +408,10 @@ class User:
                 'power': int(self.power),
                 'energy_regen_rate': int(self.energy_regen_rate),
                 'energy_recharge_rate': int(self.energy_recharge_rate),
-                'last_energy_update': int(self.last_energy_update),
-                'last_tap_time': int(self.last_tap_time),
-                'created_at': int(self.created_at),
-                'updated_at': int(self.updated_at),
+                'last_energy_update': int(force_unix_timestamp(self.last_energy_update, current_time)),
+                'last_tap_time': int(force_unix_timestamp(self.last_tap_time, current_time)),
+                'created_at': int(force_unix_timestamp(self.created_at, current_time)),
+                'updated_at': int(force_unix_timestamp(self.updated_at, current_time)),
                 'is_admin': bool(self.is_admin),
                 'referral_code': self.referral_code,
                 'referred_by': self.referred_by,
@@ -351,6 +433,10 @@ class User:
                 'tap_power': 1,
                 'power': 1,
                 'energy_regen_rate': 1,
-                'energy_recharge_rate': 1
+                'energy_recharge_rate': 1,
+                'last_energy_update': int(time.time()),
+                'last_tap_time': int(time.time()),
+                'created_at': int(time.time()),
+                'updated_at': int(time.time())
             }
 
