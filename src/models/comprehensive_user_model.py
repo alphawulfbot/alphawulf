@@ -1,8 +1,8 @@
 """
-Fixed Comprehensive User Model for Alpha Wulf
+Final Fixed Comprehensive User Model for Alpha Wulf
 Handles all database operations with proper type conversion and error handling
 Compatible with Supabase PostgreSQL database using Supabase client
-Converts datetime objects to Unix timestamps for BIGINT columns
+Properly handles both reading and writing datetime/timestamp data
 """
 
 import os
@@ -32,6 +32,50 @@ def get_supabase_client() -> Optional[Client]:
     except Exception as e:
         logger.error(f"Error initializing Supabase client: {e}")
         return None
+
+def safe_int_conversion(value, default=0):
+    """Safely convert value to int, handling various input types"""
+    try:
+        if value is None:
+            return default
+        if isinstance(value, (int, float)):
+            return int(value)
+        if isinstance(value, str):
+            # Handle timestamp strings
+            if 'T' in value or '+' in value or 'Z' in value:
+                # This looks like an ISO datetime string, convert to timestamp
+                try:
+                    dt = datetime.fromisoformat(value.replace('Z', '+00:00'))
+                    return int(dt.timestamp())
+                except:
+                    return default
+            # Try direct conversion
+            return int(float(value))
+        return default
+    except (ValueError, TypeError):
+        return default
+
+def safe_bool_conversion(value, default=False):
+    """Safely convert value to bool"""
+    try:
+        if value is None:
+            return default
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str):
+            return value.lower() in ('true', '1', 'yes', 'on')
+        return bool(value)
+    except:
+        return default
+
+def safe_string_conversion(value, default=''):
+    """Safely convert value to string"""
+    try:
+        if value is None:
+            return default
+        return str(value)
+    except:
+        return default
 
 class User:
     """User model with comprehensive database operations using Supabase client"""
@@ -81,34 +125,34 @@ class User:
                 row = response.data[0]
                 user = cls(
                     telegram_id=row['telegram_id'],
-                    username=row.get('username', ''),
-                    first_name=row.get('first_name', ''),
-                    last_name=row.get('last_name', '')
+                    username=safe_string_conversion(row.get('username', '')),
+                    first_name=safe_string_conversion(row.get('first_name', '')),
+                    last_name=safe_string_conversion(row.get('last_name', ''))
                 )
                 
-                # Load game data with type conversion
-                user.coins = int(float(row.get('coins', 2500)))
-                user.energy = int(float(row.get('energy', 100)))
-                user.max_energy = int(float(row.get('max_energy', 100)))
-                user.tap_power = int(float(row.get('tap_power', 1)))
-                user.power = int(float(row.get('power', 1)))
-                user.energy_regen_rate = int(float(row.get('energy_regen_rate', 1)))
-                user.energy_recharge_rate = int(float(row.get('energy_recharge_rate', 1)))
+                # Load game data with safe type conversion
+                user.coins = safe_int_conversion(row.get('coins', 2500))
+                user.energy = safe_int_conversion(row.get('energy', 100))
+                user.max_energy = safe_int_conversion(row.get('max_energy', 100))
+                user.tap_power = safe_int_conversion(row.get('tap_power', 1))
+                user.power = safe_int_conversion(row.get('power', 1))
+                user.energy_regen_rate = safe_int_conversion(row.get('energy_regen_rate', 1))
+                user.energy_recharge_rate = safe_int_conversion(row.get('energy_recharge_rate', 1))
                 
-                # Load timestamp fields (convert to int if needed)
-                user.last_energy_update = int(float(row.get('last_energy_update', int(time.time()))))
-                user.last_tap_time = int(float(row.get('last_tap_time', int(time.time()))))
-                user.created_at = int(float(row.get('created_at', int(time.time()))))
-                user.updated_at = int(float(row.get('updated_at', int(time.time()))))
+                # Load timestamp fields with safe conversion
+                user.last_energy_update = safe_int_conversion(row.get('last_energy_update', int(time.time())))
+                user.last_tap_time = safe_int_conversion(row.get('last_tap_time', int(time.time())))
+                user.created_at = safe_int_conversion(row.get('created_at', int(time.time())))
+                user.updated_at = safe_int_conversion(row.get('updated_at', int(time.time())))
                 
                 # Load additional attributes
-                user.is_admin = bool(row.get('is_admin', False))
-                user.referral_code = row.get('referral_code', '')
+                user.is_admin = safe_bool_conversion(row.get('is_admin', False))
+                user.referral_code = safe_string_conversion(row.get('referral_code', ''))
                 user.referred_by = row.get('referred_by')
-                user.total_taps = int(float(row.get('total_taps', 0)))
-                user.referral_count = int(float(row.get('referral_count', 0)))
-                user.referral_earnings = int(float(row.get('referral_earnings', 0)))
-                user.referrals = row.get('referrals', '')
+                user.total_taps = safe_int_conversion(row.get('total_taps', 0))
+                user.referral_count = safe_int_conversion(row.get('referral_count', 0))
+                user.referral_earnings = safe_int_conversion(row.get('referral_earnings', 0))
+                user.referrals = safe_string_conversion(row.get('referrals', ''))
                 
                 logger.info(f"User found: {telegram_id}")
                 return user
@@ -183,22 +227,22 @@ class User:
                 'username': self.username,
                 'first_name': self.first_name,
                 'last_name': self.last_name,
-                'coins': int(float(self.coins)),
-                'energy': int(float(self.energy)),
-                'max_energy': int(float(self.max_energy)),
-                'tap_power': int(float(self.tap_power)),
-                'power': int(float(self.power)),
-                'energy_regen_rate': int(float(self.energy_regen_rate)),
-                'energy_recharge_rate': int(float(self.energy_recharge_rate)),
+                'coins': int(self.coins),
+                'energy': int(self.energy),
+                'max_energy': int(self.max_energy),
+                'tap_power': int(self.tap_power),
+                'power': int(self.power),
+                'energy_regen_rate': int(self.energy_regen_rate),
+                'energy_recharge_rate': int(self.energy_recharge_rate),
                 'last_energy_update': int(self.last_energy_update),
                 'last_tap_time': int(self.last_tap_time),
                 'updated_at': int(self.updated_at),
                 'is_admin': bool(self.is_admin),
                 'referral_code': self.referral_code,
                 'referred_by': self.referred_by,
-                'total_taps': int(float(self.total_taps)),
-                'referral_count': int(float(self.referral_count)),
-                'referral_earnings': int(float(self.referral_earnings)),
+                'total_taps': int(self.total_taps),
+                'referral_count': int(self.referral_count),
+                'referral_earnings': int(self.referral_earnings),
                 'referrals': self.referrals
             }
             
