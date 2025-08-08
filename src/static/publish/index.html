@@ -67,10 +67,15 @@
             width: 80px;
             height: 80px;
             margin: 0 auto 10px;
-            background: url('alpha_wulf_logo.png') center/cover;
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
             border-radius: 50%;
             border: 3px solid #FFD700;
             box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: #1a1a1a;
         }
 
         .title {
@@ -179,40 +184,14 @@
             filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
         }
 
-        .coin-tap-image {
-            width: 160px;
-            height: 160px;
-            border-radius: 50%;
-            object-fit: cover;
-            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
-            transition: all 0.1s ease;
-        }
-
-        .tap-button:active .coin-tap-image {
-            transform: scale(0.95);
-            filter: drop-shadow(0 0 30px rgba(255, 215, 0, 1));
-        }
-
-        .coin-icon-small {
-            width: 20px;
-            height: 20px;
-            vertical-align: middle;
-            margin-right: 5px;
-        }
-
         .coin-animation {
             position: absolute;
             font-size: 24px;
             color: #FFD700;
             pointer-events: none;
             animation: coinFloat 1s ease-out forwards;
-            background-image: url("wolf_coin_icon.png");
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            width: 30px;
-            height: 30px;
-            text-indent: -9999px;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
         }
 
         @keyframes coinFloat {
@@ -295,7 +274,7 @@
         .loading-logo {
             width: 120px;
             height: 120px;
-            background: url('alpha_wulf_logo.png') center/cover;
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
             border-radius: 50%;
             border: 4px solid #FFD700;
             box-shadow: 0 0 30px rgba(255, 215, 0, 0.6), 
@@ -303,6 +282,11 @@
                         0 0 90px rgba(255, 215, 0, 0.2);
             animation: logoGlow 2s ease-in-out infinite alternate, logoSpin 4s linear infinite;
             margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            color: #1a1a1a;
         }
 
         @keyframes logoGlow {
@@ -479,7 +463,25 @@
             display: block;
         }
 
-        /* Game Grid Styles */
+        /* Game Styles */
+        .game-section {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .game-title {
+            font-size: 24px;
+            color: #FFD700;
+            margin-bottom: 10px;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        }
+
+        .game-subtitle {
+            font-size: 14px;
+            color: #DAA520;
+            margin-bottom: 30px;
+        }
+
         .game-grid {
             display: grid;
             gap: 20px;
@@ -495,6 +497,7 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
         }
 
         .game-card:hover {
@@ -503,8 +506,8 @@
         }
 
         .game-card.playing {
-            border: 2px solid #FFD700;
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            border-color: #00FF00;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
         }
 
         .game-icon {
@@ -513,7 +516,7 @@
             margin-bottom: 15px;
         }
 
-        .game-title {
+        .game-name {
             font-size: 18px;
             font-weight: bold;
             color: #FFD700;
@@ -537,9 +540,43 @@
             font-size: 14px;
             color: #FFD700;
             font-weight: bold;
+            margin-bottom: 15px;
         }
 
-        .game-play-button {
+        .game-progress {
+            width: 100%;
+            height: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+            display: none;
+        }
+
+        .game-progress.active {
+            display: block;
+        }
+
+        .game-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #00FF00 0%, #32CD32 100%);
+            border-radius: 4px;
+            transition: width 0.1s linear;
+        }
+
+        .game-timer {
+            font-size: 16px;
+            color: #00FF00;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: none;
+        }
+
+        .game-timer.active {
+            display: block;
+        }
+
+        .play-button {
             background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
             border: none;
             color: #1a1a1a;
@@ -548,43 +585,19 @@
             cursor: pointer;
             font-size: 14px;
             font-weight: bold;
-            margin-top: 15px;
-            width: 100%;
             transition: all 0.3s ease;
+            width: 100%;
         }
 
-        .game-play-button:hover {
+        .play-button:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
         }
 
-        .game-play-button:disabled {
+        .play-button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             transform: none;
-        }
-
-        .game-progress {
-            width: 100%;
-            height: 8px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 4px;
-            margin: 15px 0;
-            overflow: hidden;
-        }
-
-        .game-progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #FFD700 0%, #FFA500 100%);
-            border-radius: 4px;
-            transition: width 0.3s ease;
-        }
-
-        .game-timer {
-            text-align: center;
-            font-size: 16px;
-            color: #FFD700;
-            margin: 10px 0;
         }
 
         .back-button {
@@ -630,21 +643,21 @@
         }
 
         .upgrade-icon {
-            font-size: 30px;
-            margin-right: 15px;
-            filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.3));
+            font-size: 24px;
+            margin-right: 10px;
+        }
+
+        .upgrade-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #FFD700;
         }
 
         .upgrade-info {
-            flex: 1;
-        }
-
-        .upgrade-name {
-            font-size: 18px;
-            font-weight: bold;
-            color: #FFD700;
-            margin-bottom: 5px;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
         }
 
         .upgrade-level {
@@ -652,33 +665,23 @@
             color: #DAA520;
         }
 
-        .upgrade-stats {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-        }
-
-        .upgrade-current {
+        .upgrade-cost {
             font-size: 14px;
             color: #FFD700;
-        }
-
-        .upgrade-next {
-            font-size: 14px;
-            color: #00FF88;
+            font-weight: bold;
         }
 
         .upgrade-button {
-            width: 100%;
             background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
             border: none;
             color: #1a1a1a;
-            padding: 12px;
-            border-radius: 10px;
+            padding: 10px 20px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
             font-weight: bold;
             transition: all 0.3s ease;
+            width: 100%;
         }
 
         .upgrade-button:hover {
@@ -693,421 +696,374 @@
         }
 
         /* Referral Styles */
-        .referral-stats {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 30px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(0, 191, 255, 0.3);
-        }
-
-        .referral-stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .referral-stat-item {
-            text-align: center;
-        }
-
-        .referral-stat-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #FFD700;
-            margin-bottom: 5px;
-        }
-
-        .referral-stat-label {
-            font-size: 12px;
-            color: #DAA520;
+        .referral-section {
+            padding: 20px 0;
         }
 
         .referral-link-card {
-            background: rgba(255, 255, 255, 0.1);
+            background: linear-gradient(135deg, rgba(0, 191, 255, 0.1) 0%, rgba(30, 144, 255, 0.05) 100%);
             border-radius: 15px;
             padding: 20px;
             margin-bottom: 20px;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(0, 191, 255, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
-        .referral-card-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: #FFD700;
+        .referral-link-title {
+            font-size: 16px;
+            color: #00BFFF;
             margin-bottom: 15px;
+            display: flex;
+            align-items: center;
         }
 
-        .referral-link {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(0, 191, 255, 0.3);
+        .referral-link-display {
+            background: rgba(0, 0, 0, 0.3);
             border-radius: 10px;
             padding: 15px;
             margin-bottom: 15px;
+            border: 1px solid rgba(0, 191, 255, 0.3);
             word-break: break-all;
-            font-size: 14px;
-            color: #DAA520;
+            font-size: 12px;
+            color: #00BFFF;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .referral-action-buttons {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
+        .referral-link-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #00BFFF;
+            font-size: 14px;
+        }
+
+        .referral-link-loading::after {
+            content: '';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        .referral-buttons {
+            display: flex;
             gap: 10px;
         }
 
-        .referral-action-button {
-            background: linear-gradient(135deg, #00BFFF 0%, #0077B6 100%);
-            border: none;
-            color: #FFD700;
+        .copy-button, .share-button {
+            flex: 1;
             padding: 12px;
             border-radius: 10px;
+            border: none;
+            cursor: pointer;
             font-size: 14px;
             font-weight: bold;
-            cursor: pointer;
             transition: all 0.3s ease;
         }
 
-        .referral-action-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 191, 255, 0.3);
+        .copy-button {
+            background: linear-gradient(135deg, #00BFFF 0%, #1E90FF 100%);
+            color: white;
         }
 
-        .referral-action-button.secondary {
-            background: rgba(0, 191, 255, 0.2);
+        .share-button {
+            background: linear-gradient(135deg, rgba(0, 191, 255, 0.2) 0%, rgba(30, 144, 255, 0.1) 100%);
+            color: #00BFFF;
             border: 1px solid #00BFFF;
         }
 
+        .copy-button:hover, .share-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 191, 255, 0.3);
+        }
+
         .referral-rewards-card {
-            background: rgba(255, 255, 255, 0.1);
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(218, 165, 32, 0.05) 100%);
             border-radius: 15px;
             padding: 20px;
             margin-bottom: 20px;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
-        .referral-reward-item {
+        .referral-rewards-title {
+            font-size: 16px;
+            color: #FFD700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .reward-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 15px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
         }
 
-        .referral-reward-item:last-child {
+        .reward-item:last-child {
             border-bottom: none;
         }
 
-        .referral-reward-description {
+        .reward-info {
             flex: 1;
         }
 
-        .referral-reward-title {
-            font-size: 16px;
-            font-weight: bold;
+        .reward-title {
+            font-size: 14px;
             color: #FFD700;
+            font-weight: bold;
             margin-bottom: 5px;
         }
 
-        .referral-reward-subtitle {
+        .reward-description {
             font-size: 12px;
             color: #DAA520;
         }
 
-        .referral-reward-value {
-            font-size: 18px;
+        .reward-amount {
+            font-size: 16px;
+            color: #00FF00;
             font-weight: bold;
-            color: #00FF88;
         }
 
-        .referral-list {
-            background: rgba(255, 255, 255, 0.1);
+        .referral-stats-card {
+            background: linear-gradient(135deg, rgba(138, 43, 226, 0.1) 0%, rgba(75, 0, 130, 0.05) 100%);
             border-radius: 15px;
             padding: 20px;
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(0, 191, 255, 0.3);
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
-        .referral-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .referral-item:last-child {
-            border-bottom: none;
-        }
-
-        .referral-info {
-            flex: 1;
-        }
-
-        .referral-name {
+        .referral-stats-title {
             font-size: 16px;
-            font-weight: bold;
-            color: #FFD700;
-            margin-bottom: 5px;
+            color: #8A2BE2;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
         }
 
-        .referral-date {
-            font-size: 12px;
-            color: #DAA520;
+        .referral-stats-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: #8A2BE2;
         }
 
-        .referral-earnings {
-            font-size: 14px;
-            font-weight: bold;
-            color: #FFD700;
+        .referral-stats-loading .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(138, 43, 226, 0.2);
+            border-top: 3px solid #8A2BE2;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
         }
 
         /* Withdraw Styles */
-        .withdraw-balance-card {
-            background: rgba(255, 255, 255, 0.1);
+        .withdraw-section {
+            padding: 20px 0;
+        }
+
+        .balance-card {
+            background: linear-gradient(135deg, rgba(0, 191, 255, 0.1) 0%, rgba(30, 144, 255, 0.05) 100%);
             border-radius: 15px;
             padding: 20px;
-            margin-bottom: 30px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(0, 191, 255, 0.3);
+            margin-bottom: 20px;
             text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 191, 255, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
-        .withdraw-balance-amount {
+        .balance-amount {
             font-size: 32px;
+            color: #FFD700;
             font-weight: bold;
-            color: #FFD700;
             margin-bottom: 10px;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
         }
 
-        .withdraw-balance-label {
+        .balance-label {
             font-size: 14px;
-            color: #DAA520;
+            color: #00BFFF;
         }
 
-        .withdraw-conversion-rate {
-            font-size: 12px;
-            color: #FFD700;
-            margin-top: 10px;
-        }
-
-        .withdraw-form-section {
-            background: rgba(255, 255, 255, 0.1);
+        .withdraw-info {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(218, 165, 32, 0.05) 100%);
             border-radius: 15px;
             padding: 20px;
             margin-bottom: 20px;
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(0, 191, 255, 0.3);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
-        .withdraw-form-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: #FFD700;
-            margin-bottom: 15px;
-        }
-
-        .withdraw-form-group {
+        .withdraw-form {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(218, 165, 32, 0.05) 100%);
+            border-radius: 15px;
+            padding: 20px;
             margin-bottom: 20px;
-        }
-
-        .withdraw-form-label {
-            display: block;
-            font-size: 14px;
-            color: #DAA520;
-            margin-bottom: 8px;
-        }
-
-        .withdraw-form-input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid rgba(0, 191, 255, 0.3);
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            color: #FFD700;
-            font-size: 16px;
             backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
-        .withdraw-form-input:focus {
-            outline: none;
-            border-color: #FFD700;
-            box-shadow: 0 0 10px rgba(0, 191, 255, 0.3);
-        }
-
-        .withdraw-form-input::placeholder {
-            color: #DAA520;
-        }
-
-        .withdraw-amount-buttons {
+        .amount-buttons {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 10px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
-        .withdraw-amount-button {
-            background: rgba(0, 191, 255, 0.2);
-            border: 1px solid #00BFFF;
+        .amount-button {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(218, 165, 32, 0.1) 100%);
+            border: 1px solid #FFD700;
             color: #FFD700;
-            padding: 10px;
-            border-radius: 8px;
+            padding: 12px;
+            border-radius: 10px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 12px;
+            font-weight: bold;
             transition: all 0.3s ease;
         }
 
-        .withdraw-amount-button:hover {
-            background: rgba(0, 191, 255, 0.3);
+        .amount-button:hover, .amount-button.selected {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #1a1a1a;
         }
 
-        .withdraw-amount-button.selected {
-            background: #00BFFF;
-            color: #0A192F;
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 14px;
+            color: #FFD700;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            background: rgba(0, 0, 0, 0.3);
+            color: #FFD700;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #FFD700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
         }
 
         .withdraw-button {
-            width: 100%;
-            background: linear-gradient(135deg, #00BFFF 0%, #0077B6 100%);
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
             border: none;
-            color: #FFD700;
+            color: #1a1a1a;
             padding: 15px;
             border-radius: 10px;
+            cursor: pointer;
             font-size: 16px;
             font-weight: bold;
-            cursor: pointer;
             transition: all 0.3s ease;
-            margin-top: 20px;
+            width: 100%;
         }
 
         .withdraw-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 191, 255, 0.3);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
         }
 
         .withdraw-button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             transform: none;
-            box-shadow: none;
-        }
-
-        .withdraw-info-box {
-            background: rgba(255, 215, 0, 0.1);
-            border: 1px solid rgba(255, 215, 0, 0.3);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-
-        .withdraw-info-title {
-            font-size: 14px;
-            font-weight: bold;
-            color: #FFD700;
-            margin-bottom: 10px;
-        }
-
-        .withdraw-info-text {
-            font-size: 12px;
-            color: #DAA520;
-            line-height: 1.4;
-        }
-
-        .withdraw-history {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(0, 191, 255, 0.3);
-        }
-
-        .withdraw-history-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .withdraw-history-item:last-child {
-            border-bottom: none;
-        }
-
-        .withdraw-history-details {
-            flex: 1;
-        }
-
-        .withdraw-history-amount {
-            font-size: 16px;
-            font-weight: bold;
-            color: #FFD700;
-        }
-
-        .withdraw-history-date {
-            font-size: 12px;
-            color: #DAA520;
-        }
-
-        .withdraw-history-status {
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .withdraw-status-pending {
-            background: rgba(255, 165, 0, 0.2);
-            color: #FFA500;
-        }
-
-        .withdraw-status-completed {
-            background: rgba(0, 255, 136, 0.2);
-            color: #00FF88;
-        }
-
-        .withdraw-status-failed {
-            background: rgba(255, 0, 0, 0.2);
-            color: #FF6B6B;
         }
 
         /* Transaction History Styles */
-        .transaction-history {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(0, 191, 255, 0.3);
+        .history-section {
+            padding: 20px 0;
+        }
+
+        .history-title {
+            font-size: 24px;
+            color: #FFD700;
+            margin-bottom: 10px;
+            text-align: center;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        }
+
+        .history-subtitle {
+            font-size: 14px;
+            color: #DAA520;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .history-filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .filter-button {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(218, 165, 32, 0.1) 100%);
+            border: 1px solid #FFD700;
+            color: #FFD700;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            min-width: 60px;
+        }
+
+        .filter-button:hover, .filter-button.active {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #1a1a1a;
+        }
+
+        .transaction-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
 
         .transaction-item {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(218, 165, 32, 0.05) 100%);
+            border-radius: 15px;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .transaction-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .transaction-item:last-child {
-            border-bottom: none;
-        }
-
-        .transaction-details {
-            flex: 1;
+            margin-bottom: 8px;
         }
 
         .transaction-type {
-            font-size: 16px;
-            font-weight: bold;
+            font-size: 14px;
             color: #FFD700;
-            margin-bottom: 5px;
-        }
-
-        .transaction-date {
-            font-size: 12px;
-            color: #DAA520;
+            font-weight: bold;
         }
 
         .transaction-amount {
@@ -1116,79 +1072,59 @@
         }
 
         .transaction-amount.positive {
-            color: #00FF88;
+            color: #00FF00;
         }
 
         .transaction-amount.negative {
             color: #FF6B6B;
         }
 
-        .transaction-filter {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .transaction-filter-button {
-            background: rgba(0, 191, 255, 0.2);
-            border: 1px solid #00BFFF;
-            color: #FFD700;
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
+        .transaction-description {
             font-size: 12px;
-            transition: all 0.3s ease;
+            color: #DAA520;
+            margin-bottom: 5px;
         }
 
-        .transaction-filter-button:hover {
-            background: rgba(0, 191, 255, 0.3);
+        .transaction-date {
+            font-size: 10px;
+            color: #888;
         }
 
-        .transaction-filter-button.active {
-            background: #00BFFF;
-            color: #0A192F;
-        }
-
-        /* Loading and Message Styles */
-        .loading-spinner {
-            text-align: center;
-            padding: 20px;
-        }
-
-        .spinner {
-            border: 3px solid rgba(255, 255, 255, 0.1);
-            border-top: 3px solid #00BFFF;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
-        }
-
+        /* Success Message */
         .success-message {
-            background: rgba(0, 255, 136, 0.1);
-            border: 1px solid rgba(0, 255, 136, 0.3);
-            border-radius: 10px;
-            padding: 15px;
-            margin: 15px 0;
-            color: #00FF88;
-            text-align: center;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(0, 255, 0, 0.9) 0%, rgba(34, 139, 34, 0.9) 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 10000;
+            box-shadow: 0 10px 30px rgba(0, 255, 0, 0.3);
+            animation: successPulse 0.5s ease-out;
         }
 
-        .error-message {
-            background: rgba(255, 0, 0, 0.1);
-            border: 1px solid rgba(255, 0, 0, 0.3);
-            border-radius: 10px;
-            padding: 15px;
-            margin: 15px 0;
-            color: #FF6B6B;
-            text-align: center;
+        @keyframes successPulse {
+            0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         }
 
         /* Responsive Design */
         @media (max-width: 480px) {
             .container {
                 padding: 15px;
+            }
+            
+            .tap-button {
+                width: 180px;
+                height: 180px;
+            }
+            
+            .wolf-icon {
+                font-size: 70px;
             }
             
             .stats {
@@ -1198,23 +1134,13 @@
             .stat-card {
                 padding: 12px;
             }
-            
-            .tap-button {
-                width: 180px;
-                height: 180px;
-            }
-            
-            .coin-tap-image {
-                width: 140px;
-                height: 140px;
-            }
         }
     </style>
 </head>
 <body>
     <!-- Loading Screen -->
     <div id="loadingScreen" class="loading">
-        <div class="loading-logo"></div>
+        <div class="loading-logo">🐺</div>
         <div class="loading-title">Alpha Wulf</div>
         <div class="loading-subtitle">Tap to Earn Wolf Coins</div>
         <div class="loading-spinner"></div>
@@ -1238,28 +1164,28 @@
         <!-- Home Section -->
         <div id="homeSection" class="section active">
             <div class="header">
-                <div class="logo"></div>
+                <div class="logo">🐺</div>
                 <div class="title">Alpha Wulf</div>
                 <div class="subtitle">Tap to Earn Wolf Coins</div>
             </div>
 
             <div class="stats">
                 <div class="stat-card">
-                    <div class="stat-value" id="coinCount">0</div>
+                    <div class="stat-value" id="coinsDisplay">1000</div>
                     <div class="stat-label">Coins</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value" id="energyCount">0/0</div>
+                    <div class="stat-value" id="energyDisplay">100/100</div>
                     <div class="stat-label">Energy</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value" id="powerCount">1</div>
+                    <div class="stat-value" id="powerDisplay">1</div>
                     <div class="stat-label">Power</div>
                 </div>
             </div>
 
             <div class="energy-bar">
-                <div class="energy-fill" id="energyBar" style="width: 100%;"></div>
+                <div class="energy-fill" id="energyFill" style="width: 100%;"></div>
             </div>
 
             <div class="tap-area">
@@ -1267,79 +1193,52 @@
                     <div class="wolf-icon">🐺</div>
                 </div>
             </div>
-
-            <div class="bottom-nav">
-                <button class="nav-button" onclick="showSection('home')">
-                    <div class="nav-icon">🏠</div>
-                    <div>Home</div>
-                </button>
-                <button class="nav-button" onclick="showSection('games')">
-                    <div class="nav-icon">🎮</div>
-                    <div>Games</div>
-                </button>
-                <button class="nav-button" onclick="showSection('upgrades')">
-                    <div class="nav-icon">⚡</div>
-                    <div>Upgrades</div>
-                </button>
-                <button class="nav-button" onclick="showSection('referrals')">
-                    <div class="nav-icon">👥</div>
-                    <div>Referrals</div>
-                </button>
-                <button class="nav-button" onclick="showSection('withdraw')">
-                    <div class="nav-icon">💳</div>
-                    <div>Withdraw</div>
-                </button>
-                <button class="nav-button" onclick="showSection('transactions')">
-                    <div class="nav-icon">📊</div>
-                    <div>History</div>
-                </button>
-            </div>
         </div>
 
         <!-- Games Section -->
         <div id="gamesSection" class="section">
             <button class="back-button" onclick="showSection('home')">← Back to Home</button>
             
-            <div class="header">
-                <div class="title">🎮 Mini Games</div>
-                <div class="subtitle">Play games to earn extra coins!</div>
-            </div>
-
-            <div class="game-grid">
-                <div class="game-card" id="wolfHuntGame">
-                    <div class="game-icon">🐺</div>
-                    <div class="game-title">Wolf Hunt</div>
-                    <div class="game-description">Hunt for treasures in the wild</div>
-                    <div class="game-reward">Reward: 50-150 coins</div>
-                    <div class="game-timer" id="wolfHuntTimer" style="display: none;">Time: 10s</div>
-                    <div class="game-progress" id="wolfHuntProgress" style="display: none;">
-                        <div class="game-progress-bar" id="wolfHuntProgressBar" style="width: 0%;"></div>
+            <div class="game-section">
+                <div class="game-title">🎮 Mini Games</div>
+                <div class="game-subtitle">Play games to earn extra coins!</div>
+                
+                <div class="game-grid">
+                    <div class="game-card" id="wolfHuntCard">
+                        <div class="game-icon">🐺</div>
+                        <div class="game-name">Wolf Hunt</div>
+                        <div class="game-description">Hunt for treasures in the wild</div>
+                        <div class="game-reward">Reward: 50-150 coins</div>
+                        <div class="game-progress" id="wolfHuntProgress">
+                            <div class="game-progress-bar" id="wolfHuntProgressBar"></div>
+                        </div>
+                        <div class="game-timer" id="wolfHuntTimer">Time: 10s</div>
+                        <button class="play-button" id="wolfHuntButton" onclick="playGame('wolfHunt')">Play Game</button>
                     </div>
-                    <button class="game-play-button" id="wolfHuntButton" onclick="playGame('wolfHunt')">Play Game</button>
-                </div>
 
-                <div class="game-card" id="packLeaderGame">
-                    <div class="game-icon">👑</div>
-                    <div class="game-title">Pack Leader</div>
-                    <div class="game-description">Lead your pack to victory</div>
-                    <div class="game-reward">Reward: 100-250 coins</div>
-                    <div class="game-timer" id="packLeaderTimer" style="display: none;">Time: 15s</div>
-                    <div class="game-progress" id="packLeaderProgress" style="display: none;">
-                        <div class="game-progress-bar" id="packLeaderProgressBar" style="width: 0%;"></div>
+                    <div class="game-card" id="packLeaderCard">
+                        <div class="game-icon">👑</div>
+                        <div class="game-name">Pack Leader</div>
+                        <div class="game-description">Lead your pack to victory</div>
+                        <div class="game-reward">Reward: 100-250 coins</div>
+                        <div class="game-progress" id="packLeaderProgress">
+                            <div class="game-progress-bar" id="packLeaderProgressBar"></div>
+                        </div>
+                        <div class="game-timer" id="packLeaderTimer">Time: 15s</div>
+                        <button class="play-button" id="packLeaderButton" onclick="playGame('packLeader')">Play Game</button>
                     </div>
-                    <button class="game-play-button" id="packLeaderButton" onclick="playGame('packLeader')">Play Game</button>
-                </div>
 
-                <div class="game-card" id="howlChallengeGame">
-                    <div class="game-icon">🌙</div>
-                    <div class="game-title">Howl Challenge</div>
-                    <div class="game-description">Test your howling skills</div>
-                    <div class="game-reward">Reward: 75-300 coins</div>
-                    <div class="game-timer" id="howlChallengeTimer" style="display: none;">Time: 12s</div>
-                    <div class="game-progress" id="howlChallengeProgress" style="display: none;">
-                        <div class="game-progress-bar" id="howlChallengeProgressBar" style="width: 0%;"></div>
+                    <div class="game-card" id="howlChallengeCard">
+                        <div class="game-icon">🌙</div>
+                        <div class="game-name">Howl Challenge</div>
+                        <div class="game-description">Test your howling skills</div>
+                        <div class="game-reward">Reward: 75-300 coins</div>
+                        <div class="game-progress" id="howlChallengeProgress">
+                            <div class="game-progress-bar" id="howlChallengeProgressBar"></div>
+                        </div>
+                        <div class="game-timer" id="howlChallengeTimer">Time: 12s</div>
+                        <button class="play-button" id="howlChallengeButton" onclick="playGame('howlChallenge')">Play Game</button>
                     </div>
-                    <button class="game-play-button" id="howlChallengeButton" onclick="playGame('howlChallenge')">Play Game</button>
                 </div>
             </div>
         </div>
@@ -1348,61 +1247,50 @@
         <div id="upgradesSection" class="section">
             <button class="back-button" onclick="showSection('home')">← Back to Home</button>
             
-            <div class="header">
-                <div class="title">⚡ Upgrades</div>
-                <div class="subtitle">Enhance your wolf abilities</div>
-            </div>
-
             <div class="upgrade-grid">
                 <div class="upgrade-card">
                     <div class="upgrade-header">
-                        <div class="upgrade-icon">💪</div>
-                        <div class="upgrade-info">
-                            <div class="upgrade-name">Tap Power</div>
-                            <div class="upgrade-level">Level <span id="tapPowerLevel">1</span></div>
-                        </div>
+                        <div class="upgrade-icon">⚡</div>
+                        <div class="upgrade-title">Tap Power</div>
                     </div>
-                    <div class="upgrade-stats">
-                        <div class="upgrade-current">Current: <span id="tapPowerCurrent">1</span> coins/tap</div>
-                        <div class="upgrade-next">Next: <span id="tapPowerNext">2</span> coins/tap</div>
+                    <div class="upgrade-info">
+                        <div class="upgrade-level">Current: <span id="tapPowerLevel">1</span> coins/tap</div>
+                        <div class="upgrade-cost">Cost: <span id="tapPowerCost">100</span> coins</div>
                     </div>
-                    <button class="upgrade-button" id="tapPowerButton" onclick="upgradeFeature('tapPower')">
-                        Upgrade for <span id="tapPowerCost">100</span> coins
-                    </button>
+                    <div class="upgrade-info">
+                        <div class="upgrade-level">Next: <span id="tapPowerNext">2</span> coins/tap</div>
+                    </div>
+                    <button class="upgrade-button" id="tapPowerButton" onclick="buyUpgrade('tapPower')">Upgrade</button>
                 </div>
 
                 <div class="upgrade-card">
                     <div class="upgrade-header">
                         <div class="upgrade-icon">🔋</div>
-                        <div class="upgrade-info">
-                            <div class="upgrade-name">Energy Capacity</div>
-                            <div class="upgrade-level">Level <span id="energyCapacityLevel">1</span></div>
-                        </div>
+                        <div class="upgrade-title">Energy Capacity</div>
                     </div>
-                    <div class="upgrade-stats">
-                        <div class="upgrade-current">Current: <span id="energyCapacityCurrent">100</span> energy</div>
-                        <div class="upgrade-next">Next: <span id="energyCapacityNext">120</span> energy</div>
+                    <div class="upgrade-info">
+                        <div class="upgrade-level">Current: <span id="energyCapacityLevel">100</span> energy</div>
+                        <div class="upgrade-cost">Cost: <span id="energyCapacityCost">200</span> coins</div>
                     </div>
-                    <button class="upgrade-button" id="energyCapacityButton" onclick="upgradeFeature('energyCapacity')">
-                        Upgrade for <span id="energyCapacityCost">200</span> coins
-                    </button>
+                    <div class="upgrade-info">
+                        <div class="upgrade-level">Next: <span id="energyCapacityNext">120</span> energy</div>
+                    </div>
+                    <button class="upgrade-button" id="energyCapacityButton" onclick="buyUpgrade('energyCapacity')">Upgrade</button>
                 </div>
 
                 <div class="upgrade-card">
                     <div class="upgrade-header">
                         <div class="upgrade-icon">⚡</div>
-                        <div class="upgrade-info">
-                            <div class="upgrade-name">Energy Regen</div>
-                            <div class="upgrade-level">Level <span id="energyRegenLevel">1</span></div>
-                        </div>
+                        <div class="upgrade-title">Energy Regen</div>
                     </div>
-                    <div class="upgrade-stats">
-                        <div class="upgrade-current">Current: <span id="energyRegenCurrent">1</span>/min</div>
-                        <div class="upgrade-next">Next: <span id="energyRegenNext">2</span>/min</div>
+                    <div class="upgrade-info">
+                        <div class="upgrade-level">Current: <span id="energyRegenLevel">1</span>/min</div>
+                        <div class="upgrade-cost">Cost: <span id="energyRegenCost">150</span> coins</div>
                     </div>
-                    <button class="upgrade-button" id="energyRegenButton" onclick="upgradeFeature('energyRegen')">
-                        Upgrade for <span id="energyRegenCost">150</span> coins
-                    </button>
+                    <div class="upgrade-info">
+                        <div class="upgrade-level">Next: <span id="energyRegenNext">2</span>/min</div>
+                    </div>
+                    <button class="upgrade-button" id="energyRegenButton" onclick="buyUpgrade('energyRegen')">Upgrade</button>
                 </div>
             </div>
         </div>
@@ -1411,72 +1299,51 @@
         <div id="referralsSection" class="section">
             <button class="back-button" onclick="showSection('home')">← Back to Home</button>
             
-            <div class="header">
-                <div class="title">👥 Referrals</div>
-                <div class="subtitle">Invite friends and earn together!</div>
-            </div>
+            <div class="referral-section">
+                <div class="referral-link-card">
+                    <div class="referral-link-title">🔗 Your Referral Link</div>
+                    <div class="referral-link-display" id="referralLinkDisplay">
+                        <div class="referral-link-loading">Generating your referral link</div>
+                    </div>
+                    <div class="referral-buttons">
+                        <button class="copy-button" id="copyLinkButton" onclick="copyReferralLink()">📋 Copy Link</button>
+                        <button class="share-button" id="shareLinkButton" onclick="shareReferralLink()">📤 Share</button>
+                    </div>
+                </div>
 
-            <div class="referral-stats">
-                <div class="referral-stats-grid">
-                    <div class="referral-stat-item">
-                        <div class="referral-stat-value" id="totalReferrals">0</div>
-                        <div class="referral-stat-label">Total Referrals</div>
+                <div class="referral-rewards-card">
+                    <div class="referral-rewards-title">🎁 Referral Rewards</div>
+                    
+                    <div class="reward-item">
+                        <div class="reward-info">
+                            <div class="reward-title">Friend Joins</div>
+                            <div class="reward-description">When someone uses your link</div>
+                        </div>
+                        <div class="reward-amount">+500</div>
                     </div>
-                    <div class="referral-stat-item">
-                        <div class="referral-stat-value" id="totalEarnings">0</div>
-                        <div class="referral-stat-label">Total Earned</div>
-                    </div>
-                    <div class="referral-stat-item">
-                        <div class="referral-stat-value" id="activeReferrals">0</div>
-                        <div class="referral-stat-label">Active This Week</div>
-                    </div>
-                    <div class="referral-stat-item">
-                        <div class="referral-stat-value" id="referralLevel">1</div>
-                        <div class="referral-stat-label">Referral Level</div>
-                    </div>
-                </div>
-            </div>
 
-            <div class="referral-link-card">
-                <div class="referral-card-title">🔗 Your Referral Link</div>
-                <div class="referral-link" id="referralLink">Loading...</div>
-                <div class="referral-action-buttons">
-                    <button class="referral-action-button" onclick="copyReferralLink()">📋 Copy Link</button>
-                    <button class="referral-action-button secondary" onclick="shareReferralLink()">📤 Share</button>
-                </div>
-            </div>
+                    <div class="reward-item">
+                        <div class="reward-info">
+                            <div class="reward-title">Friend's First Withdrawal</div>
+                            <div class="reward-description">When they withdraw for first time</div>
+                        </div>
+                        <div class="reward-amount">+1000</div>
+                    </div>
 
-            <div class="referral-rewards-card">
-                <div class="referral-card-title">🎁 Referral Rewards</div>
-                <div class="referral-reward-item">
-                    <div class="referral-reward-description">
-                        <div class="referral-reward-title">Friend Joins</div>
-                        <div class="referral-reward-subtitle">When someone uses your link</div>
+                    <div class="reward-item">
+                        <div class="reward-info">
+                            <div class="reward-title">Weekly Bonus</div>
+                            <div class="reward-description">10% of friend's weekly earnings</div>
+                        </div>
+                        <div class="reward-amount">10%</div>
                     </div>
-                    <div class="referral-reward-value">+500</div>
                 </div>
-                <div class="referral-reward-item">
-                    <div class="referral-reward-description">
-                        <div class="referral-reward-title">Friend's First Withdrawal</div>
-                        <div class="referral-reward-subtitle">When they withdraw for first time</div>
-                    </div>
-                    <div class="referral-reward-value">+1000</div>
-                </div>
-                <div class="referral-reward-item">
-                    <div class="referral-reward-description">
-                        <div class="referral-reward-title">Weekly Bonus</div>
-                        <div class="referral-reward-subtitle">10% of friend's weekly earnings</div>
-                    </div>
-                    <div class="referral-reward-value">10%</div>
-                </div>
-            </div>
 
-            <div class="referral-list">
-                <div class="referral-card-title">👥 Your Referrals</div>
-                <div id="referralsList">
-                    <div class="loading-spinner">
+                <div class="referral-stats-card">
+                    <div class="referral-stats-title">👥 Your Referrals</div>
+                    <div class="referral-stats-loading">
                         <div class="spinner"></div>
-                        Loading referrals...
+                        <span>Loading referral data...</span>
                     </div>
                 </div>
             </div>
@@ -1486,782 +1353,767 @@
         <div id="withdrawSection" class="section">
             <button class="back-button" onclick="showSection('home')">← Back to Home</button>
             
-            <div class="header">
-                <div class="title">💳 Withdraw Coins</div>
-                <div class="subtitle">Convert your Wolf Coins to real money via UPI</div>
-            </div>
-
-            <div class="withdraw-balance-card">
-                <div class="withdraw-balance-amount" id="withdrawCoinBalance">0</div>
-                <div class="withdraw-balance-label">Wolf Coins Available</div>
-                <div class="withdraw-conversion-rate">1,000 coins = ₹10 (Minimum withdrawal)</div>
-            </div>
-
-            <div class="withdraw-info-box">
-                <div class="withdraw-info-title">📋 Withdrawal Information</div>
-                <div class="withdraw-info-text">
-                    • Minimum withdrawal: 1,000 coins (₹10)<br>
-                    • Processing time: 24-48 hours<br>
-                    • UPI transfers are instant once processed<br>
-                    • Withdrawal fee: 2% of amount
-                </div>
-            </div>
-
-            <div class="withdraw-form-section">
-                <div class="withdraw-form-title">💰 Withdrawal Amount</div>
-                
-                <div class="withdraw-amount-buttons">
-                    <button class="withdraw-amount-button" onclick="selectWithdrawAmount(1000)">1,000<br>₹10</button>
-                    <button class="withdraw-amount-button" onclick="selectWithdrawAmount(2500)">2,500<br>₹25</button>
-                    <button class="withdraw-amount-button" onclick="selectWithdrawAmount(5000)">5,000<br>₹50</button>
-                    <button class="withdraw-amount-button" onclick="selectWithdrawAmount(10000)">10,000<br>₹100</button>
-                    <button class="withdraw-amount-button" onclick="selectWithdrawAmount(25000)">25,000<br>₹250</button>
-                    <button class="withdraw-amount-button" onclick="selectWithdrawAmount(50000)">50,000<br>₹500</button>
+            <div class="withdraw-section">
+                <div class="balance-card">
+                    <div class="balance-amount" id="withdrawBalance">1000</div>
+                    <div class="balance-label">Wolf Coins Available</div>
+                    <div style="font-size: 12px; color: #DAA520; margin-top: 5px;">1,000 coins = ₹10 (Minimum withdrawal)</div>
                 </div>
 
-                <div class="withdraw-form-group">
-                    <label class="withdraw-form-label" for="customWithdrawAmount">Custom Amount (coins)</label>
-                    <input type="number" id="customWithdrawAmount" class="withdraw-form-input" placeholder="Enter amount in coins" min="1000" step="100">
+                <div class="withdraw-info">
+                    <div class="referral-rewards-title">📋 Withdrawal Information</div>
+                    <div style="color: #DAA520; font-size: 14px; line-height: 1.6;">
+                        • Minimum withdrawal: 1,000 coins (₹10)<br>
+                        • Processing time: 24-48 hours<br>
+                        • UPI transfers are instant once processed<br>
+                        • Withdrawal fee: 2% of amount
+                    </div>
                 </div>
 
-                <div class="withdraw-form-group">
-                    <label class="withdraw-form-label" for="upiId">UPI ID</label>
-                    <input type="text" id="upiId" class="withdraw-form-input" placeholder="yourname@paytm / yourname@gpay" required>
+                <div class="withdraw-form">
+                    <div class="referral-rewards-title">💰 Withdrawal Amount</div>
+                    
+                    <div class="amount-buttons">
+                        <button class="amount-button" onclick="selectAmount(1000)">1,000</button>
+                        <button class="amount-button" onclick="selectAmount(5000)">5,000</button>
+                        <button class="amount-button" onclick="selectAmount(10000)">10,000</button>
+                        <button class="amount-button" onclick="selectAmount(25000)">25,000</button>
+                        <button class="amount-button" onclick="selectAmount(50000)">50,000</button>
+                        <button class="amount-button" onclick="selectAmount('max')">Max</button>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">Custom Amount (coins)</label>
+                        <input type="number" class="input-field" id="withdrawAmount" placeholder="Enter amount" min="1000">
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">UPI ID</label>
+                        <input type="text" class="input-field" id="upiId" placeholder="yourname@paytm">
+                    </div>
+
+                    <button class="withdraw-button" id="withdrawButton" onclick="processWithdrawal()">Process Withdrawal</button>
                 </div>
 
-                <button class="withdraw-button" id="withdrawButton" onclick="processWithdrawal()" disabled>
-                    Process Withdrawal
-                </button>
-            </div>
-
-            <div class="withdraw-history">
-                <div class="withdraw-form-title">📊 Withdrawal History</div>
-                <div id="withdrawHistoryList">
-                    <div class="loading-spinner">
+                <div class="referral-stats-card">
+                    <div class="referral-stats-title">📊 Withdrawal History</div>
+                    <div class="referral-stats-loading">
                         <div class="spinner"></div>
-                        Loading withdrawal history...
+                        <span>Loading withdrawal history...</span>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Transaction History Section -->
-        <div id="transactionsSection" class="section">
+        <div id="historySection" class="section">
             <button class="back-button" onclick="showSection('home')">← Back to Home</button>
             
-            <div class="header">
-                <div class="title">📊 Transaction History</div>
-                <div class="subtitle">Track all your coin transactions</div>
-            </div>
+            <div class="history-section">
+                <div class="history-title">📊 Transaction History</div>
+                <div class="history-subtitle">Track all your coin transactions</div>
+                
+                <div class="history-filters">
+                    <button class="filter-button active" onclick="filterTransactions('all')">All</button>
+                    <button class="filter-button" onclick="filterTransactions('earned')">Earned</button>
+                    <button class="filter-button" onclick="filterTransactions('spent')">Spent</button>
+                    <button class="filter-button" onclick="filterTransactions('games')">Games</button>
+                    <button class="filter-button" onclick="filterTransactions('referrals')">Referrals</button>
+                </div>
 
-            <div class="transaction-filter">
-                <button class="transaction-filter-button active" onclick="filterTransactions('all')">All</button>
-                <button class="transaction-filter-button" onclick="filterTransactions('earned')">Earned</button>
-                <button class="transaction-filter-button" onclick="filterTransactions('spent')">Spent</button>
-                <button class="transaction-filter-button" onclick="filterTransactions('games')">Games</button>
-                <button class="transaction-filter-button" onclick="filterTransactions('referrals')">Referrals</button>
-            </div>
-
-            <div class="transaction-history">
-                <div id="transactionsList">
-                    <div class="loading-spinner">
-                        <div class="spinner"></div>
-                        Loading transactions...
-                    </div>
+                <div class="transaction-list" id="transactionList">
+                    <!-- Transactions will be loaded here -->
                 </div>
             </div>
         </div>
 
-        <div id="messages"></div>
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <button class="nav-button" onclick="showSection('home')">
+                <div class="nav-icon">🏠</div>
+                <div>Home</div>
+            </button>
+            <button class="nav-button" onclick="showSection('games')">
+                <div class="nav-icon">🎮</div>
+                <div>Games</div>
+            </button>
+            <button class="nav-button" onclick="showSection('upgrades')">
+                <div class="nav-icon">⚡</div>
+                <div>Upgrades</div>
+            </button>
+            <button class="nav-button" onclick="showSection('referrals')">
+                <div class="nav-icon">👥</div>
+                <div>Referrals</div>
+            </button>
+            <button class="nav-button" onclick="showSection('withdraw')">
+                <div class="nav-icon">💳</div>
+                <div>Withdraw</div>
+            </button>
+            <button class="nav-button" onclick="showSection('history')">
+                <div class="nav-icon">📊</div>
+                <div>History</div>
+            </button>
+        </div>
     </div>
 
     <script>
-        // Telegram Web App initialization
-        let tg = window.Telegram?.WebApp;
-        if (tg) {
-            tg.ready();
-            tg.expand();
-        }
-
-        // Game state
-        let gameState = {
-            coins: 1000, // Changed from 2500 to 1000 for new users
+        // Global variables
+        let userData = {
+            telegram_id: null,
+            username: '',
+            first_name: '',
+            last_name: '',
+            coins: 1000,
             energy: 100,
-            maxEnergy: 100,
-            tapPower: 1,
-            energyRegenRate: 1,
-            lastEnergyUpdate: Date.now(),
-            user: null,
-            isNewUser: false
+            max_energy: 100,
+            tap_power: 1,
+            energy_regen_rate: 1,
+            last_energy_update: Date.now(),
+            last_tap_time: Date.now()
         };
 
-        // Game timers
-        let gameTimers = {};
-        let energyRegenInterval;
+        let gameStates = {
+            wolfHunt: { playing: false, timer: null, duration: 10 },
+            packLeader: { playing: false, timer: null, duration: 15 },
+            howlChallenge: { playing: false, timer: null, duration: 12 }
+        };
 
-        // API base URL
-        const API_BASE = "https://alphawulf-backend-gfgy.onrender.com/api";
-
-        // Transaction history
         let transactions = [];
+        let currentFilter = 'all';
 
-        // Initialize the app
-        async function initApp() {
+        // API Base URL
+        const API_BASE = 'https://alphawulf-backend-xn90.onrender.com';
+
+        // Initialize Telegram WebApp
+        function initTelegramWebApp() {
             try {
-                const telegramUser = tg?.initDataUnsafe?.user;
-                if (!telegramUser) {
-                    showError('Telegram user data not available');
-                    return;
-                }
-
-                // Update user profile display
-                updateUserProfile(telegramUser);
-
-                // Load or create user
-                await loadUser(telegramUser);
-
-                // Start energy regeneration
-                startEnergyRegeneration();
-
-                // Hide loading screen and show main content
-                setTimeout(() => {
-                    document.getElementById('loadingScreen').style.display = 'none';
-                    document.getElementById('mainContainer').style.display = 'block';
-                    document.getElementById('userProfile').style.display = 'flex';
+                if (window.Telegram && window.Telegram.WebApp) {
+                    const tg = window.Telegram.WebApp;
+                    tg.ready();
+                    tg.expand();
                     
-                    // Show joining bonus if new user
-                    if (gameState.isNewUser) {
-                        showJoiningBonus();
+                    // Get user data from Telegram
+                    const user = tg.initDataUnsafe?.user;
+                    if (user) {
+                        userData.telegram_id = user.id;
+                        userData.username = user.username || '';
+                        userData.first_name = user.first_name || '';
+                        userData.last_name = user.last_name || '';
+                        
+                        // Update user profile display
+                        updateUserProfile();
+                        
+                        // Load user data from backend
+                        loadUserData();
+                    } else {
+                        // Fallback for testing
+                        userData.telegram_id = 1232204900;
+                        userData.username = 'testuser';
+                        userData.first_name = 'Test';
+                        userData.last_name = 'User';
+                        updateUserProfile();
+                        loadUserData();
                     }
-                }, 3000);
-
+                } else {
+                    // Fallback for testing outside Telegram
+                    userData.telegram_id = 1232204900;
+                    userData.username = 'testuser';
+                    userData.first_name = 'Test';
+                    userData.last_name = 'User';
+                    updateUserProfile();
+                    loadUserData();
+                }
             } catch (error) {
-                console.error('Failed to initialize app:', error);
-                showError('Failed to initialize app');
+                console.error('Error initializing Telegram WebApp:', error);
+                // Fallback
+                userData.telegram_id = 1232204900;
+                userData.username = 'testuser';
+                userData.first_name = 'Test';
+                userData.last_name = 'User';
+                updateUserProfile();
+                loadUserData();
             }
         }
 
-        // Load or create user
-        async function loadUser(telegramUser) {
+        // Update user profile display
+        function updateUserProfile() {
+            const userAvatar = document.getElementById('userAvatar');
+            const userName = document.getElementById('userName');
+            const userId = document.getElementById('userId');
+            
+            if (userData.first_name) {
+                userAvatar.textContent = userData.first_name.charAt(0).toUpperCase();
+                userName.textContent = userData.first_name + (userData.last_name ? ' ' + userData.last_name : '');
+            } else {
+                userAvatar.textContent = 'U';
+                userName.textContent = 'User';
+            }
+            
+            userId.textContent = `ID: ${userData.telegram_id}`;
+        }
+
+        // Load user data from backend
+        async function loadUserData() {
             try {
-                const response = await fetch(`${API_BASE}/user/${telegramUser.id}`);
-                
+                const response = await fetch(`${API_BASE}/api/user/${userData.telegram_id}`);
                 if (response.ok) {
-                    const userData = await response.json();
-                    gameState = {
-                        ...gameState,
-                        ...userData,
-                        user: telegramUser,
-                        isNewUser: false
-                    };
-                    updateUI();
-                    addTransaction('login', 'User Login', 0);
+                    const data = await response.json();
+                    userData = { ...userData, ...data };
+                    updateDisplay();
+                    generateReferralLink();
+                    loadTransactionHistory();
                 } else if (response.status === 404) {
-                    // Create new user with 1000 coins joining bonus
-                    await createUser(telegramUser);
+                    // User doesn't exist, create new user
+                    await createUser();
                 } else {
-                    throw new Error('Failed to load user');
+                    throw new Error('Failed to load user data');
                 }
             } catch (error) {
-                console.error('Error loading user:', error);
-                // Create new user as fallback
-                await createUser(telegramUser);
+                console.error('Error loading user data:', error);
+                // Use default values
+                updateDisplay();
+                generateReferralLink();
             }
         }
 
         // Create new user
-        async function createUser(telegramUser) {
+        async function createUser() {
             try {
-                const userData = {
-                    telegram_id: telegramUser.id,
-                    username: telegramUser.username || '',
-                    first_name: telegramUser.first_name || '',
-                    last_name: telegramUser.last_name || '',
-                    coins: 1000, // 1000 coins joining bonus
-                    energy: 100,
-                    max_energy: 100,
-                    tap_power: 1,
-                    energy_regen_rate: 1
-                };
-
-                const response = await fetch(`${API_BASE}/user`, {
+                const response = await fetch(`${API_BASE}/api/user`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(userData)
                 });
-
+                
                 if (response.ok) {
-                    const newUser = await response.json();
-                    gameState = {
-                        ...gameState,
-                        ...newUser,
-                        user: telegramUser,
-                        isNewUser: true
-                    };
-                    updateUI();
-                    addTransaction('bonus', 'Joining Bonus', 1000);
+                    const data = await response.json();
+                    userData = { ...userData, ...data };
+                    updateDisplay();
+                    showSuccessMessage('🎉 Welcome! You received 1000 coins joining bonus!');
+                    generateReferralLink();
+                    loadTransactionHistory();
                 } else {
                     throw new Error('Failed to create user');
                 }
             } catch (error) {
                 console.error('Error creating user:', error);
-                showError('Failed to create user account');
+                updateDisplay();
+                generateReferralLink();
             }
         }
 
-        // Show joining bonus message
-        function showJoiningBonus() {
-            showMessage('🎉 Welcome to Alpha Wulf! You received 1000 coins as a joining bonus!', 'success');
-        }
-
-        // Update user profile display
-        function updateUserProfile(user) {
-            const avatar = document.getElementById('userAvatar');
-            const name = document.getElementById('userName');
-            const id = document.getElementById('userId');
-
-            avatar.textContent = user.first_name ? user.first_name.charAt(0).toUpperCase() : 'U';
-            name.textContent = user.first_name || user.username || 'User';
-            id.textContent = `ID: ${user.id}`;
-        }
-
-        // Update UI elements
-        function updateUI() {
-            document.getElementById('coinCount').textContent = gameState.coins;
-            document.getElementById('energyCount').textContent = `${gameState.energy}/${gameState.maxEnergy}`;
-            document.getElementById('powerCount').textContent = gameState.tapPower;
+        // Update display
+        function updateDisplay() {
+            document.getElementById('coinsDisplay').textContent = userData.coins.toLocaleString();
+            document.getElementById('energyDisplay').textContent = `${userData.energy}/${userData.max_energy}`;
+            document.getElementById('powerDisplay').textContent = userData.tap_power;
+            document.getElementById('withdrawBalance').textContent = userData.coins.toLocaleString();
             
             // Update energy bar
-            const energyPercentage = (gameState.energy / gameState.maxEnergy) * 100;
-            document.getElementById('energyBar').style.width = `${energyPercentage}%`;
+            const energyPercentage = (userData.energy / userData.max_energy) * 100;
+            document.getElementById('energyFill').style.width = `${energyPercentage}%`;
             
-            // Update tap button state
-            const tapButton = document.getElementById('tapButton');
-            if (gameState.energy <= 0) {
-                tapButton.classList.add('disabled');
-            } else {
-                tapButton.classList.remove('disabled');
-            }
-
-            // Update withdraw balance
-            document.getElementById('withdrawCoinBalance').textContent = gameState.coins;
-
-            // Update upgrade UI
-            updateUpgradeUI();
+            // Update upgrade displays
+            updateUpgradeDisplays();
         }
 
-        // Update upgrade UI
-        function updateUpgradeUI() {
+        // Update upgrade displays
+        function updateUpgradeDisplays() {
             // Tap Power
-            document.getElementById('tapPowerLevel').textContent = gameState.tapPower;
-            document.getElementById('tapPowerCurrent').textContent = gameState.tapPower;
-            document.getElementById('tapPowerNext').textContent = gameState.tapPower + 1;
-            const tapPowerCost = gameState.tapPower * 100;
-            document.getElementById('tapPowerCost').textContent = tapPowerCost;
-            document.getElementById('tapPowerButton').disabled = gameState.coins < tapPowerCost;
-
+            document.getElementById('tapPowerLevel').textContent = userData.tap_power;
+            document.getElementById('tapPowerNext').textContent = userData.tap_power + 1;
+            document.getElementById('tapPowerCost').textContent = (userData.tap_power * 100).toLocaleString();
+            
             // Energy Capacity
-            const energyLevel = Math.floor(gameState.maxEnergy / 100);
-            document.getElementById('energyCapacityLevel').textContent = energyLevel;
-            document.getElementById('energyCapacityCurrent').textContent = gameState.maxEnergy;
-            document.getElementById('energyCapacityNext').textContent = gameState.maxEnergy + 20;
-            const energyCapacityCost = energyLevel * 200;
-            document.getElementById('energyCapacityCost').textContent = energyCapacityCost;
-            document.getElementById('energyCapacityButton').disabled = gameState.coins < energyCapacityCost;
-
+            document.getElementById('energyCapacityLevel').textContent = userData.max_energy;
+            document.getElementById('energyCapacityNext').textContent = userData.max_energy + 20;
+            document.getElementById('energyCapacityCost').textContent = (Math.floor(userData.max_energy / 20) * 200).toLocaleString();
+            
             // Energy Regen
-            document.getElementById('energyRegenLevel').textContent = gameState.energyRegenRate;
-            document.getElementById('energyRegenCurrent').textContent = gameState.energyRegenRate;
-            document.getElementById('energyRegenNext').textContent = gameState.energyRegenRate + 1;
-            const energyRegenCost = gameState.energyRegenRate * 150;
-            document.getElementById('energyRegenCost').textContent = energyRegenCost;
-            document.getElementById('energyRegenButton').disabled = gameState.coins < energyRegenCost;
+            document.getElementById('energyRegenLevel').textContent = userData.energy_regen_rate;
+            document.getElementById('energyRegenNext').textContent = userData.energy_regen_rate + 1;
+            document.getElementById('energyRegenCost').textContent = (userData.energy_regen_rate * 150).toLocaleString();
+            
+            // Update button states
+            updateUpgradeButtons();
         }
 
-        // Start energy regeneration
-        function startEnergyRegeneration() {
-            energyRegenInterval = setInterval(() => {
-                if (gameState.energy < gameState.maxEnergy) {
-                    gameState.energy = Math.min(gameState.maxEnergy, gameState.energy + gameState.energyRegenRate);
-                    updateUI();
-                }
-            }, 30000); // Regenerate every 30 seconds
+        // Update upgrade button states
+        function updateUpgradeButtons() {
+            const tapPowerCost = userData.tap_power * 100;
+            const energyCapacityCost = Math.floor(userData.max_energy / 20) * 200;
+            const energyRegenCost = userData.energy_regen_rate * 150;
+            
+            document.getElementById('tapPowerButton').disabled = userData.coins < tapPowerCost;
+            document.getElementById('energyCapacityButton').disabled = userData.coins < energyCapacityCost;
+            document.getElementById('energyRegenButton').disabled = userData.coins < energyRegenCost;
         }
 
         // Tap function
         async function tap() {
-            if (gameState.energy <= 0) {
-                showMessage('No energy available!', 'error');
+            if (userData.energy <= 0) {
+                showSuccessMessage('⚡ Not enough energy!');
                 return;
             }
 
             try {
-                const response = await fetch(`${API_BASE}/tap`, {
+                const response = await fetch(`${API_BASE}/api/tap`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        telegram_id: gameState.user.id,
+                        telegram_id: userData.telegram_id,
                         taps: 1
                     })
                 });
 
                 if (response.ok) {
-                    const result = await response.json();
-                    gameState.coins = result.coins;
-                    gameState.energy = result.energy;
+                    const data = await response.json();
+                    userData = { ...userData, ...data };
+                    updateDisplay();
                     
-                    // Create coin animation
-                    createCoinAnimation();
+                    // Show coin animation
+                    showCoinAnimation();
                     
                     // Add transaction
-                    addTransaction('tap', 'Tap Earning', gameState.tapPower);
-                    
-                    updateUI();
+                    addTransaction('tap', `Tap Earning (1 tap)`, userData.tap_power);
                 } else {
                     throw new Error('Tap failed');
                 }
             } catch (error) {
-                console.error('Tap error:', error);
-                // Fallback to local tap
-                gameState.energy--;
-                gameState.coins += gameState.tapPower;
-                createCoinAnimation();
-                addTransaction('tap', 'Tap Earning', gameState.tapPower);
-                updateUI();
+                console.error('Error processing tap:', error);
+                // Fallback: update locally
+                userData.coins += userData.tap_power;
+                userData.energy = Math.max(0, userData.energy - 1);
+                updateDisplay();
+                showCoinAnimation();
+                addTransaction('tap', `Tap Earning (1 tap)`, userData.tap_power);
             }
         }
 
-        // Create coin animation
-        function createCoinAnimation() {
+        // Show coin animation
+        function showCoinAnimation() {
             const tapButton = document.getElementById('tapButton');
             const rect = tapButton.getBoundingClientRect();
             
-            const coinAnim = document.createElement('div');
-            coinAnim.className = 'coin-animation';
-            coinAnim.textContent = `+${gameState.tapPower}`;
-            coinAnim.style.position = 'fixed';
-            coinAnim.style.left = `${rect.left + rect.width / 2}px`;
-            coinAnim.style.top = `${rect.top + rect.height / 2}px`;
-            coinAnim.style.zIndex = '10000';
+            const coinAnimation = document.createElement('div');
+            coinAnimation.className = 'coin-animation';
+            coinAnimation.textContent = `+${userData.tap_power}`;
+            coinAnimation.style.left = `${rect.left + rect.width / 2}px`;
+            coinAnimation.style.top = `${rect.top + rect.height / 2}px`;
             
-            document.body.appendChild(coinAnim);
+            document.body.appendChild(coinAnimation);
             
             setTimeout(() => {
-                document.body.removeChild(coinAnim);
+                document.body.removeChild(coinAnimation);
             }, 1000);
         }
 
         // Play game function
-        async function playGame(gameType) {
+        function playGame(gameType) {
+            if (gameStates[gameType].playing) return;
+            
             const gameConfig = {
                 wolfHunt: { duration: 10, minReward: 50, maxReward: 150 },
                 packLeader: { duration: 15, minReward: 100, maxReward: 250 },
                 howlChallenge: { duration: 12, minReward: 75, maxReward: 300 }
             };
-
+            
             const config = gameConfig[gameType];
-            if (!config) return;
-
-            // Disable button and show progress
+            const card = document.getElementById(`${gameType}Card`);
             const button = document.getElementById(`${gameType}Button`);
-            const timer = document.getElementById(`${gameType}Timer`);
             const progress = document.getElementById(`${gameType}Progress`);
             const progressBar = document.getElementById(`${gameType}ProgressBar`);
-            const gameCard = document.getElementById(`${gameType}Game`);
-
-            button.disabled = true;
+            const timer = document.getElementById(`${gameType}Timer`);
+            
+            // Start game
+            gameStates[gameType].playing = true;
+            card.classList.add('playing');
             button.textContent = 'Playing...';
-            timer.style.display = 'block';
-            progress.style.display = 'block';
-            gameCard.classList.add('playing');
-
+            button.disabled = true;
+            progress.classList.add('active');
+            timer.classList.add('active');
+            
             let timeLeft = config.duration;
             timer.textContent = `Time: ${timeLeft}s`;
-
+            
+            // Update progress and timer
             const gameInterval = setInterval(() => {
                 timeLeft--;
                 timer.textContent = `Time: ${timeLeft}s`;
                 
                 const progressPercent = ((config.duration - timeLeft) / config.duration) * 100;
                 progressBar.style.width = `${progressPercent}%`;
-
+                
                 if (timeLeft <= 0) {
                     clearInterval(gameInterval);
-                    completeGame(gameType, config);
+                    endGame(gameType, config);
                 }
             }, 1000);
-
-            gameTimers[gameType] = gameInterval;
+            
+            gameStates[gameType].timer = gameInterval;
         }
 
-        // Complete game function
-        async function completeGame(gameType, config) {
+        // End game function
+        async function endGame(gameType, config) {
             const reward = Math.floor(Math.random() * (config.maxReward - config.minReward + 1)) + config.minReward;
             
-            // Update game state
-            gameState.coins += reward;
+            try {
+                const response = await fetch(`${API_BASE}/api/game-reward`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        telegram_id: userData.telegram_id,
+                        game_type: gameType,
+                        reward: reward
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    userData = { ...userData, ...data };
+                    updateDisplay();
+                } else {
+                    throw new Error('Game reward failed');
+                }
+            } catch (error) {
+                console.error('Error processing game reward:', error);
+                // Fallback: update locally
+                userData.coins += reward;
+                updateDisplay();
+            }
+            
+            // Reset game state
+            const card = document.getElementById(`${gameType}Card`);
+            const button = document.getElementById(`${gameType}Button`);
+            const progress = document.getElementById(`${gameType}Progress`);
+            const progressBar = document.getElementById(`${gameType}ProgressBar`);
+            const timer = document.getElementById(`${gameType}Timer`);
+            
+            gameStates[gameType].playing = false;
+            card.classList.remove('playing');
+            button.textContent = 'Play Game';
+            button.disabled = false;
+            progress.classList.remove('active');
+            timer.classList.remove('active');
+            progressBar.style.width = '0%';
+            
+            // Show success message
+            showSuccessMessage(`🎉 Game completed! You earned ${reward} coins!`);
             
             // Add transaction
             addTransaction('game', `${gameType} Game Reward`, reward);
-            
-            // Update UI
-            updateUI();
-            
-            // Reset game UI
-            const button = document.getElementById(`${gameType}Button`);
-            const timer = document.getElementById(`${gameType}Timer`);
-            const progress = document.getElementById(`${gameType}Progress`);
-            const progressBar = document.getElementById(`${gameType}ProgressBar`);
-            const gameCard = document.getElementById(`${gameType}Game`);
-
-            button.disabled = false;
-            button.textContent = 'Play Game';
-            timer.style.display = 'none';
-            progress.style.display = 'none';
-            progressBar.style.width = '0%';
-            gameCard.classList.remove('playing');
-
-            // Show reward message
-            showMessage(`🎉 Game completed! You earned ${reward} coins!`, 'success');
-
-            // Save to backend
-            try {
-                await fetch(`${API_BASE}/user/${gameState.user.id}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        coins: gameState.coins
-                    })
-                });
-            } catch (error) {
-                console.error('Failed to save game reward:', error);
-            }
         }
 
-        // Upgrade feature function
-        async function upgradeFeature(feature) {
-            let cost, upgrade;
-            
-            switch (feature) {
-                case 'tapPower':
-                    cost = gameState.tapPower * 100;
-                    upgrade = () => {
-                        gameState.tapPower++;
-                        addTransaction('upgrade', 'Tap Power Upgrade', -cost);
-                    };
-                    break;
-                case 'energyCapacity':
-                    cost = Math.floor(gameState.maxEnergy / 100) * 200;
-                    upgrade = () => {
-                        gameState.maxEnergy += 20;
-                        addTransaction('upgrade', 'Energy Capacity Upgrade', -cost);
-                    };
-                    break;
-                case 'energyRegen':
-                    cost = gameState.energyRegenRate * 150;
-                    upgrade = () => {
-                        gameState.energyRegenRate++;
-                        addTransaction('upgrade', 'Energy Regen Upgrade', -cost);
-                    };
-                    break;
-                default:
-                    return;
-            }
-
-            if (gameState.coins < cost) {
-                showMessage('Not enough coins!', 'error');
-                return;
-            }
-
-            gameState.coins -= cost;
-            upgrade();
-            updateUI();
-            showMessage(`${feature} upgraded successfully!`, 'success');
-
-            // Save to backend
-            try {
-                await fetch(`${API_BASE}/user/${gameState.user.id}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        coins: gameState.coins,
-                        tap_power: gameState.tapPower,
-                        max_energy: gameState.maxEnergy,
-                        energy_regen_rate: gameState.energyRegenRate
-                    })
-                });
-            } catch (error) {
-                console.error('Failed to save upgrade:', error);
-            }
-        }
-
-        // Add transaction to history
-        function addTransaction(type, description, amount) {
-            const transaction = {
-                id: Date.now(),
-                type: type,
-                description: description,
-                amount: amount,
-                timestamp: new Date(),
-                date: new Date().toLocaleDateString()
+        // Buy upgrade function
+        async function buyUpgrade(upgradeType) {
+            const costs = {
+                tapPower: userData.tap_power * 100,
+                energyCapacity: Math.floor(userData.max_energy / 20) * 200,
+                energyRegen: userData.energy_regen_rate * 150
             };
             
-            transactions.unshift(transaction);
-            
-            // Keep only last 100 transactions
-            if (transactions.length > 100) {
-                transactions = transactions.slice(0, 100);
-            }
-            
-            // Update transaction display if on transactions page
-            if (document.getElementById('transactionsSection').classList.contains('active')) {
-                displayTransactions();
-            }
-        }
-
-        // Display transactions
-        function displayTransactions(filter = 'all') {
-            const transactionsList = document.getElementById('transactionsList');
-            let filteredTransactions = transactions;
-
-            // Apply filter
-            if (filter !== 'all') {
-                filteredTransactions = transactions.filter(t => {
-                    switch (filter) {
-                        case 'earned':
-                            return t.amount > 0;
-                        case 'spent':
-                            return t.amount < 0;
-                        case 'games':
-                            return t.type === 'game';
-                        case 'referrals':
-                            return t.type === 'referral';
-                        default:
-                            return true;
-                    }
-                });
-            }
-
-            if (filteredTransactions.length === 0) {
-                transactionsList.innerHTML = '<div style="text-align: center; padding: 20px; color: #DAA520;">No transactions found</div>';
+            const cost = costs[upgradeType];
+            if (userData.coins < cost) {
+                showSuccessMessage('💰 Not enough coins!');
                 return;
             }
+            
+            const upgradeData = {
+                tapPower: { tap_power: userData.tap_power + 1 },
+                energyCapacity: { max_energy: userData.max_energy + 20 },
+                energyRegen: { energy_regen_rate: userData.energy_regen_rate + 1 }
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/upgrade`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        telegram_id: userData.telegram_id,
+                        upgrade_type: upgradeType,
+                        cost: cost,
+                        upgrade_data: upgradeData[upgradeType]
+                    })
+                });
 
-            transactionsList.innerHTML = filteredTransactions.map(transaction => `
-                <div class="transaction-item">
-                    <div class="transaction-details">
-                        <div class="transaction-type">${transaction.description}</div>
-                        <div class="transaction-date">${transaction.date}</div>
-                    </div>
-                    <div class="transaction-amount ${transaction.amount >= 0 ? 'positive' : 'negative'}">
-                        ${transaction.amount >= 0 ? '+' : ''}${transaction.amount}
-                    </div>
-                </div>
-            `).join('');
+                if (response.ok) {
+                    const data = await response.json();
+                    userData = { ...userData, ...data };
+                    updateDisplay();
+                    showSuccessMessage(`✅ ${upgradeType} upgraded!`);
+                    addTransaction('upgrade', `${upgradeType} Upgrade`, -cost);
+                } else {
+                    throw new Error('Upgrade failed');
+                }
+            } catch (error) {
+                console.error('Error processing upgrade:', error);
+                // Fallback: update locally
+                userData.coins -= cost;
+                userData = { ...userData, ...upgradeData[upgradeType] };
+                updateDisplay();
+                showSuccessMessage(`✅ ${upgradeType} upgraded!`);
+                addTransaction('upgrade', `${upgradeType} Upgrade`, -cost);
+            }
         }
 
-        // Filter transactions
-        function filterTransactions(filter) {
-            // Update filter buttons
-            document.querySelectorAll('.transaction-filter-button').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-
-            // Display filtered transactions
-            displayTransactions(filter);
+        // Generate referral link
+        function generateReferralLink() {
+            const referralLink = `https://t.me/alphawolftesting_bot?start=ref_${userData.telegram_id}`;
+            document.getElementById('referralLinkDisplay').innerHTML = `<div style="word-break: break-all; font-size: 12px;">${referralLink}</div>`;
         }
 
         // Copy referral link
         function copyReferralLink() {
-            const referralLink = document.getElementById('referralLink').textContent;
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(referralLink);
-                showMessage('Referral link copied!', 'success');
-            } else {
-                // Fallback for older browsers
-                const textArea = document.createElement('textarea');
-                textArea.value = referralLink;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                showMessage('Referral link copied!', 'success');
-            }
+            const referralLink = `https://t.me/alphawolftesting_bot?start=ref_${userData.telegram_id}`;
+            navigator.clipboard.writeText(referralLink).then(() => {
+                showSuccessMessage('📋 Referral link copied!');
+            }).catch(() => {
+                showSuccessMessage('❌ Failed to copy link');
+            });
         }
 
         // Share referral link
         function shareReferralLink() {
-            const referralLink = document.getElementById('referralLink').textContent;
+            const referralLink = `https://t.me/alphawolftesting_bot?start=ref_${userData.telegram_id}`;
+            const shareText = `Join Alpha Wulf and earn Wolf Coins! Use my referral link: ${referralLink}`;
+            
             if (navigator.share) {
                 navigator.share({
-                    title: 'Join Alpha Wulf',
-                    text: 'Join me in Alpha Wulf and earn Wolf Coins!',
+                    title: 'Alpha Wulf - Tap to Earn',
+                    text: shareText,
                     url: referralLink
                 });
+            } else if (window.Telegram && window.Telegram.WebApp) {
+                window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent('Join Alpha Wulf and earn Wolf Coins!')}`);
             } else {
                 copyReferralLink();
             }
         }
 
-        // Select withdraw amount
-        function selectWithdrawAmount(amount) {
-            document.querySelectorAll('.withdraw-amount-button').forEach(btn => {
-                btn.classList.remove('selected');
-            });
-            event.target.classList.add('selected');
+        // Select withdrawal amount
+        function selectAmount(amount) {
+            const buttons = document.querySelectorAll('.amount-button');
+            buttons.forEach(btn => btn.classList.remove('selected'));
             
-            document.getElementById('customWithdrawAmount').value = amount;
-            updateWithdrawButton();
-        }
-
-        // Update withdraw button
-        function updateWithdrawButton() {
-            const amount = parseInt(document.getElementById('customWithdrawAmount').value) || 0;
-            const upiId = document.getElementById('upiId').value.trim();
-            const button = document.getElementById('withdrawButton');
+            const withdrawAmountInput = document.getElementById('withdrawAmount');
             
-            button.disabled = amount < 1000 || !upiId || gameState.coins < amount;
+            if (amount === 'max') {
+                withdrawAmountInput.value = userData.coins;
+                event.target.classList.add('selected');
+            } else {
+                withdrawAmountInput.value = amount;
+                event.target.classList.add('selected');
+            }
         }
 
         // Process withdrawal
         async function processWithdrawal() {
-            const amount = parseInt(document.getElementById('customWithdrawAmount').value) || 0;
+            const amount = parseInt(document.getElementById('withdrawAmount').value);
             const upiId = document.getElementById('upiId').value.trim();
             
-            if (amount < 1000) {
-                showMessage('Minimum withdrawal is 1,000 coins', 'error');
+            if (!amount || amount < 1000) {
+                showSuccessMessage('❌ Minimum withdrawal is 1000 coins');
+                return;
+            }
+            
+            if (amount > userData.coins) {
+                showSuccessMessage('❌ Insufficient coins');
                 return;
             }
             
             if (!upiId) {
-                showMessage('Please enter your UPI ID', 'error');
+                showSuccessMessage('❌ Please enter UPI ID');
                 return;
             }
             
-            if (gameState.coins < amount) {
-                showMessage('Insufficient coins', 'error');
-                return;
-            }
-
             try {
-                // Process withdrawal
-                gameState.coins -= amount;
-                addTransaction('withdrawal', `UPI Withdrawal to ${upiId}`, -amount);
-                updateUI();
-                
-                showMessage(`Withdrawal of ${amount} coins initiated successfully!`, 'success');
-                
-                // Reset form
-                document.getElementById('customWithdrawAmount').value = '';
-                document.getElementById('upiId').value = '';
-                document.querySelectorAll('.withdraw-amount-button').forEach(btn => {
-                    btn.classList.remove('selected');
-                });
-                updateWithdrawButton();
-                
-                // Save to backend
-                await fetch(`${API_BASE}/user/${gameState.user.id}`, {
-                    method: 'PATCH',
+                const response = await fetch(`${API_BASE}/api/withdraw`, {
+                    method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        coins: gameState.coins
+                        telegram_id: userData.telegram_id,
+                        amount: amount,
+                        upi_id: upiId
                     })
                 });
-                
+
+                if (response.ok) {
+                    const data = await response.json();
+                    userData = { ...userData, ...data };
+                    updateDisplay();
+                    showSuccessMessage('✅ Withdrawal request submitted!');
+                    addTransaction('withdrawal', `UPI Withdrawal to ${upiId}`, -amount);
+                    
+                    // Clear form
+                    document.getElementById('withdrawAmount').value = '';
+                    document.getElementById('upiId').value = '';
+                } else {
+                    throw new Error('Withdrawal failed');
+                }
             } catch (error) {
-                console.error('Withdrawal error:', error);
-                showMessage('Withdrawal failed. Please try again.', 'error');
+                console.error('Error processing withdrawal:', error);
+                showSuccessMessage('❌ Withdrawal failed. Please try again.');
             }
+        }
+
+        // Load transaction history
+        async function loadTransactionHistory() {
+            try {
+                const response = await fetch(`${API_BASE}/api/transactions/${userData.telegram_id}`);
+                if (response.ok) {
+                    transactions = await response.json();
+                    displayTransactions();
+                } else {
+                    throw new Error('Failed to load transactions');
+                }
+            } catch (error) {
+                console.error('Error loading transactions:', error);
+                // Use sample data for demo
+                transactions = [
+                    {
+                        id: 1,
+                        transaction_type: 'bonus',
+                        description: 'Joining Bonus',
+                        amount: 1000,
+                        created_at: Date.now() / 1000
+                    }
+                ];
+                displayTransactions();
+            }
+        }
+
+        // Add transaction (local)
+        function addTransaction(type, description, amount) {
+            const transaction = {
+                id: transactions.length + 1,
+                transaction_type: type,
+                description: description,
+                amount: amount,
+                created_at: Date.now() / 1000
+            };
+            transactions.unshift(transaction);
+            displayTransactions();
+        }
+
+        // Filter transactions
+        function filterTransactions(filter) {
+            currentFilter = filter;
+            
+            // Update filter buttons
+            const filterButtons = document.querySelectorAll('.filter-button');
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            displayTransactions();
+        }
+
+        // Display transactions
+        function displayTransactions() {
+            const transactionList = document.getElementById('transactionList');
+            let filteredTransactions = transactions;
+            
+            // Apply filter
+            if (currentFilter !== 'all') {
+                filteredTransactions = transactions.filter(t => {
+                    switch (currentFilter) {
+                        case 'earned':
+                            return t.amount > 0;
+                        case 'spent':
+                            return t.amount < 0;
+                        case 'games':
+                            return t.transaction_type === 'game';
+                        case 'referrals':
+                            return t.transaction_type === 'referral';
+                        default:
+                            return true;
+                    }
+                });
+            }
+            
+            if (filteredTransactions.length === 0) {
+                transactionList.innerHTML = '<div style="text-align: center; color: #DAA520; padding: 40px;">No transactions found</div>';
+                return;
+            }
+            
+            transactionList.innerHTML = filteredTransactions.map(transaction => {
+                const date = new Date(transaction.created_at * 1000);
+                const amountClass = transaction.amount > 0 ? 'positive' : 'negative';
+                const amountText = transaction.amount > 0 ? `+${transaction.amount}` : transaction.amount;
+                
+                return `
+                    <div class="transaction-item">
+                        <div class="transaction-header">
+                            <div class="transaction-type">${transaction.description}</div>
+                            <div class="transaction-amount ${amountClass}">${amountText}</div>
+                        </div>
+                        <div class="transaction-date">${date.toLocaleDateString()} ${date.toLocaleTimeString()}</div>
+                    </div>
+                `;
+            }).join('');
         }
 
         // Show section
         function showSection(sectionName) {
             // Hide all sections
-            document.querySelectorAll('.section').forEach(section => {
-                section.classList.remove('active');
-            });
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => section.classList.remove('active'));
             
             // Show selected section
             document.getElementById(`${sectionName}Section`).classList.add('active');
             
-            // Load section-specific data
-            switch (sectionName) {
-                case 'referrals':
-                    loadReferralData();
-                    break;
-                case 'withdraw':
-                    loadWithdrawData();
-                    break;
-                case 'transactions':
-                    displayTransactions();
-                    break;
-            }
+            // Update navigation
+            const navButtons = document.querySelectorAll('.nav-button');
+            navButtons.forEach(btn => btn.classList.remove('active'));
         }
 
-        // Load referral data
-        function loadReferralData() {
-            if (!gameState.user) return;
-            
-            // Generate referral link
-            const botUsername = 'alphawolftesting_bot';
-            const referralLink = `https://t.me/${botUsername}?start=ref_${gameState.user.id}`;
-            document.getElementById('referralLink').textContent = referralLink;
-            
-            // Load referral stats (placeholder data)
-            document.getElementById('totalReferrals').textContent = '0';
-            document.getElementById('totalEarnings').textContent = '0';
-            document.getElementById('activeReferrals').textContent = '0';
-            document.getElementById('referralLevel').textContent = '1';
-            
-            // Load referrals list
-            document.getElementById('referralsList').innerHTML = '<div style="text-align: center; padding: 20px; color: #DAA520;">No referrals yet</div>';
-        }
-
-        // Load withdraw data
-        function loadWithdrawData() {
-            document.getElementById('withdrawCoinBalance').textContent = gameState.coins;
-            
-            // Load withdrawal history (placeholder)
-            document.getElementById('withdrawHistoryList').innerHTML = '<div style="text-align: center; padding: 20px; color: #DAA520;">No withdrawals yet</div>';
-        }
-
-        // Show message
-        function showMessage(message, type = 'info') {
-            const messagesDiv = document.getElementById('messages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `${type}-message`;
-            messageDiv.textContent = message;
-            
-            messagesDiv.appendChild(messageDiv);
+        // Show success message
+        function showSuccessMessage(message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success-message';
+            successDiv.textContent = message;
+            document.body.appendChild(successDiv);
             
             setTimeout(() => {
-                messagesDiv.removeChild(messageDiv);
+                document.body.removeChild(successDiv);
             }, 3000);
         }
 
-        // Show error
-        function showError(message) {
-            showMessage(message, 'error');
+        // Initialize app
+        function initApp() {
+            // Hide loading screen
+            document.getElementById('loadingScreen').style.display = 'none';
+            document.getElementById('mainContainer').style.display = 'block';
+            document.getElementById('userProfile').style.display = 'flex';
+            
+            // Add tap event listener
+            document.getElementById('tapButton').addEventListener('click', tap);
+            
+            // Initialize Telegram WebApp
+            initTelegramWebApp();
+            
+            // Start energy regeneration
+            setInterval(() => {
+                if (userData.energy < userData.max_energy) {
+                    userData.energy = Math.min(userData.max_energy, userData.energy + userData.energy_regen_rate);
+                    updateDisplay();
+                }
+            }, 30000); // 30 seconds
         }
 
-        // Event listeners
-        document.getElementById('tapButton').addEventListener('click', tap);
-        document.getElementById('customWithdrawAmount').addEventListener('input', updateWithdrawButton);
-        document.getElementById('upiId').addEventListener('input', updateWithdrawButton);
-
-        // Initialize app when page loads
-        document.addEventListener('DOMContentLoaded', initApp);
+        // Start app after loading
+        window.addEventListener('load', () => {
+            setTimeout(initApp, 3000); // 3 second loading screen
+        });
     </script>
 </body>
 </html>
