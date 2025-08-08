@@ -2,427 +2,524 @@ import os
 import time
 from datetime import datetime
 from supabase import create_client, Client
-from typing import Optional, Dict, Any, List
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Supabase configuration
+SUPABASE_URL = os.getenv('SUPABASE_URL')
+SUPABASE_KEY = os.getenv('SUPABASE_KEY')
+
+if not SUPABASE_URL or not SUPABASE_KEY:
+    raise ValueError("SUPABASE_URL and SUPABASE_KEY environment variables must be set")
+
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+def safe_int_conversion(value, default=0):
+    """Safely convert value to integer, handling various input types"""
+    if value is None:
+        return default
+    
+    if isinstance(value, (int, float)):
+        return int(value)
+    
+    if isinstance(value, str):
+        try:
+            # Handle datetime strings by converting to Unix timestamp
+            if 'T' in value or '-' in value:
+                try:
+                    dt = datetime.fromisoformat(value.replace('Z', '+00:00'))
+                    return int(dt.timestamp())
+                except:
+                    pass
+            
+            # Try direct conversion
+            return int(float(value))
+        except (ValueError, TypeError):
+            return default
+    
+    return default
+
+def safe_timestamp_conversion(value):
+    """Safely convert value to Unix timestamp"""
+    if value is None:
+        return int(time.time())
+    
+    if isinstance(value, (int, float)):
+        # If it's already a reasonable timestamp, return it
+        if value > 1000000000:  # After year 2001
+            return int(value)
+        else:
+            return int(time.time())
+    
+    if isinstance(value, str):
+        try:
+            # Handle datetime strings
+            if 'T' in value or '-' in value:
+                dt = datetime.fromisoformat(value.replace('Z', '+00:00'))
+                return int(dt.timestamp())
+            else:
+                # Try direct conversion
+                timestamp = int(float(value))
+                return timestamp if timestamp > 1000000000 else int(time.time())
+        except (ValueError, TypeError):
+            return int(time.time())
+    
+    return int(time.time())
 
 class User:
-    def __init__(self):
-        # Initialize Supabase client
-        supabase_url = os.getenv('SUPABASE_URL')
-        supabase_key = os.getenv('SUPABASE_ANON_KEY')
+    def __init__(self, telegram_id, username=None, first_name=None, last_name=None):
+        self.telegram_id = safe_int_conversion(telegram_id)
+        self.username = username or ""
+        self.first_name = first_name or ""
+        self.last_name = last_name or ""
         
-        if not supabase_url or not supabase_key:
-            raise ValueError("Supabase credentials not found in environment variables")
+        # Game stats with 1000 coin joining bonus
+        self.coins = 1000
+        self.energy = 100
+        self.max_energy = 100
+        self.tap_power = 1
+        self.power = 1
+        self.energy_regen_rate = 1
         
-        self.supabase: Client = create_client(supabase_url, supabase_key)
-        print(f"Supabase client initialized successfully")
+        # Timestamps
+        self.last_energy_update = int(time.time())
+        self.last_tap_time = int(time.time())
+        self.created_at = int(time.time())
+        self.updated_at = int(time.time())
+        
+        # Additional fields
+        self.is_admin = False
+        self.referral_code = ""
+        self.referred_by = None
+        self.referral_count = 0
+        self.referral_earnings = 0
+        self.referrals = ""
+        
+        logger.info(f"User initialized: {self.telegram_id} with 1000 coins joining bonus")
 
-    def safe_to_int(self, value, default=0):
-        """Safely convert value to integer"""
-        if value is None:
-            return default
-        if isinstance(value, (int, float)):
-            return int(value)
-        if isinstance(value, str):
-            try:
-                # Handle datetime strings by converting to Unix timestamp
-                if 'T' in value or '-' in value:
-                    try:
-                        dt = datetime.fromisoformat(value.replace('Z', '+00:00'))
-                        return int(dt.timestamp())
-                    except:
-                        pass
-                return int(float(value))
-            except (ValueError, TypeError):
-                return default
-        return default
-
-    def safe_to_str(self, value, default=""):
-        """Safely convert value to string"""
-        if value is None:
-            return default
-        return str(value)
-
-    def get_current_timestamp(self):
-        """Get current Unix timestamp"""
-        return int(time.time())
-
-    def create_user(self, user_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Create a new user with 1000 coins joining bonus"""
+    @classmethod
+    def get_by_telegram_id(cls, telegram_id):
+        """Get user by Telegram ID"""
         try:
-            current_time = self.get_current_timestamp()
+            telegram_id = safe_int_conversion(telegram_id)
+            logger.info(f"Fetching user with telegram_id: {telegram_id}")
             
-            # Prepare user data with proper type conversion
-            prepared_data = {
-                'telegram_id': self.safe_to_int(user_data.get('telegram_id')),
-                'username': self.safe_to_str(user_data.get('username', '')),
-                'first_name': self.safe_to_str(user_data.get('first_name', '')),
-                'last_name': self.safe_to_str(user_data.get('last_name', '')),
-                'coins': 1000,  # 1000 coins joining bonus
-                'energy': self.safe_to_int(user_data.get('energy', 100)),
-                'max_energy': self.safe_to_int(user_data.get('max_energy', 100)),
-                'tap_power': self.safe_to_int(user_data.get('tap_power', 1)),
-                'energy_regen_rate': self.safe_to_int(user_data.get('energy_regen_rate', 1)),
-                'last_energy_update': current_time,
-                'last_tap_time': current_time,
-                'created_at': current_time,
-                'updated_at': current_time,
-                'is_admin': False,
-                'power': self.safe_to_int(user_data.get('power', 1)),
-                'referrals': '[]',
-                'referred_by': self.safe_to_int(user_data.get('referred_by')),
-                'referral_code': self.safe_to_str(user_data.get('referral_code', '')),
-                'referral_count': 0,
-                'referral_earnings': 0,
-                'upi_id': self.safe_to_str(user_data.get('upi_id', ''))
-            }
-
-            print(f"Creating user with data: {prepared_data}")
-
-            # Insert user
-            result = self.supabase.table('users').insert(prepared_data).execute()
+            response = supabase.table('users').select('*').eq('telegram_id', telegram_id).execute()
             
-            if result.data:
-                user = result.data[0]
-                print(f"User created successfully: {user.get('telegram_id')}")
+            if response.data and len(response.data) > 0:
+                user_data = response.data[0]
+                logger.info(f"User found: {telegram_id}")
                 
-                # Create joining bonus transaction
-                self.create_transaction(
-                    user_id=user.get('telegram_id'),
-                    transaction_type='bonus',
-                    description='Joining Bonus',
-                    amount=1000,
-                    balance_after=1000
-                )
+                # Create user instance
+                user = cls.__new__(cls)
+                user.telegram_id = safe_int_conversion(user_data.get('telegram_id'))
+                user.username = user_data.get('username', '')
+                user.first_name = user_data.get('first_name', '')
+                user.last_name = user_data.get('last_name', '')
                 
-                return self.format_user_data(user)
+                # Game stats
+                user.coins = safe_int_conversion(user_data.get('coins'), 1000)
+                user.energy = safe_int_conversion(user_data.get('energy'), 100)
+                user.max_energy = safe_int_conversion(user_data.get('max_energy'), 100)
+                user.tap_power = safe_int_conversion(user_data.get('tap_power'), 1)
+                user.power = safe_int_conversion(user_data.get('power'), 1)
+                user.energy_regen_rate = safe_int_conversion(user_data.get('energy_regen_rate'), 1)
+                
+                # Timestamps
+                user.last_energy_update = safe_timestamp_conversion(user_data.get('last_energy_update'))
+                user.last_tap_time = safe_timestamp_conversion(user_data.get('last_tap_time'))
+                user.created_at = safe_timestamp_conversion(user_data.get('created_at'))
+                user.updated_at = safe_timestamp_conversion(user_data.get('updated_at'))
+                
+                # Additional fields
+                user.is_admin = bool(user_data.get('is_admin', False))
+                user.referral_code = user_data.get('referral_code', '')
+                user.referred_by = safe_int_conversion(user_data.get('referred_by')) if user_data.get('referred_by') else None
+                user.referral_count = safe_int_conversion(user_data.get('referral_count'), 0)
+                user.referral_earnings = safe_int_conversion(user_data.get('referral_earnings'), 0)
+                user.referrals = user_data.get('referrals', '')
+                
+                return user
             else:
-                raise Exception("Failed to create user - no data returned")
-
-        except Exception as e:
-            print(f"Error creating user: {str(e)}")
-            raise e
-
-    def get_user(self, telegram_id: int) -> Optional[Dict[str, Any]]:
-        """Get user by telegram_id"""
-        try:
-            result = self.supabase.table('users').select('*').eq('telegram_id', telegram_id).execute()
-            
-            if result.data:
-                user = result.data[0]
-                print(f"User found: {telegram_id}")
-                return self.format_user_data(user)
-            else:
-                print(f"User not found: {telegram_id}")
+                logger.info(f"User not found: {telegram_id}")
                 return None
-
+                
         except Exception as e:
-            print(f"Error getting user {telegram_id}: {str(e)}")
+            logger.error(f"Error fetching user {telegram_id}: {str(e)}")
             return None
 
-    def update_user(self, telegram_id: int, update_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Update user data"""
+    def save(self):
+        """Save user to database"""
         try:
-            current_time = self.get_current_timestamp()
+            current_time = int(time.time())
+            self.updated_at = current_time
             
-            # Prepare update data with proper type conversion
-            prepared_data = {}
-            for key, value in update_data.items():
-                if key in ['coins', 'energy', 'max_energy', 'tap_power', 'energy_regen_rate', 
-                          'last_energy_update', 'last_tap_time', 'power', 'referred_by', 
-                          'referral_count', 'referral_earnings']:
-                    prepared_data[key] = self.safe_to_int(value)
-                elif key in ['username', 'first_name', 'last_name', 'referral_code', 'upi_id', 'referrals']:
-                    prepared_data[key] = self.safe_to_str(value)
-                elif key == 'is_admin':
-                    prepared_data[key] = bool(value)
-            
-            # Always update the timestamp
-            prepared_data['updated_at'] = current_time
-
-            print(f"Updating user {telegram_id} with data: {prepared_data}")
-
-            result = self.supabase.table('users').update(prepared_data).eq('telegram_id', telegram_id).execute()
-            
-            if result.data:
-                user = result.data[0]
-                print(f"User updated successfully: {telegram_id}")
-                return self.format_user_data(user)
-            else:
-                raise Exception("Failed to update user - no data returned")
-
-        except Exception as e:
-            print(f"Error updating user {telegram_id}: {str(e)}")
-            raise e
-
-    def format_user_data(self, user: Dict[str, Any]) -> Dict[str, Any]:
-        """Format user data with proper type conversion"""
-        return {
-            'telegram_id': self.safe_to_int(user.get('telegram_id')),
-            'username': self.safe_to_str(user.get('username', '')),
-            'first_name': self.safe_to_str(user.get('first_name', '')),
-            'last_name': self.safe_to_str(user.get('last_name', '')),
-            'coins': self.safe_to_int(user.get('coins', 0)),
-            'energy': self.safe_to_int(user.get('energy', 100)),
-            'max_energy': self.safe_to_int(user.get('max_energy', 100)),
-            'tap_power': self.safe_to_int(user.get('tap_power', 1)),
-            'energy_regen_rate': self.safe_to_int(user.get('energy_regen_rate', 1)),
-            'last_energy_update': self.safe_to_int(user.get('last_energy_update', 0)),
-            'last_tap_time': self.safe_to_int(user.get('last_tap_time', 0)),
-            'created_at': self.safe_to_int(user.get('created_at', 0)),
-            'updated_at': self.safe_to_int(user.get('updated_at', 0)),
-            'is_admin': bool(user.get('is_admin', False)),
-            'power': self.safe_to_int(user.get('power', 1)),
-            'referrals': self.safe_to_str(user.get('referrals', '[]')),
-            'referred_by': self.safe_to_int(user.get('referred_by')),
-            'referral_code': self.safe_to_str(user.get('referral_code', '')),
-            'referral_count': self.safe_to_int(user.get('referral_count', 0)),
-            'referral_earnings': self.safe_to_int(user.get('referral_earnings', 0)),
-            'upi_id': self.safe_to_str(user.get('upi_id', ''))
-        }
-
-    def create_transaction(self, user_id: int, transaction_type: str, description: str, 
-                          amount: int, balance_after: int = None) -> Dict[str, Any]:
-        """Create a new transaction record"""
-        try:
-            current_time = self.get_current_timestamp()
-            
-            # Get current balance if not provided
-            if balance_after is None:
-                user = self.get_user(user_id)
-                balance_after = user.get('coins', 0) if user else 0
-            
-            transaction_data = {
-                'user_id': user_id,
-                'transaction_type': transaction_type,
-                'description': description,
-                'amount': amount,
-                'balance_before': balance_after - amount,
-                'balance_after': balance_after,
-                'created_at': current_time,
-                'status': 'completed'
+            # Prepare data with explicit type conversion
+            user_data = {
+                'telegram_id': int(self.telegram_id),
+                'username': str(self.username),
+                'first_name': str(self.first_name),
+                'last_name': str(self.last_name),
+                'coins': int(self.coins),
+                'energy': int(self.energy),
+                'max_energy': int(self.max_energy),
+                'tap_power': int(self.tap_power),
+                'power': int(self.power),
+                'energy_regen_rate': int(self.energy_regen_rate),
+                'last_energy_update': int(self.last_energy_update),
+                'last_tap_time': int(self.last_tap_time),
+                'created_at': int(self.created_at),
+                'updated_at': int(self.updated_at),
+                'is_admin': bool(self.is_admin),
+                'referral_code': str(self.referral_code),
+                'referred_by': int(self.referred_by) if self.referred_by else None,
+                'referral_count': int(self.referral_count),
+                'referral_earnings': int(self.referral_earnings),
+                'referrals': str(self.referrals)
             }
-
-            print(f"Creating transaction: {transaction_data}")
-
-            result = self.supabase.table('transactions').insert(transaction_data).execute()
             
-            if result.data:
-                transaction = result.data[0]
-                print(f"Transaction created successfully: {transaction.get('id')}")
-                return self.format_transaction_data(transaction)
+            logger.info(f"Saving user {self.telegram_id} with timestamps: last_energy_update={self.last_energy_update} last_tap_time={self.last_tap_time} updated_at={self.updated_at}")
+            
+            # Try to update existing user first
+            response = supabase.table('users').update(user_data).eq('telegram_id', self.telegram_id).execute()
+            
+            if response.data and len(response.data) > 0:
+                logger.info(f"User {self.telegram_id} updated successfully")
+                return True
             else:
-                raise Exception("Failed to create transaction - no data returned")
-
+                # If update didn't affect any rows, try insert
+                response = supabase.table('users').insert(user_data).execute()
+                if response.data and len(response.data) > 0:
+                    logger.info(f"User {self.telegram_id} created successfully")
+                    return True
+                else:
+                    logger.error(f"Failed to save user {self.telegram_id}: No data returned")
+                    return False
+                    
         except Exception as e:
-            print(f"Error creating transaction: {str(e)}")
-            # Don't raise exception for transaction logging failures
-            return {}
+            logger.error(f"Error saving user {self.telegram_id}: {str(e)}")
+            return False
 
-    def get_user_transactions(self, user_id: int, limit: int = 50, 
-                             transaction_type: str = None) -> List[Dict[str, Any]]:
-        """Get user transaction history"""
+    def update_energy(self):
+        """Update energy based on time passed"""
         try:
-            query = self.supabase.table('transactions').select('*').eq('user_id', user_id)
+            current_time = int(time.time())
+            time_diff = current_time - self.last_energy_update
             
-            if transaction_type:
-                query = query.eq('transaction_type', transaction_type)
-            
-            result = query.order('created_at', desc=True).limit(limit).execute()
-            
-            if result.data:
-                transactions = [self.format_transaction_data(t) for t in result.data]
-                print(f"Retrieved {len(transactions)} transactions for user {user_id}")
-                return transactions
-            else:
-                print(f"No transactions found for user {user_id}")
-                return []
-
-        except Exception as e:
-            print(f"Error getting transactions for user {user_id}: {str(e)}")
-            return []
-
-    def format_transaction_data(self, transaction: Dict[str, Any]) -> Dict[str, Any]:
-        """Format transaction data with proper type conversion"""
-        return {
-            'id': self.safe_to_int(transaction.get('id')),
-            'user_id': self.safe_to_int(transaction.get('user_id')),
-            'transaction_type': self.safe_to_str(transaction.get('transaction_type', '')),
-            'description': self.safe_to_str(transaction.get('description', '')),
-            'amount': self.safe_to_int(transaction.get('amount', 0)),
-            'balance_before': self.safe_to_int(transaction.get('balance_before', 0)),
-            'balance_after': self.safe_to_int(transaction.get('balance_after', 0)),
-            'created_at': self.safe_to_int(transaction.get('created_at', 0)),
-            'status': self.safe_to_str(transaction.get('status', 'completed'))
-        }
-
-    def update_energy(self, telegram_id: int) -> Dict[str, Any]:
-        """Update user energy based on time elapsed"""
-        try:
-            user = self.get_user(telegram_id)
-            if not user:
-                raise Exception("User not found")
-
-            current_time = self.get_current_timestamp()
-            last_update = user.get('last_energy_update', current_time)
-            time_diff = current_time - last_update
-            
-            # Calculate energy to add (1 energy per 30 seconds)
-            energy_to_add = (time_diff // 30) * user.get('energy_regen_rate', 1)
-            
-            if energy_to_add > 0:
-                new_energy = min(user.get('max_energy', 100), 
-                               user.get('energy', 0) + energy_to_add)
+            if time_diff > 0:
+                # Regenerate energy (2 energy per minute based on regen rate)
+                minutes_passed = time_diff / 60
+                energy_to_add = int(minutes_passed * self.energy_regen_rate * 2)
                 
-                update_data = {
-                    'energy': new_energy,
-                    'last_energy_update': current_time
-                }
-                
-                updated_user = self.update_user(telegram_id, update_data)
-                print(f"Energy updated for user {telegram_id}: +{energy_to_add} energy")
-                return updated_user
-            
-            return user
-
+                if energy_to_add > 0:
+                    old_energy = self.energy
+                    self.energy = min(self.max_energy, self.energy + energy_to_add)
+                    self.last_energy_update = current_time
+                    
+                    logger.info(f"Energy updated for user {self.telegram_id}: {old_energy} -> {self.energy} (+{energy_to_add} energy)")
+                    
         except Exception as e:
-            print(f"Error updating energy for user {telegram_id}: {str(e)}")
-            raise e
+            logger.error(f"Error updating energy for user {self.telegram_id}: {str(e)}")
 
-    def process_tap(self, telegram_id: int, taps: int = 1) -> Dict[str, Any]:
-        """Process tap action and update user data"""
+    def tap(self):
+        """Process a tap action"""
         try:
             # Update energy first
-            user = self.update_energy(telegram_id)
+            self.update_energy()
             
-            if user.get('energy', 0) < taps:
-                raise Exception("Insufficient energy")
-
-            current_time = self.get_current_timestamp()
-            tap_power = user.get('tap_power', 1)
-            coins_earned = taps * tap_power
+            if self.energy <= 0:
+                return False, "Not enough energy"
             
-            update_data = {
-                'coins': user.get('coins', 0) + coins_earned,
-                'energy': user.get('energy', 0) - taps,
-                'last_tap_time': current_time
-            }
+            # Process tap
+            self.energy = max(0, self.energy - 1)
+            self.coins += self.tap_power
+            self.last_tap_time = int(time.time())
             
-            updated_user = self.update_user(telegram_id, update_data)
+            logger.info(f"User {self.telegram_id} tapped: +{self.tap_power} coins, energy: {self.energy}")
             
-            # Create transaction record
-            self.create_transaction(
-                user_id=telegram_id,
-                transaction_type='tap',
-                description=f'Tap Earning ({taps} taps)',
-                amount=coins_earned,
-                balance_after=updated_user.get('coins', 0)
-            )
-            
-            print(f"Tap processed for user {telegram_id}: {taps} taps, {coins_earned} coins earned")
-            return updated_user
-
+            # Save to database
+            if self.save():
+                return True, f"Earned {self.tap_power} coins"
+            else:
+                return False, "Failed to save tap result"
+                
         except Exception as e:
-            print(f"Error processing tap for user {telegram_id}: {str(e)}")
-            raise e
+            logger.error(f"Error processing tap for user {self.telegram_id}: {str(e)}")
+            return False, "Tap processing failed"
 
-    def process_game_reward(self, telegram_id: int, game_type: str, reward: int) -> Dict[str, Any]:
-        """Process game reward and update user data"""
+    def play_game(self, game_type, actions_count):
+        """Process game result"""
         try:
-            user = self.get_user(telegram_id)
-            if not user:
-                raise Exception("User not found")
-
-            update_data = {
-                'coins': user.get('coins', 0) + reward
+            game_configs = {
+                'wolfHunt': {'min_reward': 50, 'max_reward': 150},
+                'packLeader': {'min_reward': 100, 'max_reward': 250},
+                'howlChallenge': {'min_reward': 75, 'max_reward': 300}
             }
             
-            updated_user = self.update_user(telegram_id, update_data)
+            if game_type not in game_configs:
+                return False, "Invalid game type"
             
-            # Create transaction record
-            self.create_transaction(
-                user_id=telegram_id,
-                transaction_type='game',
-                description=f'{game_type} Game Reward',
-                amount=reward,
-                balance_after=updated_user.get('coins', 0)
-            )
+            config = game_configs[game_type]
             
-            print(f"Game reward processed for user {telegram_id}: {game_type}, {reward} coins")
-            return updated_user
-
+            # Calculate reward based on actions
+            base_reward = config['min_reward']
+            bonus_reward = min(config['max_reward'] - config['min_reward'], actions_count * 10)
+            total_reward = base_reward + bonus_reward
+            
+            # Award coins
+            old_coins = self.coins
+            self.coins += total_reward
+            
+            logger.info(f"User {self.telegram_id} completed {game_type}: +{total_reward} coins ({old_coins} -> {self.coins})")
+            
+            # Save to database
+            if self.save():
+                return True, f"Game completed! Earned {total_reward} coins"
+            else:
+                return False, "Failed to save game result"
+                
         except Exception as e:
-            print(f"Error processing game reward for user {telegram_id}: {str(e)}")
-            raise e
+            logger.error(f"Error processing game for user {self.telegram_id}: {str(e)}")
+            return False, "Game processing failed"
 
-    def process_upgrade(self, telegram_id: int, upgrade_type: str, cost: int, 
-                       upgrade_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Process upgrade purchase and update user data"""
+    def upgrade_feature(self, feature):
+        """Upgrade a feature"""
         try:
-            user = self.get_user(telegram_id)
-            if not user:
-                raise Exception("User not found")
-
-            if user.get('coins', 0) < cost:
-                raise Exception("Insufficient coins")
-
-            # Deduct cost and apply upgrade
-            update_data = {
-                'coins': user.get('coins', 0) - cost,
-                **upgrade_data
-            }
+            cost = 0
+            success = False
             
-            updated_user = self.update_user(telegram_id, update_data)
+            if feature == 'tap_power':
+                cost = self.tap_power * 100
+                if self.coins >= cost:
+                    self.coins -= cost
+                    self.tap_power += 1
+                    self.power = self.tap_power  # Keep power in sync
+                    success = True
+                    
+            elif feature == 'energy_capacity':
+                energy_level = (self.max_energy // 10) - 9
+                cost = energy_level * 200
+                if self.coins >= cost:
+                    self.coins -= cost
+                    self.max_energy += 10
+                    self.energy = min(self.energy, self.max_energy)
+                    success = True
+                    
+            elif feature == 'energy_regen':
+                cost = self.energy_regen_rate * 150
+                if self.coins >= cost:
+                    self.coins -= cost
+                    self.energy_regen_rate += 1
+                    success = True
             
-            # Create transaction record
-            self.create_transaction(
-                user_id=telegram_id,
-                transaction_type='upgrade',
-                description=f'{upgrade_type} Upgrade',
-                amount=-cost,
-                balance_after=updated_user.get('coins', 0)
-            )
-            
-            print(f"Upgrade processed for user {telegram_id}: {upgrade_type}, cost {cost}")
-            return updated_user
-
+            if success:
+                logger.info(f"User {self.telegram_id} upgraded {feature}: cost={cost}, new_coins={self.coins}")
+                
+                # Save to database
+                if self.save():
+                    return True, f"Upgraded {feature} for {cost} coins"
+                else:
+                    return False, "Failed to save upgrade"
+            else:
+                return False, "Not enough coins for upgrade"
+                
         except Exception as e:
-            print(f"Error processing upgrade for user {telegram_id}: {str(e)}")
-            raise e
+            logger.error(f"Error upgrading {feature} for user {self.telegram_id}: {str(e)}")
+            return False, "Upgrade processing failed"
 
-    def process_withdrawal(self, telegram_id: int, amount: int, upi_id: str) -> Dict[str, Any]:
+    def process_withdrawal(self, amount, upi_id):
         """Process withdrawal request"""
         try:
-            user = self.get_user(telegram_id)
-            if not user:
-                raise Exception("User not found")
-
-            if user.get('coins', 0) < amount:
-                raise Exception("Insufficient coins")
-
             if amount < 1000:
-                raise Exception("Minimum withdrawal is 1000 coins")
+                return False, "Minimum withdrawal amount is 1,000 coins"
+            
+            if amount > self.coins:
+                return False, "Insufficient balance"
+            
+            # Calculate fee (2% minimum 50 coins)
+            fee = max(50, int(amount * 0.02))
+            
+            # Deduct amount
+            self.coins -= amount
+            
+            logger.info(f"User {self.telegram_id} withdrawal: amount={amount}, fee={fee}, remaining_coins={self.coins}")
+            
+            # Save to database
+            if self.save():
+                return True, f"Withdrawal of {amount} coins processed (fee: {fee} coins)"
+            else:
+                return False, "Failed to process withdrawal"
+                
+        except Exception as e:
+            logger.error(f"Error processing withdrawal for user {self.telegram_id}: {str(e)}")
+            return False, "Withdrawal processing failed"
 
-            # Deduct coins
-            update_data = {
-                'coins': user.get('coins', 0) - amount,
-                'upi_id': upi_id
+    def to_dict(self):
+        """Convert user to dictionary"""
+        return {
+            'telegram_id': self.telegram_id,
+            'username': self.username,
+            'first_name': self.first_name,
+            'last_name': self.last_name,
+            'coins': self.coins,
+            'energy': self.energy,
+            'max_energy': self.max_energy,
+            'tap_power': self.tap_power,
+            'power': self.power,
+            'energy_regen_rate': self.energy_regen_rate,
+            'last_energy_update': self.last_energy_update,
+            'last_tap_time': self.last_tap_time,
+            'created_at': self.created_at,
+            'updated_at': self.updated_at,
+            'is_admin': self.is_admin,
+            'referral_code': self.referral_code,
+            'referred_by': self.referred_by,
+            'referral_count': self.referral_count,
+            'referral_earnings': self.referral_earnings,
+            'referrals': self.referrals
+        }
+
+class Transaction:
+    """Transaction model for logging all coin activities"""
+    
+    @staticmethod
+    def log_transaction(user_id, transaction_type, description, amount, balance_before, balance_after):
+        """Log a transaction"""
+        try:
+            transaction_data = {
+                'user_id': int(user_id),
+                'transaction_type': str(transaction_type),
+                'description': str(description),
+                'amount': int(amount),
+                'balance_before': int(balance_before),
+                'balance_after': int(balance_after),
+                'created_at': int(time.time()),
+                'status': 'completed'
             }
             
-            updated_user = self.update_user(telegram_id, update_data)
+            response = supabase.table('transactions').insert(transaction_data).execute()
             
-            # Create transaction record
-            self.create_transaction(
-                user_id=telegram_id,
-                transaction_type='withdrawal',
-                description=f'UPI Withdrawal to {upi_id}',
-                amount=-amount,
-                balance_after=updated_user.get('coins', 0)
-            )
-            
-            print(f"Withdrawal processed for user {telegram_id}: {amount} coins to {upi_id}")
-            return updated_user
-
+            if response.data and len(response.data) > 0:
+                logger.info(f"Transaction logged for user {user_id}: {description} ({amount} coins)")
+                return True
+            else:
+                logger.error(f"Failed to log transaction for user {user_id}")
+                return False
+                
         except Exception as e:
-            print(f"Error processing withdrawal for user {telegram_id}: {str(e)}")
-            raise e
+            logger.error(f"Error logging transaction for user {user_id}: {str(e)}")
+            return False
+    
+    @staticmethod
+    def get_user_transactions(user_id, limit=50):
+        """Get user transactions"""
+        try:
+            response = supabase.table('transactions').select('*').eq('user_id', int(user_id)).order('created_at', desc=True).limit(limit).execute()
+            
+            if response.data:
+                return response.data
+            else:
+                return []
+                
+        except Exception as e:
+            logger.error(f"Error fetching transactions for user {user_id}: {str(e)}")
+            return []
+
+# Helper functions for API endpoints
+def create_user_from_telegram_data(telegram_data):
+    """Create user from Telegram data"""
+    try:
+        user = User(
+            telegram_id=telegram_data.get('telegram_id'),
+            username=telegram_data.get('username'),
+            first_name=telegram_data.get('first_name'),
+            last_name=telegram_data.get('last_name')
+        )
+        
+        if user.save():
+            # Log joining bonus transaction
+            Transaction.log_transaction(
+                user.telegram_id,
+                'bonus',
+                'Joining Bonus',
+                1000,
+                0,
+                1000
+            )
+            return user
+        else:
+            return None
+            
+    except Exception as e:
+        logger.error(f"Error creating user from Telegram data: {str(e)}")
+        return None
+
+def validate_user_data(data):
+    """Validate user data before processing"""
+    required_fields = ['telegram_id']
+    
+    for field in required_fields:
+        if field not in data or data[field] is None:
+            return False, f"Missing required field: {field}"
+    
+    # Validate telegram_id is a valid integer
+    try:
+        int(data['telegram_id'])
+    except (ValueError, TypeError):
+        return False, "Invalid telegram_id format"
+    
+    return True, "Valid"
+
+# Database initialization
+def init_database():
+    """Initialize database tables if they don't exist"""
+    try:
+        # Check if tables exist by trying to select from them
+        supabase.table('users').select('telegram_id').limit(1).execute()
+        supabase.table('transactions').select('id').limit(1).execute()
+        logger.info("Database tables verified")
+        return True
+    except Exception as e:
+        logger.error(f"Database initialization error: {str(e)}")
+        logger.info("Please ensure the following tables exist in your Supabase database:")
+        logger.info("""
+        CREATE TABLE users (
+            telegram_id BIGINT PRIMARY KEY,
+            username TEXT,
+            first_name TEXT,
+            last_name TEXT,
+            coins BIGINT DEFAULT 1000,
+            energy BIGINT DEFAULT 100,
+            max_energy BIGINT DEFAULT 100,
+            tap_power BIGINT DEFAULT 1,
+            power BIGINT DEFAULT 1,
+            energy_regen_rate BIGINT DEFAULT 1,
+            last_energy_update BIGINT DEFAULT EXTRACT(EPOCH FROM NOW())::BIGINT,
+            last_tap_time BIGINT DEFAULT EXTRACT(EPOCH FROM NOW())::BIGINT,
+            created_at BIGINT DEFAULT EXTRACT(EPOCH FROM NOW())::BIGINT,
+            updated_at BIGINT DEFAULT EXTRACT(EPOCH FROM NOW())::BIGINT,
+            is_admin BOOLEAN DEFAULT FALSE,
+            referral_code TEXT DEFAULT '',
+            referred_by BIGINT,
+            referral_count BIGINT DEFAULT 0,
+            referral_earnings BIGINT DEFAULT 0,
+            referrals TEXT DEFAULT ''
+        );
+        
+        CREATE TABLE transactions (
+            id SERIAL PRIMARY KEY,
+            user_id BIGINT NOT NULL,
+            transaction_type TEXT NOT NULL,
+            description TEXT NOT NULL,
+            amount INTEGER NOT NULL,
+            balance_before INTEGER NOT NULL,
+            balance_after INTEGER NOT NULL,
+            created_at BIGINT NOT NULL,
+            status TEXT DEFAULT 'completed'
+        );
+        """)
+        return False
 
