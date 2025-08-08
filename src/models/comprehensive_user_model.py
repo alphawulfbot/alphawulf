@@ -1,7 +1,7 @@
 """
-Bulletproof Comprehensive User Model for Alpha Wulf
-Ensures ALL datetime values are converted to Unix timestamps before database operations
-Compatible with Supabase PostgreSQL database using Supabase client
+Ultra-Bulletproof Comprehensive User Model for Alpha Wulf
+Uses raw SQL to bypass Supabase client conversion issues
+Ensures ALL datetime values are handled as Unix timestamps
 """
 
 import os
@@ -33,10 +33,7 @@ def get_supabase_client() -> Optional[Client]:
         return None
 
 def force_unix_timestamp(value, default_timestamp=None):
-    """
-    Force any value to be a Unix timestamp (integer)
-    This is the bulletproof conversion function
-    """
+    """Force any value to be a Unix timestamp (integer)"""
     try:
         if default_timestamp is None:
             default_timestamp = int(time.time())
@@ -44,35 +41,27 @@ def force_unix_timestamp(value, default_timestamp=None):
         if value is None:
             return default_timestamp
             
-        # If it's already an integer, return it
         if isinstance(value, int):
             return value
             
-        # If it's a float, convert to int
         if isinstance(value, float):
             return int(value)
             
-        # If it's a datetime object, convert to timestamp
         if isinstance(value, datetime):
             return int(value.timestamp())
             
-        # If it's a string, try various conversions
         if isinstance(value, str):
-            # Handle empty strings
             if not value.strip():
                 return default_timestamp
                 
             # Try to parse as ISO datetime string
             if 'T' in value or '+' in value or 'Z' in value or '-' in value:
                 try:
-                    # Handle various datetime string formats
                     if value.endswith('Z'):
                         value = value.replace('Z', '+00:00')
                     elif '+' in value and value.count('+') == 1:
-                        # Already has timezone
                         pass
                     elif 'T' in value and '+' not in value and 'Z' not in value:
-                        # Add UTC timezone if missing
                         value = value + '+00:00'
                         
                     dt = datetime.fromisoformat(value)
@@ -87,7 +76,6 @@ def force_unix_timestamp(value, default_timestamp=None):
                 logger.warning(f"Could not convert string '{value}' to timestamp")
                 return default_timestamp
                 
-        # For any other type, return default
         logger.warning(f"Unknown type for timestamp conversion: {type(value)} = {value}")
         return default_timestamp
         
@@ -96,7 +84,7 @@ def force_unix_timestamp(value, default_timestamp=None):
         return default_timestamp if default_timestamp else int(time.time())
 
 def safe_int_conversion(value, default=0):
-    """Safely convert value to int, handling various input types"""
+    """Safely convert value to int"""
     try:
         if value is None:
             return default
@@ -133,7 +121,7 @@ def safe_string_conversion(value, default=''):
         return default
 
 class User:
-    """User model with bulletproof database operations using Supabase client"""
+    """User model with ultra-bulletproof database operations"""
     
     def __init__(self, telegram_id: int, username: str = '', first_name: str = '', last_name: str = ''):
         self.telegram_id = int(telegram_id)
@@ -168,13 +156,18 @@ class User:
     
     @classmethod
     def get_by_telegram_id(cls, telegram_id: int):
-        """Get user by telegram ID with bulletproof error handling"""
+        """Get user by telegram ID using raw SQL"""
         try:
             supabase = get_supabase_client()
             if not supabase:
                 return None
                 
-            response = supabase.table('users').select('*').eq('telegram_id', int(telegram_id)).execute()
+            # Use raw SQL to avoid any client-side conversions
+            sql_query = f"""
+            SELECT * FROM users WHERE telegram_id = {int(telegram_id)} LIMIT 1;
+            """
+            
+            response = supabase.rpc('execute_sql', {'query': sql_query}).execute()
             
             if response.data and len(response.data) > 0:
                 row = response.data[0]
@@ -213,8 +206,46 @@ class User:
                 logger.info(f"User found: {telegram_id}")
                 return user
             else:
-                logger.info(f"User not found: {telegram_id}")
-                return None
+                # Fallback to regular Supabase client if raw SQL fails
+                response = supabase.table('users').select('*').eq('telegram_id', int(telegram_id)).execute()
+                
+                if response.data and len(response.data) > 0:
+                    row = response.data[0]
+                    user = cls(
+                        telegram_id=row['telegram_id'],
+                        username=safe_string_conversion(row.get('username', '')),
+                        first_name=safe_string_conversion(row.get('first_name', '')),
+                        last_name=safe_string_conversion(row.get('last_name', ''))
+                    )
+                    
+                    # Load all data with safe conversions
+                    user.coins = safe_int_conversion(row.get('coins', 2500))
+                    user.energy = safe_int_conversion(row.get('energy', 100))
+                    user.max_energy = safe_int_conversion(row.get('max_energy', 100))
+                    user.tap_power = safe_int_conversion(row.get('tap_power', 1))
+                    user.power = safe_int_conversion(row.get('power', 1))
+                    user.energy_regen_rate = safe_int_conversion(row.get('energy_regen_rate', 1))
+                    user.energy_recharge_rate = safe_int_conversion(row.get('energy_recharge_rate', 1))
+                    
+                    current_time = int(time.time())
+                    user.last_energy_update = force_unix_timestamp(row.get('last_energy_update'), current_time)
+                    user.last_tap_time = force_unix_timestamp(row.get('last_tap_time'), current_time)
+                    user.created_at = force_unix_timestamp(row.get('created_at'), current_time)
+                    user.updated_at = force_unix_timestamp(row.get('updated_at'), current_time)
+                    
+                    user.is_admin = safe_bool_conversion(row.get('is_admin', False))
+                    user.referral_code = safe_string_conversion(row.get('referral_code', ''))
+                    user.referred_by = row.get('referred_by')
+                    user.total_taps = safe_int_conversion(row.get('total_taps', 0))
+                    user.referral_count = safe_int_conversion(row.get('referral_count', 0))
+                    user.referral_earnings = safe_int_conversion(row.get('referral_earnings', 0))
+                    user.referrals = safe_string_conversion(row.get('referrals', ''))
+                    
+                    logger.info(f"User found: {telegram_id}")
+                    return user
+                else:
+                    logger.info(f"User not found: {telegram_id}")
+                    return None
                 
         except Exception as e:
             logger.error(f"Error getting user {telegram_id}: {e}")
@@ -222,17 +253,42 @@ class User:
     
     @classmethod
     def create_user(cls, telegram_id: int, username: str = '', first_name: str = '', last_name: str = ''):
-        """Create new user with bulletproof error handling"""
+        """Create new user using raw SQL"""
         try:
             supabase = get_supabase_client()
             if not supabase:
                 return None
                 
             user = cls(telegram_id, username, first_name, last_name)
-            
-            # Ensure ALL timestamps are integers
             current_time = int(time.time())
             
+            # Use raw SQL to insert user
+            sql_query = f"""
+            INSERT INTO users (
+                telegram_id, username, first_name, last_name, coins, energy, max_energy,
+                tap_power, power, energy_regen_rate, energy_recharge_rate,
+                last_energy_update, last_tap_time, created_at, updated_at,
+                is_admin, referral_code, referred_by, total_taps, referral_count,
+                referral_earnings, referrals
+            ) VALUES (
+                {int(user.telegram_id)}, '{user.username}', '{user.first_name}', '{user.last_name}',
+                {int(user.coins)}, {int(user.energy)}, {int(user.max_energy)},
+                {int(user.tap_power)}, {int(user.power)}, {int(user.energy_regen_rate)}, {int(user.energy_recharge_rate)},
+                {current_time}, {current_time}, {current_time}, {current_time},
+                {str(user.is_admin).lower()}, '{user.referral_code}', {user.referred_by or 'NULL'},
+                {int(user.total_taps)}, {int(user.referral_count)}, {int(user.referral_earnings)}, '{user.referrals}'
+            ) RETURNING *;
+            """
+            
+            try:
+                response = supabase.rpc('execute_sql', {'query': sql_query}).execute()
+                if response.data:
+                    logger.info(f"User created via raw SQL: {telegram_id}")
+                    return user
+            except Exception as sql_error:
+                logger.warning(f"Raw SQL insert failed: {sql_error}, falling back to regular insert")
+                
+            # Fallback to regular Supabase client
             user_data = {
                 'telegram_id': int(user.telegram_id),
                 'username': user.username,
@@ -245,10 +301,10 @@ class User:
                 'power': int(user.power),
                 'energy_regen_rate': int(user.energy_regen_rate),
                 'energy_recharge_rate': int(user.energy_recharge_rate),
-                'last_energy_update': current_time,  # Force to current timestamp
-                'last_tap_time': current_time,       # Force to current timestamp
-                'created_at': current_time,          # Force to current timestamp
-                'updated_at': current_time,          # Force to current timestamp
+                'last_energy_update': current_time,
+                'last_tap_time': current_time,
+                'created_at': current_time,
+                'updated_at': current_time,
                 'is_admin': bool(user.is_admin),
                 'referral_code': user.referral_code,
                 'referred_by': user.referred_by,
@@ -272,78 +328,105 @@ class User:
             return None
     
     def save(self):
-        """Save user data with BULLETPROOF timestamp conversion"""
+        """Save user data using raw SQL to bypass conversion issues"""
         try:
             supabase = get_supabase_client()
             if not supabase:
                 logger.error("Failed to get Supabase client")
                 return False
                 
-            # Force update timestamp to current time as integer
             current_time = int(time.time())
             self.updated_at = current_time
             
-            # BULLETPROOF: Ensure ALL timestamp fields are integers
+            # Ensure ALL timestamp fields are integers
             self.last_energy_update = force_unix_timestamp(self.last_energy_update, current_time)
             self.last_tap_time = force_unix_timestamp(self.last_tap_time, current_time)
             self.created_at = force_unix_timestamp(self.created_at, current_time)
-            self.updated_at = current_time  # Always current time
             
-            # Prepare update data with GUARANTEED integer timestamps
-            update_data = {
-                'username': self.username,
-                'first_name': self.first_name,
-                'last_name': self.last_name,
-                'coins': int(self.coins),
-                'energy': int(self.energy),
-                'max_energy': int(self.max_energy),
-                'tap_power': int(self.tap_power),
-                'power': int(self.power),
-                'energy_regen_rate': int(self.energy_regen_rate),
-                'energy_recharge_rate': int(self.energy_recharge_rate),
-                'last_energy_update': int(self.last_energy_update),  # FORCE INTEGER
-                'last_tap_time': int(self.last_tap_time),            # FORCE INTEGER
-                'updated_at': int(self.updated_at),                  # FORCE INTEGER
-                'is_admin': bool(self.is_admin),
-                'referral_code': self.referral_code,
-                'referred_by': self.referred_by,
-                'total_taps': int(self.total_taps),
-                'referral_count': int(self.referral_count),
-                'referral_earnings': int(self.referral_earnings),
-                'referrals': self.referrals
-            }
+            # Use raw SQL to update user
+            sql_query = f"""
+            UPDATE users SET
+                username = '{self.username}',
+                first_name = '{self.first_name}',
+                last_name = '{self.last_name}',
+                coins = {int(self.coins)},
+                energy = {int(self.energy)},
+                max_energy = {int(self.max_energy)},
+                tap_power = {int(self.tap_power)},
+                power = {int(self.power)},
+                energy_regen_rate = {int(self.energy_regen_rate)},
+                energy_recharge_rate = {int(self.energy_recharge_rate)},
+                last_energy_update = {int(self.last_energy_update)},
+                last_tap_time = {int(self.last_tap_time)},
+                updated_at = {int(self.updated_at)},
+                is_admin = {str(self.is_admin).lower()},
+                referral_code = '{self.referral_code}',
+                referred_by = {self.referred_by or 'NULL'},
+                total_taps = {int(self.total_taps)},
+                referral_count = {int(self.referral_count)},
+                referral_earnings = {int(self.referral_earnings)},
+                referrals = '{self.referrals}'
+            WHERE telegram_id = {int(self.telegram_id)};
+            """
             
-            # Log the data being sent for debugging
-            logger.info(f"Saving user {self.telegram_id} with timestamps: "
-                       f"last_energy_update={update_data['last_energy_update']} "
-                       f"last_tap_time={update_data['last_tap_time']} "
-                       f"updated_at={update_data['updated_at']}")
+            logger.info(f"Saving user {self.telegram_id} with raw SQL - timestamps: "
+                       f"last_energy_update={int(self.last_energy_update)} "
+                       f"last_tap_time={int(self.last_tap_time)} "
+                       f"updated_at={int(self.updated_at)}")
             
-            response = supabase.table('users').update(update_data).eq('telegram_id', int(self.telegram_id)).execute()
-            
-            if response.data:
-                logger.info(f"User saved successfully: {self.telegram_id}")
+            try:
+                response = supabase.rpc('execute_sql', {'query': sql_query}).execute()
+                logger.info(f"User saved successfully via raw SQL: {self.telegram_id}")
                 return True
-            else:
-                logger.error(f"Failed to save user: {self.telegram_id}")
-                return False
+            except Exception as sql_error:
+                logger.warning(f"Raw SQL update failed: {sql_error}, falling back to regular update")
+                
+                # Fallback to regular Supabase client with explicit integer conversion
+                update_data = {
+                    'username': self.username,
+                    'first_name': self.first_name,
+                    'last_name': self.last_name,
+                    'coins': int(self.coins),
+                    'energy': int(self.energy),
+                    'max_energy': int(self.max_energy),
+                    'tap_power': int(self.tap_power),
+                    'power': int(self.power),
+                    'energy_regen_rate': int(self.energy_regen_rate),
+                    'energy_recharge_rate': int(self.energy_recharge_rate),
+                    'last_energy_update': int(self.last_energy_update),
+                    'last_tap_time': int(self.last_tap_time),
+                    'updated_at': int(self.updated_at),
+                    'is_admin': bool(self.is_admin),
+                    'referral_code': self.referral_code,
+                    'referred_by': self.referred_by,
+                    'total_taps': int(self.total_taps),
+                    'referral_count': int(self.referral_count),
+                    'referral_earnings': int(self.referral_earnings),
+                    'referrals': self.referrals
+                }
+                
+                response = supabase.table('users').update(update_data).eq('telegram_id', int(self.telegram_id)).execute()
+                
+                if response.data:
+                    logger.info(f"User saved successfully via fallback: {self.telegram_id}")
+                    return True
+                else:
+                    logger.error(f"Failed to save user: {self.telegram_id}")
+                    return False
                 
         except Exception as e:
             logger.error(f"Error saving user {self.telegram_id}: {e}")
             return False
     
     def update_energy(self):
-        """Update energy based on time elapsed with bulletproof error handling"""
+        """Update energy based on time elapsed"""
         try:
             now = int(time.time())
-            
-            # Ensure last_energy_update is an integer timestamp
             self.last_energy_update = force_unix_timestamp(self.last_energy_update, now)
             
             time_diff = now - self.last_energy_update
             minutes_passed = time_diff / 60
             
-            # Regenerate energy (1 energy per 30 seconds = 2 energy per minute)
             energy_to_add = int(minutes_passed * 2)
             
             if energy_to_add > 0:
@@ -358,28 +441,23 @@ class User:
             return False
     
     def can_tap(self):
-        """Check if user can tap (has energy)"""
+        """Check if user can tap"""
         return self.energy > 0
     
     def tap(self, taps: int = 1):
-        """Process tap with bulletproof validation and error handling"""
+        """Process tap with ultra-bulletproof validation"""
         try:
             if not self.can_tap():
                 return False, "No energy available"
             
-            # Update energy first
             self.update_energy()
             
-            # Process taps
             actual_taps = min(taps, self.energy)
             self.energy = max(0, self.energy - actual_taps)
             self.coins += actual_taps * self.tap_power
             self.total_taps += actual_taps
-            
-            # Force last_tap_time to current timestamp
             self.last_tap_time = int(time.time())
             
-            # Save to database
             if self.save():
                 logger.info(f"Tap processed for user {self.telegram_id}: {actual_taps} taps, {self.coins} total coins")
                 return True, f"Tapped {actual_taps} times"
@@ -391,9 +469,8 @@ class User:
             return False, f"Tap error: {str(e)}"
     
     def to_dict(self):
-        """Convert user to dictionary with bulletproof serialization"""
+        """Convert user to dictionary with ultra-bulletproof serialization"""
         try:
-            # Ensure all timestamps are integers before returning
             current_time = int(time.time())
             
             return {
