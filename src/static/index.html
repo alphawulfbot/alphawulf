@@ -131,12 +131,18 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 60px;
             margin-bottom: 25px;
             animation: pulse 2s infinite;
             box-shadow: 
                 0 0 40px rgba(255, 215, 0, 0.6),
                 inset 0 0 40px rgba(255, 215, 0, 0.2);
+        }
+
+        .loading-logo img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
         }
 
         @keyframes pulse {
@@ -295,7 +301,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            margin-bottom: 100px;
+            margin-bottom: 20px; /* Reduced margin since we have fixed padding */
         }
 
         .stats {
@@ -377,12 +383,12 @@
             box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
         }
 
-        /* Enhanced Tap Button - Bigger Like Reference Image */
+        /* Enhanced Tap Button - Only Inner Ring Around Wolf Coin */
         .tap-button {
             width: 280px;
             height: 280px;
             border-radius: 50%;
-            background: linear-gradient(45deg, #FFD700, #FFA500, #FFD700);
+            background: transparent;
             border: none;
             display: flex;
             align-items: center;
@@ -391,46 +397,32 @@
             transition: all 0.1s ease;
             margin-bottom: 35px;
             position: relative;
-            box-shadow: 
-                0 0 60px rgba(255, 215, 0, 0.8),
-                inset 0 0 60px rgba(255, 215, 0, 0.3),
-                0 15px 50px rgba(0, 0, 0, 0.5);
         }
 
         .tap-button:active {
             transform: scale(0.95);
-            box-shadow: 
-                0 0 80px rgba(255, 215, 0, 1),
-                inset 0 0 80px rgba(255, 215, 0, 0.4),
-                0 10px 30px rgba(0, 0, 0, 0.6);
         }
 
         .tap-button img {
             width: 200px;
             height: 200px;
             object-fit: contain;
+            border-radius: 50%;
+            box-shadow: 
+                0 0 60px rgba(255, 215, 0, 0.8),
+                inset 0 0 60px rgba(255, 215, 0, 0.3),
+                0 15px 50px rgba(0, 0, 0, 0.5);
             filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.6));
         }
 
-        .tap-button::before {
-            content: '';
-            position: absolute;
-            top: -20px;
-            left: -20px;
-            right: -20px;
-            bottom: -20px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.5), transparent);
-            animation: shine 4s linear infinite;
-            z-index: -1;
+        .tap-button:active img {
+            box-shadow: 
+                0 0 80px rgba(255, 215, 0, 1),
+                inset 0 0 80px rgba(255, 215, 0, 0.4),
+                0 10px 30px rgba(0, 0, 0, 0.6);
         }
 
-        @keyframes shine {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Enhanced Navigation */
+        /* Enhanced Navigation - Fixed Footer */
         .navigation {
             position: fixed;
             bottom: 0;
@@ -438,24 +430,27 @@
             transform: translateX(-50%);
             width: 100%;
             max-width: 400px;
+            height: 90px;
             background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(26, 26, 26, 0.95) 100%);
             backdrop-filter: blur(25px);
             border-top: 3px solid rgba(255, 215, 0, 0.4);
             display: flex;
             justify-content: space-around;
-            padding: 18px 0;
+            align-items: center;
+            padding: 0;
             z-index: 1000;
             box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
         }
 
-        .nav-item {
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            padding: 10px 14px;
-            border-radius: 15px;
+            position: relative;
+            padding-bottom: 110px; /* Fixed padding to account for footer */
         }
 
         .nav-item.active {
@@ -1449,7 +1444,9 @@
 <body>
     <!-- Loading Screen -->
     <div id="loadingScreen" class="loading-screen">
-        <div class="loading-logo">🐺</div>
+        <div class="loading-logo">
+            <img src="alpha_wulf_logo.png" alt="Alpha Wulf Logo">
+        </div>
         <div class="loading-text">Alpha Wulf</div>
         <div class="loading-subtitle">Tap to Earn</div>
         <div class="loading-bar">
