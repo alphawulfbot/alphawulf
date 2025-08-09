@@ -23,6 +23,29 @@
             e.preventDefault();
             return false;
         });
+
+        // Disable long press
+        document.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable long press on touch devices
+        let pressTimer;
+        document.addEventListener("touchstart", function(e) {
+            pressTimer = setTimeout(function() {
+                e.preventDefault();
+                return false;
+            }, 500);
+        });
+
+        document.addEventListener("touchend", function(e) {
+            clearTimeout(pressTimer);
+        });
+
+        document.addEventListener("touchmove", function(e) {
+            clearTimeout(pressTimer);
+        });
     </script>
     <style>
         * {
@@ -36,6 +59,8 @@
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
+            -webkit-long-press: none;
+            -webkit-context-menu: none;
         }
 
         body {
@@ -163,51 +188,90 @@
             position: relative;
         }
 
-        /* Enhanced User Profile - Centered and Professional */
-        .user-profile {
-            position: absolute;
-            top: 25px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        /* User Profile Header - Only in Home Section */
+        .user-header {
+            width: 100%;
             background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(218, 165, 32, 0.08) 100%);
             border: 2px solid rgba(255, 215, 0, 0.4);
-            border-radius: 25px;
-            padding: 18px 30px;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 30px;
             backdrop-filter: blur(15px);
             box-shadow: 
                 0 10px 40px rgba(0, 0, 0, 0.4),
                 inset 0 1px 0 rgba(255, 215, 0, 0.2);
-            z-index: 100;
+            display: none;
+        }
+
+        .user-header.show {
+            display: block;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .user-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .profile-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-right: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .profile-icon:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.7);
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
         }
 
         .user-name {
             font-size: 20px;
             font-weight: bold;
             color: #FFD700;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
-            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .user-name:hover {
+            color: #FFA500;
         }
 
         .user-id {
             font-size: 13px;
             color: #DAA520;
             opacity: 0.9;
-            margin-bottom: 8px;
         }
 
         .user-level {
-            font-size: 15px;
+            font-size: 16px;
             color: #FFA500;
             font-weight: bold;
-            margin-bottom: 10px;
         }
 
         .user-progress {
-            width: 120px;
+            width: 100%;
             height: 8px;
             background: rgba(255, 215, 0, 0.2);
             border-radius: 4px;
@@ -231,7 +295,6 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            margin-top: 140px;
             margin-bottom: 100px;
         }
 
@@ -239,7 +302,7 @@
             display: flex;
             justify-content: space-between;
             width: 100%;
-            margin-bottom: 45px;
+            margin-bottom: 30px;
             gap: 18px;
         }
 
@@ -280,67 +343,10 @@
             font-weight: 500;
         }
 
-        /* Enhanced Tap Button */
-        .tap-button {
-            width: 220px;
-            height: 220px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, #FFD700, #FFA500, #FFD700);
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.1s ease;
-            margin-bottom: 35px;
-            position: relative;
-            box-shadow: 
-                0 0 50px rgba(255, 215, 0, 0.7),
-                inset 0 0 50px rgba(255, 215, 0, 0.25),
-                0 10px 40px rgba(0, 0, 0, 0.4);
-        }
-
-        .tap-button:active {
-            transform: scale(0.95);
-            box-shadow: 
-                0 0 70px rgba(255, 215, 0, 0.9),
-                inset 0 0 70px rgba(255, 215, 0, 0.35),
-                0 5px 20px rgba(0, 0, 0, 0.5);
-        }
-
-        .tap-button img {
-            width: 140px;
-            height: 140px;
-            object-fit: contain;
-            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.5));
-        }
-
-        .tap-button span {
-            font-size: 90px;
-            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.5));
-        }
-
-        .tap-button::before {
-            content: '';
-            position: absolute;
-            top: -15px;
-            left: -15px;
-            right: -15px;
-            bottom: -15px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.4), transparent);
-            animation: shine 4s linear infinite;
-            z-index: -1;
-        }
-
-        @keyframes shine {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Enhanced Energy Bar */
+        /* Enhanced Energy Bar - Above Coin */
         .energy-container {
             width: 100%;
+            max-width: 300px;
             margin-bottom: 25px;
         }
 
@@ -369,6 +375,59 @@
             border-radius: 7px;
             transition: width 0.3s ease;
             box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+        }
+
+        /* Enhanced Tap Button - Bigger Like Reference Image */
+        .tap-button {
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #FFD700, #FFA500, #FFD700);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            margin-bottom: 35px;
+            position: relative;
+            box-shadow: 
+                0 0 60px rgba(255, 215, 0, 0.8),
+                inset 0 0 60px rgba(255, 215, 0, 0.3),
+                0 15px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .tap-button:active {
+            transform: scale(0.95);
+            box-shadow: 
+                0 0 80px rgba(255, 215, 0, 1),
+                inset 0 0 80px rgba(255, 215, 0, 0.4),
+                0 10px 30px rgba(0, 0, 0, 0.6);
+        }
+
+        .tap-button img {
+            width: 200px;
+            height: 200px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.6));
+        }
+
+        .tap-button::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: -20px;
+            right: -20px;
+            bottom: -20px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.5), transparent);
+            animation: shine 4s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes shine {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         /* Enhanced Navigation */
@@ -458,29 +517,7 @@
             color: #DAA520;
         }
 
-        .back-button {
-            position: absolute;
-            top: 25px;
-            left: 25px;
-            background: rgba(255, 215, 0, 0.25);
-            border: 2px solid rgba(255, 215, 0, 0.4);
-            border-radius: 15px;
-            padding: 12px 18px;
-            color: #FFD700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 15px;
-            backdrop-filter: blur(15px);
-            font-weight: 500;
-        }
-
-        .back-button:hover {
-            background: rgba(255, 215, 0, 0.35);
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.3);
-        }
-
-        /* Enhanced Game Styles */
+        /* Enhanced Game Styles from minigames.html */
         .game-grid {
             display: grid;
             gap: 25px;
@@ -542,126 +579,223 @@
             border: 1px solid rgba(255, 165, 0, 0.4);
         }
 
-        /* Enhanced Full-Screen Game Styles */
-        .game-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%);
-            z-index: 2000;
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 25px;
-        }
-
-        .game-screen.active {
-            display: flex;
-        }
-
+        /* Game Area Styles */
         .game-area {
-            width: 100%;
-            max-width: 380px;
-            height: 450px;
-            background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(218, 165, 32, 0.08) 100%);
-            border: 3px solid rgba(255, 215, 0, 0.4);
-            border-radius: 25px;
-            position: relative;
-            overflow: hidden;
-            margin-bottom: 35px;
-            box-shadow: 
-                0 15px 50px rgba(0, 0, 0, 0.5),
-                inset 0 2px 0 rgba(255, 215, 0, 0.2);
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(218, 165, 32, 0.05) 100%);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            margin-bottom: 20px;
+            display: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
-        .game-timer {
-            position: absolute;
-            top: 25px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 28px;
-            font-weight: bold;
+        .game-area.active {
+            display: block;
+        }
+
+        .back-button {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(218, 165, 32, 0.1) 100%);
+            border: 1px solid #FFD700;
             color: #FFD700;
-            text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
-            background: rgba(0, 0, 0, 0.5);
-            padding: 8px 16px;
-            border-radius: 15px;
-            border: 2px solid rgba(255, 215, 0, 0.3);
-        }
-
-        .game-score {
-            position: absolute;
-            top: 25px;
-            right: 25px;
-            font-size: 20px;
-            font-weight: bold;
-            color: #FFA500;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 8px 16px;
-            border-radius: 15px;
-            border: 2px solid rgba(255, 165, 0, 0.3);
-        }
-
-        .game-target {
-            position: absolute;
-            width: 70px;
-            height: 70px;
-            background: linear-gradient(45deg, #FFD700, #FFA500);
-            border-radius: 50%;
+            padding: 10px 20px;
+            border-radius: 10px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            margin-bottom: 20px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.3) 0%, rgba(218, 165, 32, 0.2) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(255, 215, 0, 0.2);
+        }
+
+        /* Wolf Hunt Game Styles */
+        .hunt-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .hunt-cell {
+            aspect-ratio: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 28px;
-            box-shadow: 
-                0 0 25px rgba(255, 215, 0, 0.6),
-                inset 0 0 15px rgba(255, 215, 0, 0.2);
-            animation: targetPulse 1.2s infinite;
-            border: 2px solid rgba(255, 215, 0, 0.8);
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 191, 255, 0.3);
         }
 
-        @keyframes targetPulse {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 25px rgba(255, 215, 0, 0.6); }
-            50% { transform: scale(1.15); box-shadow: 0 0 35px rgba(255, 215, 0, 0.8); }
+        .hunt-cell:hover {
+            background: rgba(0, 191, 255, 0.2);
         }
 
-        .game-target:active {
-            transform: scale(0.85);
-            box-shadow: 0 0 40px rgba(255, 215, 0, 0.9);
+        .hunt-cell.revealed {
+            background: rgba(0, 191, 255, 0.3);
+            cursor: not-allowed;
         }
 
-        .game-controls {
+        .hunt-cell.wolf {
+            background: rgba(255, 215, 0, 0.3);
+            animation: wolfPulse 0.5s ease-in-out;
+        }
+
+        /* Pack Leader Game Styles */
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .memory-card {
+            aspect-ratio: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 191, 255, 0.3);
+            position: relative;
+        }
+
+        .memory-card.flipped {
+            background: rgba(0, 191, 255, 0.3);
+            transform: rotateY(180deg);
+        }
+
+        .memory-card.matched {
+            background: rgba(0, 255, 136, 0.3);
+            cursor: not-allowed;
+        }
+
+        /* Howl Challenge Game Styles */
+        .howl-area {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .howl-button {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00BFFF 0%, #0077B6 100%);
+            border: 5px solid #00FFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin: 20px auto;
+            font-size: 60px;
+            transition: all 0.1s ease;
+            box-shadow: 0 0 30px rgba(0, 191, 255, 0.5);
+        }
+
+        .howl-button:active {
+            transform: scale(0.95);
+            box-shadow: 0 0 50px rgba(0, 191, 255, 0.8);
+        }
+
+        .howl-button.active {
+            animation: howlPulse 0.5s ease-in-out;
+        }
+
+        .timer-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .timer-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #FF0000 0%, #FFD700 50%, #00FF00 100%);
+            transition: width 0.1s linear;
+        }
+
+        .game-stats {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+
+        .stat {
             text-align: center;
         }
 
-        .game-button {
-            background: linear-gradient(45deg, #FFD700, #FFA500);
-            border: none;
-            border-radius: 18px;
-            padding: 18px 35px;
-            font-size: 20px;
+        .stat-value {
+            font-size: 18px;
             font-weight: bold;
-            color: #000;
+            color: #00BFFF;
+        }
+
+        .stat-label {
+            color: #A0AEC0;
+        }
+
+        @keyframes wolfPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes howlPulse {
+            0% { transform: scale(1); box-shadow: 0 0 30px rgba(0, 191, 255, 0.5); }
+            50% { transform: scale(1.1); box-shadow: 0 0 50px rgba(0, 191, 255, 0.8); }
+            100% { transform: scale(1); box-shadow: 0 0 30px rgba(0, 191, 255, 0.5); }
+        }
+
+        .result-message {
+            text-align: center;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .result-message.success {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid #00FF88;
+            color: #00FF88;
+        }
+
+        .result-message.failure {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid #FF0000;
+            color: #FF6B6B;
+        }
+
+        .play-again-button {
+            background: #00BFFF;
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
             cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px;
             transition: all 0.3s ease;
-            margin: 12px;
-            box-shadow: 0 10px 40px rgba(255, 215, 0, 0.4);
-            border: 2px solid rgba(255, 215, 0, 0.6);
         }
 
-        .game-button:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 15px 50px rgba(255, 215, 0, 0.5);
-        }
-
-        .game-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
+        .play-again-button:hover {
+            background: #0077B6;
+            transform: translateY(-2px);
         }
 
         /* Enhanced Upgrade Styles */
@@ -1148,21 +1282,17 @@
             }
 
             .tap-button {
-                width: 200px;
-                height: 200px;
+                width: 250px;
+                height: 250px;
             }
 
             .tap-button img {
-                width: 120px;
-                height: 120px;
+                width: 180px;
+                height: 180px;
             }
 
-            .tap-button span {
-                font-size: 80px;
-            }
-
-            .user-profile {
-                padding: 15px 25px;
+            .user-header {
+                padding: 15px;
             }
 
             .user-name {
@@ -1199,6 +1329,121 @@
             text-align: center;
             font-weight: 500;
         }
+
+        /* Profile Edit Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(218, 165, 32, 0.08) 100%);
+            border: 2px solid rgba(255, 215, 0, 0.4);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 350px;
+            width: 90%;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+        }
+
+        .profile-icons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .profile-icon-option {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+
+        .profile-icon-option:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .profile-icon-option.selected {
+            border-color: #FFD700;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.7);
+        }
+
+        .modal-input {
+            width: 100%;
+            background: rgba(255, 215, 0, 0.15);
+            border: 2px solid rgba(255, 215, 0, 0.4);
+            border-radius: 15px;
+            padding: 15px;
+            font-size: 16px;
+            color: #FFD700;
+            margin-bottom: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .modal-input:focus {
+            outline: none;
+            border-color: rgba(255, 215, 0, 0.6);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .modal-button {
+            flex: 1;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            border: none;
+            border-radius: 15px;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #000;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4);
+        }
+
+        .modal-button.cancel {
+            background: rgba(255, 255, 255, 0.2);
+            color: #FFD700;
+        }
     </style>
 </head>
 <body>
@@ -1212,20 +1457,51 @@
         </div>
     </div>
 
-    <!-- Main Container -->
-    <div id="mainContainer" class="container" style="display: none;">
-        <!-- User Profile -->
-        <div id="userProfile" class="user-profile" style="display: none;">
-            <div id="userName" class="user-name">Loading...</div>
-            <div id="userId" class="user-id">ID: Loading...</div>
-            <div id="userLevel" class="user-level">Level 1</div>
-            <div class="user-progress">
-                <div class="user-progress-bar"></div>
+    <!-- Profile Edit Modal -->
+    <div id="profileModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title">Edit Profile</div>
+            <div class="profile-icons">
+                <div class="profile-icon-option" data-icon="🐺" onclick="selectProfileIcon('🐺')">🐺</div>
+                <div class="profile-icon-option" data-icon="👤" onclick="selectProfileIcon('👤')">👤</div>
+                <div class="profile-icon-option" data-icon="🌟" onclick="selectProfileIcon('🌟')">🌟</div>
+                <div class="profile-icon-option" data-icon="⚡" onclick="selectProfileIcon('⚡')">⚡</div>
+                <div class="profile-icon-option" data-icon="🔥" onclick="selectProfileIcon('🔥')">🔥</div>
+                <div class="profile-icon-option" data-icon="💎" onclick="selectProfileIcon('💎')">💎</div>
+                <div class="profile-icon-option" data-icon="🎯" onclick="selectProfileIcon('🎯')">🎯</div>
+                <div class="profile-icon-option" data-icon="👑" onclick="selectProfileIcon('👑')">👑</div>
+            </div>
+            <input type="text" id="nameInput" class="modal-input" placeholder="Enter your name">
+            <div class="modal-buttons">
+                <button class="modal-button cancel" onclick="closeProfileModal()">Cancel</button>
+                <button class="modal-button" onclick="saveProfile()">Save</button>
             </div>
         </div>
+    </div>
 
+    <!-- Main Container -->
+    <div id="mainContainer" class="container" style="display: none;">
         <!-- Home Section -->
         <div id="homeSection" class="section active">
+            <!-- User Header - Only in Home Section -->
+            <div id="userHeader" class="user-header">
+                <div class="user-info">
+                    <div class="user-left">
+                        <div id="profileIcon" class="profile-icon" onclick="openProfileModal()">🐺</div>
+                        <div class="user-details">
+                            <div id="userName" class="user-name" onclick="openProfileModal()">Loading...</div>
+                            <div id="userId" class="user-id">ID: Loading...</div>
+                        </div>
+                    </div>
+                    <div class="user-level">
+                        <div id="userLevel">Level 1</div>
+                    </div>
+                </div>
+                <div class="user-progress">
+                    <div class="user-progress-bar"></div>
+                </div>
+            </div>
+
             <div class="main-content">
                 <div class="stats">
                     <div class="stat-card">
@@ -1242,10 +1518,7 @@
                     </div>
                 </div>
 
-                <button id="tapButton" class="tap-button">
-                    <img src="wolf_coin_icon.png" alt="Wolf Coin">
-                </button>
-
+                <!-- Energy Bar Above Coin -->
                 <div class="energy-container">
                     <div class="energy-label">
                         <span>Energy</span>
@@ -1255,74 +1528,126 @@
                         <div id="energyFill" class="energy-fill" style="width: 100%;"></div>
                     </div>
                 </div>
+
+                <!-- Bigger Tap Button -->
+                <button id="tapButton" class="tap-button">
+                    <img src="wolf_coin_icon.png" alt="Wolf Coin">
+                </button>
             </div>
         </div>
 
-        <!-- Games Section -->
+        <!-- Games Section with Exact Implementation from minigames.html -->
         <div id="gamesSection" class="section">
             <div class="section-header">
                 <div class="section-title">Mini Games</div>
-                <div class="section-subtitle">Play games to earn extra coins</div>
+                <div class="section-subtitle">Play games to earn bonus Wolf Coins!</div>
             </div>
 
-            <div class="game-grid">
-                <div class="game-card" onclick="startGame('wolfHunt')">
-                    <div class="game-icon">🎯</div>
+            <!-- Game Selection -->
+            <div id="gameSelection" class="game-grid">
+                <div class="game-card" onclick="startWolfHunt()">
+                    <div class="game-icon">🔍</div>
                     <div class="game-title">Wolf Hunt</div>
-                    <div class="game-description">Hunt targets in the forest and earn coins based on your accuracy and speed</div>
-                    <div class="game-reward">50-150 Coins</div>
+                    <div class="game-description">Find the hidden wolves in the forest</div>
+                    <div class="game-reward">Reward: 50-200 coins</div>
                 </div>
 
-                <div class="game-card" onclick="startGame('packLeader')">
-                    <div class="game-icon">👑</div>
+                <div class="game-card" onclick="startPackLeader()">
+                    <div class="game-icon">🧠</div>
                     <div class="game-title">Pack Leader</div>
-                    <div class="game-description">Lead your pack to victory and claim the alpha position through strategic gameplay</div>
-                    <div class="game-reward">100-250 Coins</div>
+                    <div class="game-description">Memory game - match the wolf pairs</div>
+                    <div class="game-reward">Reward: 100-300 coins</div>
                 </div>
 
-                <div class="game-card" onclick="startGame('howlChallenge')">
-                    <div class="game-icon">🌙</div>
+                <div class="game-card" onclick="startHowlChallenge()">
+                    <div class="game-icon">🎵</div>
                     <div class="game-title">Howl Challenge</div>
-                    <div class="game-description">Howl at the moon and test your timing skills in this rhythm-based challenge</div>
-                    <div class="game-reward">75-300 Coins</div>
+                    <div class="game-description">Perfect timing challenge</div>
+                    <div class="game-reward">Reward: 75-250 coins</div>
                 </div>
             </div>
-        </div>
 
-        <!-- Enhanced Full-Screen Game Screens -->
-        <div id="wolfHuntScreen" class="game-screen">
-            <div class="back-button" onclick="exitGame()">← Back</div>
-            <div class="game-area">
-                <div id="wolfHuntTimer" class="game-timer">7</div>
-                <div id="wolfHuntScore" class="game-score">Score: 0</div>
-            </div>
-            <div class="game-controls">
-                <button id="wolfHuntStart" class="game-button" onclick="playWolfHunt()">Start Hunt</button>
-                <button id="wolfHuntExit" class="game-button" onclick="exitGame()">Exit Game</button>
-            </div>
-        </div>
+            <!-- Wolf Hunt Game -->
+            <div id="wolfHuntGame" class="game-area">
+                <button class="back-button" onclick="backToSelection()">← Back to Games</button>
+                <div class="game-title">🔍 Wolf Hunt</div>
+                <div class="game-description">Find all the hidden wolves! Click on the forest tiles to search.</div>
+                
+                <div class="game-stats">
+                    <div class="stat">
+                        <div class="stat-value" id="wolvesFound">0</div>
+                        <div class="stat-label">Wolves Found</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="attemptsLeft">10</div>
+                        <div class="stat-label">Attempts Left</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="huntScore">0</div>
+                        <div class="stat-label">Score</div>
+                    </div>
+                </div>
 
-        <div id="packLeaderScreen" class="game-screen">
-            <div class="back-button" onclick="exitGame()">← Back</div>
-            <div class="game-area">
-                <div id="packLeaderTimer" class="game-timer">7</div>
-                <div id="packLeaderScore" class="game-score">Score: 0</div>
+                <div class="hunt-grid" id="huntGrid"></div>
+                <div id="huntResult"></div>
             </div>
-            <div class="game-controls">
-                <button id="packLeaderStart" class="game-button" onclick="playPackLeader()">Lead Pack</button>
-                <button id="packLeaderExit" class="game-button" onclick="exitGame()">Exit Game</button>
-            </div>
-        </div>
 
-        <div id="howlChallengeScreen" class="game-screen">
-            <div class="back-button" onclick="exitGame()">← Back</div>
-            <div class="game-area">
-                <div id="howlChallengeTimer" class="game-timer">7</div>
-                <div id="howlChallengeScore" class="game-score">Score: 0</div>
+            <!-- Pack Leader Game -->
+            <div id="packLeaderGame" class="game-area">
+                <button class="back-button" onclick="backToSelection()">← Back to Games</button>
+                <div class="game-title">🧠 Pack Leader</div>
+                <div class="game-description">Match all the wolf pairs to become the pack leader!</div>
+                
+                <div class="game-stats">
+                    <div class="stat">
+                        <div class="stat-value" id="pairsMatched">0</div>
+                        <div class="stat-label">Pairs Matched</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="moves">0</div>
+                        <div class="stat-label">Moves</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="memoryScore">0</div>
+                        <div class="stat-label">Score</div>
+                    </div>
+                </div>
+
+                <div class="memory-grid" id="memoryGrid"></div>
+                <div id="memoryResult"></div>
             </div>
-            <div class="game-controls">
-                <button id="howlChallengeStart" class="game-button" onclick="playHowlChallenge()">Start Howl</button>
-                <button id="howlChallengeExit" class="game-button" onclick="exitGame()">Exit Game</button>
+
+            <!-- Howl Challenge Game -->
+            <div id="howlChallengeGame" class="game-area">
+                <button class="back-button" onclick="backToSelection()">← Back to Games</button>
+                <div class="game-title">🎵 Howl Challenge</div>
+                <div class="game-description">Howl at the perfect moment when the moon is brightest!</div>
+                
+                <div class="game-stats">
+                    <div class="stat">
+                        <div class="stat-value" id="round">1</div>
+                        <div class="stat-label">Round</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="accuracy">0%</div>
+                        <div class="stat-label">Accuracy</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="howlScore">0</div>
+                        <div class="stat-label">Score</div>
+                    </div>
+                </div>
+
+                <div class="timer-bar">
+                    <div class="timer-fill" id="timerFill" style="width: 0%"></div>
+                </div>
+
+                <div class="howl-area">
+                    <div class="howl-button" id="howlButton" onclick="howl()">🌙</div>
+                    <div>Tap when the moon is at its brightest!</div>
+                </div>
+
+                <div id="howlResult"></div>
             </div>
         </div>
 
@@ -1558,13 +1883,14 @@
             energyRegenLevel: 1,
             totalReferrals: 0,
             totalEarned: 0,
-            isNewUser: false
+            isNewUser: false,
+            profileIcon: '🐺',
+            displayName: 'Loading...'
         };
 
+        // Game data from minigames.html
         let currentGame = null;
-        let gameTimer = null;
-        let gameScore = 0;
-        let gameTargets = [];
+        let gameData = {};
         let currentFilter = 'all';
         let transactions = [];
 
@@ -1592,19 +1918,19 @@
                         username: "testuser"
                     };
                     updateUserProfile(mockUser);
-                    gameState.coins = 1000;
-                    gameState.isNewUser = false;
+                    gameState.coins = 0; // Start with 0 to show joining bonus
+                    gameState.isNewUser = true;
                 } else {
                     // Update user profile display
                     updateUserProfile(telegramUser);
 
                     // Load user data from backend
                     await loadUserData(telegramUser.id);
+                }
 
-                    // Check for joining bonus
-                    if (gameState.isNewUser) {
-                        await giveJoiningBonus(telegramUser.id);
-                    }
+                // Give joining bonus for new users
+                if (gameState.isNewUser) {
+                    await giveJoiningBonus();
                 }
 
                 // Start energy regeneration
@@ -1618,7 +1944,7 @@
                 setTimeout(() => {
                     document.getElementById('loadingScreen').style.display = 'none';
                     document.getElementById('mainContainer').style.display = 'block';
-                    document.getElementById('userProfile').style.display = 'flex';
+                    document.getElementById('userHeader').classList.add('show');
                     updateUI();
                 }, 3000);
 
@@ -1628,7 +1954,7 @@
                 setTimeout(() => {
                     document.getElementById('loadingScreen').style.display = 'none';
                     document.getElementById('mainContainer').style.display = 'block';
-                    document.getElementById('userProfile').style.display = 'flex';
+                    document.getElementById('userHeader').classList.add('show');
                     updateUI();
                 }, 3000);
             }
@@ -1640,7 +1966,8 @@
             const userId = document.getElementById('userId');
 
             if (user.first_name) {
-                userName.textContent = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+                gameState.displayName = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+                userName.textContent = gameState.displayName;
             }
             userId.textContent = `ID: ${user.id}`;
         }
@@ -1662,7 +1989,8 @@
                 }
             } catch (error) {
                 console.error('Error loading user data:', error);
-                throw error;
+                // For testing, set as new user
+                gameState.isNewUser = true;
             }
         }
 
@@ -1702,12 +2030,12 @@
                 gameState = { ...gameState, ...createdUser };
             } catch (error) {
                 console.error('Error creating user:', error);
-                throw error;
+                // For testing, continue without backend
             }
         }
 
-        // Give joining bonus
-        async function giveJoiningBonus(telegramId) {
+        // Give joining bonus - 1000 coins
+        async function giveJoiningBonus() {
             try {
                 gameState.coins += 1000;
                 await saveUserData();
@@ -1715,6 +2043,10 @@
                 showSuccess('Welcome! You received 1000 coins as joining bonus!');
             } catch (error) {
                 console.error('Error giving joining bonus:', error);
+                // For testing, still give bonus
+                gameState.coins += 1000;
+                await addTransaction('earned', 'Joining Bonus', 1000);
+                showSuccess('Welcome! You received 1000 coins as joining bonus!');
             }
         }
 
@@ -1750,6 +2082,10 @@
             
             const energyPercentage = (gameState.energy / gameState.maxEnergy) * 100;
             document.getElementById('energyFill').style.width = `${energyPercentage}%`;
+
+            // Update profile
+            document.getElementById('profileIcon').textContent = gameState.profileIcon;
+            document.getElementById('userName').textContent = gameState.displayName;
 
             // Update upgrade displays
             updateUpgradeDisplays();
@@ -1834,12 +2170,25 @@
             const sections = document.querySelectorAll('.section');
             sections.forEach(section => section.classList.remove('active'));
 
-            // Hide all game screens
-            const gameScreens = document.querySelectorAll('.game-screen');
-            gameScreens.forEach(screen => screen.classList.remove('active'));
+            // Hide all game areas
+            const gameAreas = document.querySelectorAll('.game-area');
+            gameAreas.forEach(area => area.classList.remove('active'));
+
+            // Show game selection if going to games
+            if (sectionName === 'games') {
+                document.getElementById('gameSelection').style.display = 'grid';
+            }
 
             // Show selected section
             document.getElementById(sectionName + 'Section').classList.add('active');
+
+            // Show/hide user header (only in home section)
+            const userHeader = document.getElementById('userHeader');
+            if (sectionName === 'home') {
+                userHeader.classList.add('show');
+            } else {
+                userHeader.classList.remove('show');
+            }
 
             // Update navigation
             const navItems = document.querySelectorAll('.nav-item');
@@ -1856,215 +2205,396 @@
             }
         }
 
-        // Enhanced Game functionality
-        function startGame(gameType) {
-            currentGame = gameType;
-            document.getElementById(gameType + 'Screen').classList.add('active');
+        // Profile Modal Functions
+        function openProfileModal() {
+            document.getElementById('profileModal').classList.add('show');
+            document.getElementById('nameInput').value = gameState.displayName;
+            
+            // Select current icon
+            const icons = document.querySelectorAll('.profile-icon-option');
+            icons.forEach(icon => {
+                icon.classList.remove('selected');
+                if (icon.dataset.icon === gameState.profileIcon) {
+                    icon.classList.add('selected');
+                }
+            });
         }
 
-        function exitGame() {
-            if (gameTimer) {
-                clearInterval(gameTimer);
-                gameTimer = null;
+        function closeProfileModal() {
+            document.getElementById('profileModal').classList.remove('show');
+        }
+
+        function selectProfileIcon(icon) {
+            const icons = document.querySelectorAll('.profile-icon-option');
+            icons.forEach(i => i.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+            gameState.profileIcon = icon;
+        }
+
+        function saveProfile() {
+            const newName = document.getElementById('nameInput').value.trim();
+            if (newName) {
+                gameState.displayName = newName;
+                updateUI();
+                saveUserData();
+                closeProfileModal();
+                showSuccess('Profile updated successfully!');
+            }
+        }
+
+        // Game Functions from minigames.html
+        function backToSelection() {
+            document.querySelectorAll('.game-area').forEach(area => {
+                area.classList.remove('active');
+            });
+            document.getElementById('gameSelection').style.display = 'grid';
+            currentGame = null;
+        }
+
+        function showGame(gameId) {
+            document.getElementById('gameSelection').style.display = 'none';
+            document.getElementById(gameId).classList.add('active');
+        }
+
+        // Wolf Hunt Game
+        function startWolfHunt() {
+            currentGame = 'wolfHunt';
+            showGame('wolfHuntGame');
+            initWolfHunt();
+        }
+
+        function initWolfHunt() {
+            gameData.wolfHunt = {
+                wolves: [],
+                found: 0,
+                attempts: 10,
+                score: 0,
+                totalWolves: 3
+            };
+
+            // Generate random wolf positions
+            const positions = [];
+            while (positions.length < gameData.wolfHunt.totalWolves) {
+                const pos = Math.floor(Math.random() * 16);
+                if (!positions.includes(pos)) {
+                    positions.push(pos);
+                }
+            }
+            gameData.wolfHunt.wolves = positions;
+
+            // Create grid
+            const grid = document.getElementById('huntGrid');
+            grid.innerHTML = '';
+            for (let i = 0; i < 16; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'hunt-cell';
+                cell.textContent = '🌲';
+                cell.onclick = () => huntCell(i);
+                grid.appendChild(cell);
+            }
+
+            updateWolfHuntUI();
+        }
+
+        function huntCell(index) {
+            const cell = document.getElementById('huntGrid').children[index];
+            if (cell.classList.contains('revealed')) return;
+
+            cell.classList.add('revealed');
+            gameData.wolfHunt.attempts--;
+
+            if (gameData.wolfHunt.wolves.includes(index)) {
+                cell.textContent = '🐺';
+                cell.classList.add('wolf');
+                gameData.wolfHunt.found++;
+                gameData.wolfHunt.score += 50;
+            } else {
+                cell.textContent = '🕳️';
+            }
+
+            updateWolfHuntUI();
+
+            if (gameData.wolfHunt.found === gameData.wolfHunt.totalWolves) {
+                endWolfHunt(true);
+            } else if (gameData.wolfHunt.attempts === 0) {
+                endWolfHunt(false);
+            }
+        }
+
+        function updateWolfHuntUI() {
+            document.getElementById('wolvesFound').textContent = gameData.wolfHunt.found;
+            document.getElementById('attemptsLeft').textContent = gameData.wolfHunt.attempts;
+            document.getElementById('huntScore').textContent = gameData.wolfHunt.score;
+        }
+
+        function endWolfHunt(success) {
+            const result = document.getElementById('huntResult');
+            if (success) {
+                const bonus = gameData.wolfHunt.attempts * 10;
+                gameData.wolfHunt.score += bonus;
+                result.innerHTML = `
+                    <div class="result-message success">
+                        🎉 Excellent hunting! You found all wolves!<br>
+                        Score: ${gameData.wolfHunt.score} coins<br>
+                        Bonus: ${bonus} coins for remaining attempts
+                    </div>
+                    <button class="play-again-button" onclick="initWolfHunt()">Hunt Again</button>
+                `;
+            } else {
+                result.innerHTML = `
+                    <div class="result-message failure">
+                        😔 The wolves escaped! You found ${gameData.wolfHunt.found}/${gameData.wolfHunt.totalWolves}<br>
+                        Score: ${gameData.wolfHunt.score} coins
+                    </div>
+                    <button class="play-again-button" onclick="initWolfHunt()">Try Again</button>
+                `;
+            }
+
+            // Award coins to user
+            awardCoins(gameData.wolfHunt.score, 'Wolf Hunt');
+        }
+
+        // Pack Leader Game
+        function startPackLeader() {
+            currentGame = 'packLeader';
+            showGame('packLeaderGame');
+            initPackLeader();
+        }
+
+        function initPackLeader() {
+            gameData.packLeader = {
+                cards: [],
+                flipped: [],
+                matched: [],
+                moves: 0,
+                score: 0,
+                pairs: 8
+            };
+
+            // Create card pairs
+            const symbols = ['🐺', '🌙', '🌲', '🦴', '🐾', '🔥', '⭐', '🏔️'];
+            const cards = [...symbols, ...symbols];
+            
+            // Shuffle cards
+            for (let i = cards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [cards[i], cards[j]] = [cards[j], cards[i]];
             }
             
-            const gameScreens = document.querySelectorAll('.game-screen');
-            gameScreens.forEach(screen => screen.classList.remove('active'));
+            gameData.packLeader.cards = cards;
+
+            // Create grid
+            const grid = document.getElementById('memoryGrid');
+            grid.innerHTML = '';
+            for (let i = 0; i < 16; i++) {
+                const card = document.createElement('div');
+                card.className = 'memory-card';
+                card.textContent = '❓';
+                card.onclick = () => flipCard(i);
+                grid.appendChild(card);
+            }
+
+            updatePackLeaderUI();
+        }
+
+        function flipCard(index) {
+            const card = document.getElementById('memoryGrid').children[index];
+            if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
+            if (gameData.packLeader.flipped.length >= 2) return;
+
+            card.classList.add('flipped');
+            card.textContent = gameData.packLeader.cards[index];
+            gameData.packLeader.flipped.push(index);
+
+            if (gameData.packLeader.flipped.length === 2) {
+                gameData.packLeader.moves++;
+                setTimeout(checkMatch, 1000);
+            }
+
+            updatePackLeaderUI();
+        }
+
+        function checkMatch() {
+            const [first, second] = gameData.packLeader.flipped;
+            const firstCard = document.getElementById('memoryGrid').children[first];
+            const secondCard = document.getElementById('memoryGrid').children[second];
+
+            if (gameData.packLeader.cards[first] === gameData.packLeader.cards[second]) {
+                firstCard.classList.add('matched');
+                secondCard.classList.add('matched');
+                gameData.packLeader.matched.push(first, second);
+                gameData.packLeader.score += 50;
+            } else {
+                firstCard.classList.remove('flipped');
+                secondCard.classList.remove('flipped');
+                firstCard.textContent = '❓';
+                secondCard.textContent = '❓';
+            }
+
+            gameData.packLeader.flipped = [];
+            updatePackLeaderUI();
+
+            if (gameData.packLeader.matched.length === 16) {
+                endPackLeader();
+            }
+        }
+
+        function updatePackLeaderUI() {
+            document.getElementById('pairsMatched').textContent = gameData.packLeader.matched.length / 2;
+            document.getElementById('moves').textContent = gameData.packLeader.moves;
+            document.getElementById('memoryScore').textContent = gameData.packLeader.score;
+        }
+
+        function endPackLeader() {
+            const bonus = Math.max(0, 100 - gameData.packLeader.moves * 5);
+            gameData.packLeader.score += bonus;
             
-            currentGame = null;
-            gameScore = 0;
-            gameTargets = [];
+            const result = document.getElementById('memoryResult');
+            result.innerHTML = `
+                <div class="result-message success">
+                    🎉 You're the Pack Leader!<br>
+                    Moves: ${gameData.packLeader.moves}<br>
+                    Score: ${gameData.packLeader.score} coins<br>
+                    Efficiency Bonus: ${bonus} coins
+                </div>
+                <button class="play-again-button" onclick="initPackLeader()">Lead Again</button>
+            `;
+
+            awardCoins(gameData.packLeader.score, 'Pack Leader');
         }
 
-        function playWolfHunt() {
-            if (gameTimer) return;
-
-            gameScore = 0;
-            let timeLeft = 7;
-            const gameArea = document.querySelector('#wolfHuntScreen .game-area');
-            const timerDisplay = document.getElementById('wolfHuntTimer');
-            const scoreDisplay = document.getElementById('wolfHuntScore');
-            const startButton = document.getElementById('wolfHuntStart');
-
-            startButton.disabled = true;
-            timerDisplay.textContent = timeLeft;
-            scoreDisplay.textContent = 'Score: 0';
-
-            // Clear existing targets
-            gameTargets.forEach(target => target.remove());
-            gameTargets = [];
-
-            gameTimer = setInterval(() => {
-                timeLeft--;
-                timerDisplay.textContent = timeLeft;
-
-                // Spawn targets more frequently for better gameplay
-                if (Math.random() < 0.8) {
-                    spawnTarget(gameArea, 'wolfHunt');
-                }
-
-                if (timeLeft <= 0) {
-                    clearInterval(gameTimer);
-                    gameTimer = null;
-                    endGame('wolfHunt', 50, 150);
-                    startButton.disabled = false;
-                }
-            }, 1000);
+        // Howl Challenge Game
+        function startHowlChallenge() {
+            currentGame = 'howlChallenge';
+            showGame('howlChallengeGame');
+            initHowlChallenge();
         }
 
-        function playPackLeader() {
-            if (gameTimer) return;
-
-            gameScore = 0;
-            let timeLeft = 7;
-            const gameArea = document.querySelector('#packLeaderScreen .game-area');
-            const timerDisplay = document.getElementById('packLeaderTimer');
-            const scoreDisplay = document.getElementById('packLeaderScore');
-            const startButton = document.getElementById('packLeaderStart');
-
-            startButton.disabled = true;
-            timerDisplay.textContent = timeLeft;
-            scoreDisplay.textContent = 'Score: 0';
-
-            // Clear existing targets
-            gameTargets.forEach(target => target.remove());
-            gameTargets = [];
-
-            gameTimer = setInterval(() => {
-                timeLeft--;
-                timerDisplay.textContent = timeLeft;
-
-                // Spawn targets with medium frequency
-                if (Math.random() < 0.7) {
-                    spawnTarget(gameArea, 'packLeader');
-                }
-
-                if (timeLeft <= 0) {
-                    clearInterval(gameTimer);
-                    gameTimer = null;
-                    endGame('packLeader', 100, 250);
-                    startButton.disabled = false;
-                }
-            }, 1000);
-        }
-
-        function playHowlChallenge() {
-            if (gameTimer) return;
-
-            gameScore = 0;
-            let timeLeft = 7;
-            const gameArea = document.querySelector('#howlChallengeScreen .game-area');
-            const timerDisplay = document.getElementById('howlChallengeTimer');
-            const scoreDisplay = document.getElementById('howlChallengeScore');
-            const startButton = document.getElementById('howlChallengeStart');
-
-            startButton.disabled = true;
-            timerDisplay.textContent = timeLeft;
-            scoreDisplay.textContent = 'Score: 0';
-
-            // Clear existing targets
-            gameTargets.forEach(target => target.remove());
-            gameTargets = [];
-
-            gameTimer = setInterval(() => {
-                timeLeft--;
-                timerDisplay.textContent = timeLeft;
-
-                // Spawn targets with lower frequency but higher rewards
-                if (Math.random() < 0.6) {
-                    spawnTarget(gameArea, 'howlChallenge');
-                }
-
-                if (timeLeft <= 0) {
-                    clearInterval(gameTimer);
-                    gameTimer = null;
-                    endGame('howlChallenge', 75, 300);
-                    startButton.disabled = false;
-                }
-            }, 1000);
-        }
-
-        function spawnTarget(gameArea, gameType) {
-            const target = document.createElement('div');
-            target.className = 'game-target';
-            
-            const icons = {
-                'wolfHunt': '🎯',
-                'packLeader': '👑',
-                'howlChallenge': '🌙'
+        function initHowlChallenge() {
+            gameData.howlChallenge = {
+                round: 1,
+                score: 0,
+                accuracy: 0,
+                totalRounds: 5,
+                currentTimer: 0,
+                targetTime: 0,
+                isActive: false,
+                results: []
             };
-            
-            target.textContent = icons[gameType];
-            target.style.left = Math.random() * (gameArea.clientWidth - 70) + 'px';
-            target.style.top = Math.random() * (gameArea.clientHeight - 120) + 70 + 'px';
 
-            target.addEventListener('click', () => {
-                gameScore++;
-                const scoreDisplay = document.getElementById(gameType + 'Score');
-                scoreDisplay.textContent = `Score: ${gameScore}`;
-                target.remove();
-                gameTargets = gameTargets.filter(t => t !== target);
-                
-                // Add visual feedback
-                createTargetHitEffect(target.style.left, target.style.top);
-            });
-
-            gameArea.appendChild(target);
-            gameTargets.push(target);
-
-            // Remove target after 2.5 seconds
-            setTimeout(() => {
-                if (target.parentNode) {
-                    target.remove();
-                    gameTargets = gameTargets.filter(t => t !== target);
-                }
-            }, 2500);
+            startHowlRound();
         }
 
-        function createTargetHitEffect(x, y) {
-            const effect = document.createElement('div');
-            effect.style.position = 'absolute';
-            effect.style.left = x;
-            effect.style.top = y;
-            effect.style.color = '#32CD32';
-            effect.style.fontSize = '24px';
-            effect.style.fontWeight = 'bold';
-            effect.style.pointerEvents = 'none';
-            effect.style.animation = 'coinFloat 0.8s ease-out forwards';
-            effect.textContent = '+1';
+        function startHowlRound() {
+            gameData.howlChallenge.targetTime = Math.random() * 3000 + 2000; // 2-5 seconds
+            gameData.howlChallenge.currentTimer = 0;
+            gameData.howlChallenge.isActive = true;
+
+            const timerFill = document.getElementById('timerFill');
+            const howlButton = document.getElementById('howlButton');
             
-            const gameArea = document.querySelector('.game-area');
-            gameArea.appendChild(effect);
+            howlButton.classList.remove('active');
             
-            setTimeout(() => {
-                if (effect.parentNode) {
-                    effect.remove();
+            const interval = setInterval(() => {
+                gameData.howlChallenge.currentTimer += 50;
+                const progress = (gameData.howlChallenge.currentTimer / 5000) * 100;
+                timerFill.style.width = `${progress}%`;
+
+                if (gameData.howlChallenge.currentTimer >= gameData.howlChallenge.targetTime - 200 && 
+                    gameData.howlChallenge.currentTimer <= gameData.howlChallenge.targetTime + 200) {
+                    howlButton.classList.add('active');
+                } else {
+                    howlButton.classList.remove('active');
                 }
-            }, 800);
+
+                if (gameData.howlChallenge.currentTimer >= 5000) {
+                    clearInterval(interval);
+                    if (gameData.howlChallenge.isActive) {
+                        howlResult(false, 0);
+                    }
+                }
+            }, 50);
         }
 
-        async function endGame(gameType, minReward, maxReward) {
-            // Clear remaining targets
-            gameTargets.forEach(target => target.remove());
-            gameTargets = [];
+        function howl() {
+            if (!gameData.howlChallenge.isActive) return;
 
-            // Calculate reward based on score with better scaling
-            const baseReward = minReward;
-            const bonusReward = Math.floor((gameScore / 8) * (maxReward - minReward));
-            const totalReward = Math.min(baseReward + bonusReward, maxReward);
+            gameData.howlChallenge.isActive = false;
+            const timeDiff = Math.abs(gameData.howlChallenge.currentTimer - gameData.howlChallenge.targetTime);
+            const accuracy = Math.max(0, 100 - (timeDiff / 10));
+            
+            howlResult(accuracy > 70, accuracy);
+        }
 
-            // Update game state
-            gameState.coins += totalReward;
+        function howlResult(success, accuracy) {
+            gameData.howlChallenge.results.push(accuracy);
+            
+            if (success) {
+                const roundScore = Math.floor(accuracy * 2);
+                gameData.howlChallenge.score += roundScore;
+            }
 
-            // Save data and add transaction
+            const avgAccuracy = gameData.howlChallenge.results.reduce((a, b) => a + b, 0) / gameData.howlChallenge.results.length;
+            gameData.howlChallenge.accuracy = Math.floor(avgAccuracy);
+
+            updateHowlChallengeUI();
+
+            if (gameData.howlChallenge.round >= gameData.howlChallenge.totalRounds) {
+                endHowlChallenge();
+            } else {
+                gameData.howlChallenge.round++;
+                setTimeout(startHowlRound, 2000);
+            }
+        }
+
+        function updateHowlChallengeUI() {
+            document.getElementById('round').textContent = gameData.howlChallenge.round;
+            document.getElementById('accuracy').textContent = `${gameData.howlChallenge.accuracy}%`;
+            document.getElementById('howlScore').textContent = gameData.howlChallenge.score;
+        }
+
+        function endHowlChallenge() {
+            const result = document.getElementById('howlResult');
+            const avgAccuracy = gameData.howlChallenge.accuracy;
+            
+            let message = '';
+            if (avgAccuracy >= 90) {
+                message = '🌟 Perfect Howl! You are the Alpha!';
+            } else if (avgAccuracy >= 70) {
+                message = '🎉 Great Howling! Well done!';
+            } else if (avgAccuracy >= 50) {
+                message = '👍 Good effort! Keep practicing!';
+            } else {
+                message = '😅 The pack needs more practice!';
+            }
+
+            result.innerHTML = `
+                <div class="result-message ${avgAccuracy >= 70 ? 'success' : 'failure'}">
+                    ${message}<br>
+                    Average Accuracy: ${avgAccuracy}%<br>
+                    Score: ${gameData.howlChallenge.score} coins
+                </div>
+                <button class="play-again-button" onclick="initHowlChallenge()">Howl Again</button>
+            `;
+
+            awardCoins(gameData.howlChallenge.score, 'Howl Challenge');
+        }
+
+        // Award coins to user
+        async function awardCoins(amount, gameName) {
             try {
+                gameState.coins += amount;
                 await saveUserData();
-                await addTransaction('earned', `${gameType} Reward`, totalReward);
+                await addTransaction('earned', `${gameName} Reward`, amount);
                 updateUI();
-                showSuccess(`Game completed! Score: ${gameScore} - You earned ${totalReward} coins!`);
+                showSuccess(`Game completed! You earned ${amount} coins!`);
             } catch (error) {
-                console.error('Error saving game reward:', error);
-                showSuccess(`Game completed! Score: ${gameScore} - You earned ${totalReward} coins!`);
+                console.error('Failed to award coins:', error);
+                // For testing, still award coins
+                gameState.coins += amount;
+                await addTransaction('earned', `${gameName} Reward`, amount);
+                updateUI();
+                showSuccess(`Game completed! You earned ${amount} coins!`);
             }
         }
 
