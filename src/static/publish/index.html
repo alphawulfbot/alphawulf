@@ -1443,9 +1443,9 @@
 </head>
 <body>
     <!-- Loading Screen -->
-    <div id="loadingScreen" class="loading-screen">
+<div id="loadingScreen" class="loading-screen">
         <div class="loading-logo">
-            <img src="alpha_wulf_logo.png" alt="Alpha Wulf Logo">
+            <img src="upload/alpha_wulf_logo.png" alt="Alpha Wulf Logo">
         </div>
         <div class="loading-text">Alpha Wulf</div>
         <div class="loading-subtitle">Tap to Earn</div>
@@ -2080,6 +2080,9 @@
             const energyPercentage = (gameState.energy / gameState.maxEnergy) * 100;
             document.getElementById('energyFill').style.width = `${energyPercentage}%`;
 
+            // Update level bar based on coins earned
+            updateLevelBar();
+
             // Update profile
             document.getElementById('profileIcon').textContent = gameState.profileIcon;
             document.getElementById('userName').textContent = gameState.displayName;
@@ -2089,6 +2092,23 @@
 
             // Update withdraw balance
             document.getElementById('withdrawBalance').textContent = `${formatNumber(gameState.coins)} Coins`;
+        }
+
+        // Update level bar in real-time based on coins
+        function updateLevelBar() {
+            const coinsPerLevel = 1000; // 1000 coins per level
+            const currentLevel = Math.floor(gameState.coins / coinsPerLevel) + 1;
+            const coinsInCurrentLevel = gameState.coins % coinsPerLevel;
+            const levelProgress = (coinsInCurrentLevel / coinsPerLevel) * 100;
+
+            // Update level display
+            document.getElementById('userLevel').textContent = `Level ${currentLevel}`;
+            
+            // Update progress bar
+            const progressBar = document.querySelector('.level-progress');
+            if (progressBar) {
+                progressBar.style.width = `${levelProgress}%`;
+            }
         }
 
         // Update upgrade displays
@@ -2151,14 +2171,15 @@
             }, 1200);
         }
 
-        // Energy regeneration
+        // Energy regeneration - 60 minutes for full restoration
         function startEnergyRegeneration() {
             setInterval(() => {
                 if (gameState.energy < gameState.maxEnergy) {
+                    // Energy regenerates 1 point every 36 seconds (100 energy in 60 minutes)
                     gameState.energy = Math.min(gameState.maxEnergy, gameState.energy + gameState.energyRechargeRate);
                     updateUI();
                 }
-            }, 1000);
+            }, 36000); // 36 seconds = 36000ms
         }
 
         // Navigation
