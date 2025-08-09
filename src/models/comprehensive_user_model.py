@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 # Supabase configuration
 SUPABASE_URL = os.getenv('SUPABASE_URL')
-SUPABASE_KEY = os.getenv('SUPABASE_KEY')
+SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY")
 
 if not SUPABASE_URL or not SUPABASE_KEY:
     raise ValueError("SUPABASE_URL and SUPABASE_KEY environment variables must be set")
