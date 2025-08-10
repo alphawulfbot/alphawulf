@@ -3111,6 +3111,8 @@
         // Sticker Guide Functions
         let currentGuideStep = 1;
         const totalGuideSteps = 5;
+        let highlightOverlay = null;
+        let spotlightOverlay = null;
 
         function initStickerGuide() {
             // Check if user has seen the guide before
@@ -3134,6 +3136,9 @@
         }
 
         function showGuideStep(stepNumber) {
+            // Remove previous highlights
+            removeHighlights();
+            
             // Hide all steps
             for (let i = 1; i <= totalGuideSteps; i++) {
                 const step = document.getElementById(`guideStep${i}`);
@@ -3147,8 +3152,8 @@
             if (currentStep) {
                 currentStep.style.display = 'flex';
                 
-                // Position arrow if needed
-                positionGuideArrow(stepNumber);
+                // Highlight target element
+                highlightTargetElement(stepNumber);
                 
                 // Auto advance after 4 seconds, except for last step
                 if (stepNumber < totalGuideSteps) {
@@ -3163,36 +3168,140 @@
             currentGuideStep = stepNumber;
         }
 
-        function positionGuideArrow(stepNumber) {
-            const arrow = document.querySelector(`#guideStep${stepNumber} .guide-arrow`);
-            if (!arrow) return;
-            
+        function highlightTargetElement(stepNumber) {
             let targetElement;
+            let targetSelector;
+            
             switch (stepNumber) {
                 case 1:
-                    targetElement = document.getElementById('profileIcon');
+                    targetSelector = '#profileIcon';
                     break;
                 case 2:
-                    targetElement = document.getElementById('tapButton');
+                    targetSelector = '#tapButton';
                     break;
                 case 3:
-                    targetElement = document.getElementById('upgradesNav');
+                    targetSelector = '#upgradesNav';
                     break;
                 case 4:
-                    targetElement = document.getElementById('withdrawNav');
+                    targetSelector = '#withdrawNav';
                     break;
                 case 5:
-                    targetElement = document.getElementById('historyNav');
+                    targetSelector = '#historyNav';
                     break;
             }
             
+            targetElement = document.querySelector(targetSelector);
+            
             if (targetElement) {
-                const rect = targetElement.getBoundingClientRect();
-                const arrowRect = arrow.getBoundingClientRect();
+                // Create spotlight effect
+                createSpotlight(targetElement);
                 
-                // Position arrow to point to the target element
-                arrow.style.left = `${rect.left + rect.width / 2 - arrowRect.width / 2}px`;
-                arrow.style.top = `${rect.bottom + 10}px`;
+                // Create highlight border
+                createHighlight(targetElement);
+                
+                // Position arrow
+                positionGuideArrow(targetElement, stepNumber);
+            }
+        }
+
+        function createSpotlight(element) {
+            // Remove existing spotlight
+            if (spotlightOverlay) {
+                spotlightOverlay.remove();
+            }
+            
+            const rect = element.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const radius = Math.max(rect.width, rect.height) / 2 + 30;
+            
+            spotlightOverlay = document.createElement('div');
+            spotlightOverlay.className = 'guide-spotlight';
+            spotlightOverlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background: radial-gradient(circle ${radius}px at ${centerX}px ${centerY}px, 
+                    transparent 0%, 
+                    transparent 40%, 
+                    rgba(0, 0, 0, 0.7) 70%);
+                pointer-events: none;
+                z-index: 9998;
+            `;
+            
+            document.body.appendChild(spotlightOverlay);
+        }
+
+        function createHighlight(element) {
+            // Remove existing highlight
+            if (highlightOverlay) {
+                highlightOverlay.remove();
+            }
+            
+            const rect = element.getBoundingClientRect();
+            
+            highlightOverlay = document.createElement('div');
+            highlightOverlay.className = 'guide-highlight';
+            highlightOverlay.style.cssText = `
+                position: fixed;
+                top: ${rect.top - 8}px;
+                left: ${rect.left - 8}px;
+                width: ${rect.width + 16}px;
+                height: ${rect.height + 16}px;
+                border: 4px solid #FFD700;
+                border-radius: 15px;
+                box-shadow: 
+                    0 0 30px rgba(255, 215, 0, 0.8),
+                    inset 0 0 20px rgba(255, 215, 0, 0.2);
+                animation: highlightPulse 2s infinite;
+                pointer-events: none;
+                z-index: 9999;
+            `;
+            
+            // Add dashed border animation
+            const dashedBorder = document.createElement('div');
+            dashedBorder.style.cssText = `
+                position: absolute;
+                top: -8px;
+                left: -8px;
+                right: -8px;
+                bottom: -8px;
+                border: 2px dashed #FFD700;
+                border-radius: 20px;
+                animation: rotateDash 3s linear infinite;
+            `;
+            highlightOverlay.appendChild(dashedBorder);
+            
+            document.body.appendChild(highlightOverlay);
+        }
+
+        function positionGuideArrow(targetElement, stepNumber) {
+            const arrow = document.querySelector(`#guideStep${stepNumber} .guide-arrow`);
+            if (!arrow) return;
+            
+            const rect = targetElement.getBoundingClientRect();
+            const arrowRect = arrow.getBoundingClientRect();
+            
+            // Position arrow below the target element
+            const leftPos = rect.left + rect.width / 2 - arrowRect.width / 2;
+            const topPos = rect.bottom + 15;
+            
+            arrow.style.position = 'fixed';
+            arrow.style.left = `${leftPos}px`;
+            arrow.style.top = `${topPos}px`;
+            arrow.style.zIndex = '10000';
+        }
+
+        function removeHighlights() {
+            if (highlightOverlay) {
+                highlightOverlay.remove();
+                highlightOverlay = null;
+            }
+            if (spotlightOverlay) {
+                spotlightOverlay.remove();
+                spotlightOverlay = null;
             }
         }
 
@@ -3209,6 +3318,9 @@
         }
 
         function completeGuide() {
+            // Remove highlights
+            removeHighlights();
+            
             // Hide the guide
             document.getElementById('stickerGuide').style.display = 'none';
             
@@ -3350,12 +3462,12 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.85);
             z-index: 10000;
             display: flex;
             align-items: center;
             justify-content: center;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(8px);
         }
 
         .sticker-guide-content {
@@ -3367,6 +3479,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            padding: 20px;
         }
 
         .sticker-guide-step {
@@ -3374,81 +3487,144 @@
             flex-direction: column;
             align-items: center;
             text-align: center;
-            animation: fadeInUp 0.5s ease-out;
+            animation: fadeInUp 0.6s ease-out;
+            position: relative;
+            width: 100%;
         }
 
         .sticker-container {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+            z-index: 10001;
         }
 
         .guide-sticker {
-            width: 120px;
-            height: 120px;
+            width: 140px;
+            height: 140px;
             object-fit: contain;
-            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.5));
+            filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.7));
             animation: bounce 2s infinite;
         }
 
         .guide-text-bubble {
-            background: linear-gradient(135deg, rgba(30, 30, 30, 0.95), rgba(50, 50, 50, 0.95));
-            border: 2px solid #FFD700;
-            border-radius: 20px;
-            padding: 20px;
-            margin: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(10px);
+            background: linear-gradient(135deg, rgba(20, 20, 20, 0.98), rgba(40, 40, 40, 0.98));
+            border: 3px solid #FFD700;
+            border-radius: 25px;
+            padding: 25px;
+            margin: 20px 10px;
+            box-shadow: 
+                0 15px 40px rgba(0, 0, 0, 0.7),
+                inset 0 1px 0 rgba(255, 215, 0, 0.2);
+            backdrop-filter: blur(15px);
+            position: relative;
+            max-width: 350px;
+        }
+
+        .guide-text-bubble::before {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 15px solid #FFD700;
         }
 
         .guide-text-bubble h3 {
             color: #FFD700;
-            font-size: 20px;
+            font-size: 22px;
             font-weight: bold;
-            margin: 0 0 10px 0;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            margin: 0 0 15px 0;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+            letter-spacing: 0.5px;
         }
 
         .guide-text-bubble p {
             color: #FFFFFF;
-            font-size: 14px;
-            line-height: 1.5;
+            font-size: 15px;
+            line-height: 1.6;
             margin: 0;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Element Highlighting */
+        .guide-highlight {
+            position: absolute !important;
+            z-index: 9999 !important;
+            border: 4px solid #FFD700 !important;
+            border-radius: 15px !important;
+            box-shadow: 
+                0 0 30px rgba(255, 215, 0, 0.8),
+                inset 0 0 20px rgba(255, 215, 0, 0.2) !important;
+            animation: highlightPulse 2s infinite !important;
+            pointer-events: none !important;
+        }
+
+        .guide-highlight::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            right: -8px;
+            bottom: -8px;
+            border: 2px dashed #FFD700;
+            border-radius: 20px;
+            animation: rotateDash 3s linear infinite;
+        }
+
+        .guide-spotlight {
+            position: fixed !important;
+            z-index: 9998 !important;
+            background: radial-gradient(circle, transparent 40%, rgba(0, 0, 0, 0.8) 70%) !important;
+            pointer-events: none !important;
         }
 
         .guide-arrow {
             position: absolute;
             width: 0;
             height: 0;
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-top: 20px solid #FFD700;
-            animation: pulse 1.5s infinite;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 25px solid #FFD700;
+            animation: arrowBounce 1.5s infinite;
+            filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+            z-index: 10000;
         }
 
         .guide-controls {
             position: fixed;
-            bottom: 30px;
+            bottom: 40px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 15px;
+            gap: 20px;
+            z-index: 10001;
         }
 
         .guide-skip-btn, .guide-next-btn {
             background: linear-gradient(135deg, #FFD700, #FFA500);
             color: #000;
             border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
+            padding: 15px 30px;
+            border-radius: 30px;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 16px;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+            box-shadow: 
+                0 6px 20px rgba(255, 215, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .guide-skip-btn:hover, .guide-next-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 
+                0 8px 25px rgba(255, 215, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
         }
 
         .guide-skip-btn {
@@ -3456,10 +3632,16 @@
             color: #FFF;
         }
 
+        .guide-skip-btn:hover {
+            box-shadow: 
+                0 8px 25px rgba(102, 102, 102, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
         @keyframes fadeInUp {
             from {
                 opacity: 0;
-                transform: translateY(30px);
+                transform: translateY(40px);
             }
             to {
                 opacity: 1;
@@ -3472,42 +3654,76 @@
                 transform: translateY(0);
             }
             40% {
-                transform: translateY(-10px);
+                transform: translateY(-15px);
             }
             60% {
-                transform: translateY(-5px);
+                transform: translateY(-8px);
             }
         }
 
-        @keyframes pulse {
+        @keyframes highlightPulse {
             0%, 100% {
-                opacity: 1;
-                transform: scale(1);
+                box-shadow: 
+                    0 0 30px rgba(255, 215, 0, 0.8),
+                    inset 0 0 20px rgba(255, 215, 0, 0.2);
+                border-color: #FFD700;
             }
             50% {
+                box-shadow: 
+                    0 0 50px rgba(255, 215, 0, 1),
+                    inset 0 0 30px rgba(255, 215, 0, 0.4);
+                border-color: #FFF700;
+            }
+        }
+
+        @keyframes rotateDash {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes arrowBounce {
+            0%, 100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            50% {
+                transform: translateY(-10px);
                 opacity: 0.7;
-                transform: scale(1.1);
             }
         }
 
         /* Mobile responsive adjustments for guide */
         @media (max-width: 480px) {
             .guide-sticker {
-                width: 100px;
-                height: 100px;
+                width: 120px;
+                height: 120px;
             }
 
             .guide-text-bubble {
-                padding: 15px;
-                margin: 15px;
+                padding: 20px;
+                margin: 15px 5px;
             }
 
             .guide-text-bubble h3 {
-                font-size: 18px;
+                font-size: 20px;
             }
 
             .guide-text-bubble p {
-                font-size: 13px;
+                font-size: 14px;
+            }
+
+            .guide-controls {
+                bottom: 30px;
+                gap: 15px;
+            }
+
+            .guide-skip-btn, .guide-next-btn {
+                padding: 12px 24px;
+                font-size: 14px;
             }
         }
     </style>
