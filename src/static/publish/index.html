@@ -1460,7 +1460,7 @@
     <!-- Loading Screen -->
     <div id="loadingScreen" class="loading-screen">
         <div class="loading-logo">
-            <img src="alpha_wulf_logo.png" alt="Alpha Wulf Logo">
+            <img src="upload/alpha_wulf_logo.png" alt="Alpha Wulf Logo">
         </div>
         <div class="loading-text">Alpha Wulf</div>
         <div class="loading-subtitle">Tap to Earn</div>
@@ -2126,17 +2126,30 @@
 
         // Give joining bonus - 1000 coins
         async function giveJoiningBonus() {
+            // Check if bonus has already been given
+            const bonusGiven = localStorage.getItem('alphawulf_bonus_given');
+            if (bonusGiven) {
+                console.log('Joining bonus already given');
+                return;
+            }
+            
             try {
                 gameState.coins += 1000;
                 await saveUserData();
                 await addTransaction('earned', 'Joining Bonus', 1000);
                 showSuccess('Welcome! You received 1000 coins as joining bonus!');
+                
+                // Mark bonus as given
+                localStorage.setItem('alphawulf_bonus_given', 'true');
             } catch (error) {
                 console.error('Error giving joining bonus:', error);
-                // For testing, still give bonus
-                gameState.coins += 1000;
-                await addTransaction('earned', 'Joining Bonus', 1000);
-                showSuccess('Welcome! You received 1000 coins as joining bonus!');
+                // For testing, still give bonus but only once
+                if (!bonusGiven) {
+                    gameState.coins += 1000;
+                    await addTransaction('earned', 'Joining Bonus', 1000);
+                    showSuccess('Welcome! You received 1000 coins as joining bonus!');
+                    localStorage.setItem('alphawulf_bonus_given', 'true');
+                }
             }
         }
 
@@ -2311,6 +2324,7 @@
                 loadReferralData();
             } else if (sectionName === 'history') {
                 loadTransactionHistory();
+                displayTransactions(); // Ensure transactions are displayed
             } else if (sectionName === 'withdraw') {
                 loadWithdrawHistory();
             }
