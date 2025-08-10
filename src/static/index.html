@@ -61,6 +61,21 @@
             user-select: none;
             -webkit-long-press: none;
             -webkit-context-menu: none;
+            pointer-events: auto;
+        }
+
+        img {
+            -webkit-user-drag: none;
+            -khtml-user-drag: none;
+            -moz-user-drag: none;
+            -o-user-drag: none;
+            user-drag: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
 
         body {
@@ -289,8 +304,8 @@
             height: 100%;
             background: linear-gradient(90deg, #FFD700, #FFA500);
             border-radius: 4px;
-            width: 65%;
-            transition: width 0.3s ease;
+            width: 0%;
+            transition: width 0.8s ease-in-out;
             box-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
         }
 
@@ -1443,9 +1458,9 @@
 </head>
 <body>
     <!-- Loading Screen -->
-<div id="loadingScreen" class="loading-screen">
+    <div id="loadingScreen" class="loading-screen">
         <div class="loading-logo">
-            <img src="upload/alpha_wulf_logo.png" alt="Alpha Wulf Logo">
+            <img src="alpha_wulf_logo.png" alt="Alpha Wulf Logo">
         </div>
         <div class="loading-text">Alpha Wulf</div>
         <div class="loading-subtitle">Tap to Earn</div>
@@ -1458,6 +1473,19 @@
     <div id="profileModal" class="modal">
         <div class="modal-content">
             <div class="modal-title">Edit Profile</div>
+            
+            <!-- Custom Photo Upload Section -->
+            <div class="photo-upload-section">
+                <div class="current-photo-display">
+                    <div id="currentPhotoPreview" class="photo-preview">🐺</div>
+                </div>
+                <input type="file" id="photoUploadInput" accept="image/*" style="display: none;" onchange="handlePhotoUpload(event)">
+                <button class="upload-photo-btn" onclick="document.getElementById('photoUploadInput').click()">
+                    📷 Upload Custom Photo
+                </button>
+            </div>
+            
+            <!-- Icon Selection -->
             <div class="profile-icons">
                 <div class="profile-icon-option" data-icon="🐺" onclick="selectProfileIcon('🐺')">🐺</div>
                 <div class="profile-icon-option" data-icon="👤" onclick="selectProfileIcon('👤')">👤</div>
@@ -1495,7 +1523,7 @@
                     </div>
                 </div>
                 <div class="user-progress">
-                    <div id="levelProgress" class="level-progress" style="width: 0%;"></div>
+                    <div class="user-progress-bar"></div>
                 </div>
             </div>
 
@@ -2104,8 +2132,8 @@
             // Update level display
             document.getElementById('userLevel').textContent = `Level ${currentLevel}`;
             
-            // Update progress bar
-            const progressBar = document.getElementById('levelProgress');
+            // Update progress bar with animation
+            const progressBar = document.querySelector('.user-progress-bar');
             if (progressBar) {
                 progressBar.style.width = `${levelProgress}%`;
             }
@@ -2708,13 +2736,39 @@
             const referralLink = document.getElementById('referralLink').textContent;
             const shareText = 'Alpha Wulf is an engaging tap-to-earn game where you grow your wolf pack and compete with friends!';
             
-            if (navigator.share) {
+            // Check if Web Share API is supported
+            if (navigator.share && navigator.canShare) {
+                const shareData = {
+                    title: 'Join Alpha Wulf',
+                    text: shareText,
+                    url: referralLink
+                };
+                
+                // Check if the data can be shared
+                if (navigator.canShare(shareData)) {
+                    navigator.share(shareData)
+                        .then(() => {
+                            console.log('Successfully shared');
+                            showSuccess('Shared successfully!');
+                        })
+                        .catch((error) => {
+                            console.log('Error sharing:', error);
+                            // Fallback to copy
+                            copyReferralLink();
+                        });
+                } else {
+                    // Fallback to copy if data cannot be shared
+                    copyReferralLink();
+                }
+            } else if (navigator.share) {
+                // Try basic Web Share API without canShare check
                 navigator.share({
                     title: 'Join Alpha Wulf',
-                    text: shareText + ' ' + referralLink,
+                    text: shareText,
                     url: referralLink
                 }).then(() => {
                     console.log('Successfully shared');
+                    showSuccess('Shared successfully!');
                 }).catch((error) => {
                     console.log('Error sharing:', error);
                     // Fallback to copy
@@ -2920,7 +2974,125 @@
                 }
             }, 3000);
         }
+
+        // Profile modal functions
+        function openProfileModal() {
+            document.getElementById('profileModal').style.display = 'flex';
+            document.getElementById('nameInput').value = gameState.displayName || '';
+            document.getElementById('currentPhotoPreview').innerHTML = gameState.profileIcon || '🐺';
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profileModal').style.display = 'none';
+        }
+
+        function selectProfileIcon(icon) {
+            gameState.profileIcon = icon;
+            gameState.customPhoto = null; // Clear custom photo when selecting icon
+            document.getElementById('currentPhotoPreview').innerHTML = icon;
+            
+            // Update active state
+            const options = document.querySelectorAll('.profile-icon-option');
+            options.forEach(opt => opt.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        }
+
+        function handlePhotoUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageData = e.target.result;
+                    gameState.customPhoto = imageData;
+                    gameState.profileIcon = null; // Clear icon when using custom photo
+                    
+                    // Update preview
+                    document.getElementById('currentPhotoPreview').innerHTML = 
+                        `<img src="${imageData}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+                    
+                    // Clear icon selection
+                    const options = document.querySelectorAll('.profile-icon-option');
+                    options.forEach(opt => opt.classList.remove('active'));
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function saveProfile() {
+            const newName = document.getElementById('nameInput').value.trim();
+            if (newName) {
+                gameState.displayName = newName;
+            }
+            
+            // Update profile display
+            updateProfileDisplay();
+            closeProfileModal();
+            showSuccess('Profile updated successfully!');
+        }
+
+        function updateProfileDisplay() {
+            const profileIcon = document.getElementById('profileIcon');
+            const userName = document.getElementById('userName');
+            
+            if (gameState.customPhoto) {
+                profileIcon.innerHTML = `<img src="${gameState.customPhoto}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+            } else {
+                profileIcon.innerHTML = gameState.profileIcon || '🐺';
+            }
+            
+            userName.textContent = gameState.displayName || 'Wolf Player';
+        }
     </script>
+
+    <style>
+        /* Photo upload section styling */
+        .photo-upload-section {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .current-photo-display {
+            margin-bottom: 15px;
+        }
+
+        .photo-preview {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            margin: 0 auto;
+            border: 3px solid rgba(255, 215, 0, 0.5);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        }
+
+        .upload-photo-btn {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .upload-photo-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .profile-icon-option.active {
+            background: rgba(255, 215, 0, 0.3);
+            border: 2px solid #FFD700;
+            transform: scale(1.1);
+        }
+    </style>
 </body>
 </html>
 
