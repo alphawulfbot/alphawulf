@@ -1504,6 +1504,71 @@
         </div>
     </div>
 
+    <!-- Sticker Guide Overlay -->
+    <div id="stickerGuide" class="sticker-guide-overlay" style="display: none;">
+        <div class="sticker-guide-content">
+            <div class="sticker-guide-step" id="guideStep1">
+                <div class="sticker-container">
+                    <img src="sticker_welcome.png" alt="Welcome Sticker" class="guide-sticker">
+                </div>
+                <div class="guide-text-bubble">
+                    <h3>Welcome, Alpha!</h3>
+                    <p>This quick guide will show you how to dominate the pack. First, personalize your journey by tapping your profile icon to change your name and photo.</p>
+                </div>
+                <div class="guide-arrow" data-target="profileIcon"></div>
+            </div>
+
+            <div class="sticker-guide-step" id="guideStep2" style="display: none;">
+                <div class="sticker-container">
+                    <img src="sticker_tap.png" alt="Tap Sticker" class="guide-sticker">
+                </div>
+                <div class="guide-text-bubble">
+                    <h3>Tap to Earn!</h3>
+                    <p>Your power lies in your tap! Tap the Alpha Wulf Coin to earn coins and grow your wealth. Keep an eye on your energy bar – it recharges over time.</p>
+                </div>
+                <div class="guide-arrow" data-target="tapButton"></div>
+            </div>
+
+            <div class="sticker-guide-step" id="guideStep3" style="display: none;">
+                <div class="sticker-container">
+                    <img src="sticker_upgrade.png" alt="Upgrade Sticker" class="guide-sticker">
+                </div>
+                <div class="guide-text-bubble">
+                    <h3>Upgrade Your Power!</h3>
+                    <p>Ready to boost your earnings? Visit the Upgrades section to increase your tap power, energy capacity, and energy regeneration rate.</p>
+                </div>
+                <div class="guide-arrow" data-target="upgradesNav"></div>
+            </div>
+
+            <div class="sticker-guide-step" id="guideStep4" style="display: none;">
+                <div class="sticker-container">
+                    <img src="sticker_withdraw.png" alt="Withdraw Sticker" class="guide-sticker">
+                </div>
+                <div class="guide-text-bubble">
+                    <h3>Cash Out Your Earnings!</h3>
+                    <p>Time to cash out! In the Withdraw section, you can request payouts for your hard-earned coins. Make sure your UPI ID is ready.</p>
+                </div>
+                <div class="guide-arrow" data-target="withdrawNav"></div>
+            </div>
+
+            <div class="sticker-guide-step" id="guideStep5" style="display: none;">
+                <div class="sticker-container">
+                    <img src="sticker_history.png" alt="History Sticker" class="guide-sticker">
+                </div>
+                <div class="guide-text-bubble">
+                    <h3>Track Your Journey!</h3>
+                    <p>Keep track of your progress! The History section logs all your transactions, game results, and earnings. See how far you've come!</p>
+                </div>
+                <div class="guide-arrow" data-target="historyNav"></div>
+            </div>
+
+            <div class="guide-controls">
+                <button id="skipGuide" class="guide-skip-btn">Skip Guide</button>
+                <button id="nextStep" class="guide-next-btn" style="display: none;">Next</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Container -->
     <div id="mainContainer" class="container" style="display: none;">
         <!-- Home Section -->
@@ -1869,23 +1934,23 @@
                 <div class="nav-icon">🏠</div>
                 <div class="nav-label">Home</div>
             </div>
-            <div class="nav-item" onclick="showSection('games')">
+            <div id="gamesNav" class="nav-item" onclick="showSection('games')">
                 <div class="nav-icon">🎮</div>
                 <div class="nav-label">Games</div>
             </div>
-            <div class="nav-item" onclick="showSection('upgrades')">
+            <div id="upgradesNav" class="nav-item" onclick="showSection('upgrades')">
                 <div class="nav-icon">⬆️</div>
                 <div class="nav-label">Upgrades</div>
             </div>
-            <div class="nav-item" onclick="showSection('referrals')">
+            <div id="referralsNav" class="nav-item" onclick="showSection('referrals')">
                 <div class="nav-icon">👥</div>
                 <div class="nav-label">Referrals</div>
             </div>
-            <div class="nav-item" onclick="showSection('withdraw')">
+            <div id="withdrawNav" class="nav-item" onclick="showSection('withdraw')">
                 <div class="nav-icon">💳</div>
                 <div class="nav-label">Withdraw</div>
             </div>
-            <div class="nav-item" onclick="showSection('history')">
+            <div id="historyNav" class="nav-item" onclick="showSection('history')">
                 <div class="nav-icon">📊</div>
                 <div class="nav-label">History</div>
             </div>
@@ -3042,6 +3107,132 @@
             
             userName.textContent = gameState.displayName || 'Wolf Player';
         }
+
+        // Sticker Guide Functions
+        let currentGuideStep = 1;
+        const totalGuideSteps = 5;
+
+        function initStickerGuide() {
+            // Check if user has seen the guide before
+            const hasSeenGuide = localStorage.getItem('alphawulf_guide_seen');
+            
+            if (!hasSeenGuide && gameState.isNewUser) {
+                // Show guide after a short delay to let the app load
+                setTimeout(() => {
+                    showStickerGuide();
+                }, 1000);
+            }
+        }
+
+        function showStickerGuide() {
+            document.getElementById('stickerGuide').style.display = 'flex';
+            showGuideStep(1);
+            
+            // Add event listeners
+            document.getElementById('skipGuide').addEventListener('click', skipGuide);
+            document.getElementById('nextStep').addEventListener('click', nextGuideStep);
+        }
+
+        function showGuideStep(stepNumber) {
+            // Hide all steps
+            for (let i = 1; i <= totalGuideSteps; i++) {
+                const step = document.getElementById(`guideStep${i}`);
+                if (step) {
+                    step.style.display = 'none';
+                }
+            }
+            
+            // Show current step
+            const currentStep = document.getElementById(`guideStep${stepNumber}`);
+            if (currentStep) {
+                currentStep.style.display = 'flex';
+                
+                // Position arrow if needed
+                positionGuideArrow(stepNumber);
+                
+                // Auto advance after 4 seconds, except for last step
+                if (stepNumber < totalGuideSteps) {
+                    setTimeout(() => {
+                        if (currentGuideStep === stepNumber) { // Only advance if user hasn't manually moved
+                            nextGuideStep();
+                        }
+                    }, 4000);
+                }
+            }
+            
+            currentGuideStep = stepNumber;
+        }
+
+        function positionGuideArrow(stepNumber) {
+            const arrow = document.querySelector(`#guideStep${stepNumber} .guide-arrow`);
+            if (!arrow) return;
+            
+            let targetElement;
+            switch (stepNumber) {
+                case 1:
+                    targetElement = document.getElementById('profileIcon');
+                    break;
+                case 2:
+                    targetElement = document.getElementById('tapButton');
+                    break;
+                case 3:
+                    targetElement = document.getElementById('upgradesNav');
+                    break;
+                case 4:
+                    targetElement = document.getElementById('withdrawNav');
+                    break;
+                case 5:
+                    targetElement = document.getElementById('historyNav');
+                    break;
+            }
+            
+            if (targetElement) {
+                const rect = targetElement.getBoundingClientRect();
+                const arrowRect = arrow.getBoundingClientRect();
+                
+                // Position arrow to point to the target element
+                arrow.style.left = `${rect.left + rect.width / 2 - arrowRect.width / 2}px`;
+                arrow.style.top = `${rect.bottom + 10}px`;
+            }
+        }
+
+        function nextGuideStep() {
+            if (currentGuideStep < totalGuideSteps) {
+                showGuideStep(currentGuideStep + 1);
+            } else {
+                completeGuide();
+            }
+        }
+
+        function skipGuide() {
+            completeGuide();
+        }
+
+        function completeGuide() {
+            // Hide the guide
+            document.getElementById('stickerGuide').style.display = 'none';
+            
+            // Mark guide as seen
+            localStorage.setItem('alphawulf_guide_seen', 'true');
+            
+            // Remove event listeners
+            document.getElementById('skipGuide').removeEventListener('click', skipGuide);
+            document.getElementById('nextStep').removeEventListener('click', nextGuideStep);
+            
+            // Reset step counter
+            currentGuideStep = 1;
+        }
+
+        // Initialize guide when app loads (modify existing initialization)
+        const originalInitApp = initializeApp;
+        async function initializeApp() {
+            await originalInitApp();
+            
+            // Initialize sticker guide for new users
+            setTimeout(() => {
+                initStickerGuide();
+            }, 4000); // Show guide after loading screen
+        }
     </script>
 
     <style>
@@ -3091,6 +3282,174 @@
             background: rgba(255, 215, 0, 0.3);
             border: 2px solid #FFD700;
             transform: scale(1.1);
+        }
+
+        /* Sticker Guide Styles */
+        .sticker-guide-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .sticker-guide-content {
+            position: relative;
+            width: 90%;
+            max-width: 400px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sticker-guide-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        .sticker-container {
+            margin-bottom: 20px;
+        }
+
+        .guide-sticker {
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.5));
+            animation: bounce 2s infinite;
+        }
+
+        .guide-text-bubble {
+            background: linear-gradient(135deg, rgba(30, 30, 30, 0.95), rgba(50, 50, 50, 0.95));
+            border: 2px solid #FFD700;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        .guide-text-bubble h3 {
+            color: #FFD700;
+            font-size: 20px;
+            font-weight: bold;
+            margin: 0 0 10px 0;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .guide-text-bubble p {
+            color: #FFFFFF;
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .guide-arrow {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 20px solid #FFD700;
+            animation: pulse 1.5s infinite;
+        }
+
+        .guide-controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+        }
+
+        .guide-skip-btn, .guide-next-btn {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .guide-skip-btn:hover, .guide-next-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+        }
+
+        .guide-skip-btn {
+            background: linear-gradient(135deg, #666, #888);
+            color: #FFF;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.7;
+                transform: scale(1.1);
+            }
+        }
+
+        /* Mobile responsive adjustments for guide */
+        @media (max-width: 480px) {
+            .guide-sticker {
+                width: 100px;
+                height: 100px;
+            }
+
+            .guide-text-bubble {
+                padding: 15px;
+                margin: 15px;
+            }
+
+            .guide-text-bubble h3 {
+                font-size: 18px;
+            }
+
+            .guide-text-bubble p {
+                font-size: 13px;
+            }
         }
     </style>
 </body>
