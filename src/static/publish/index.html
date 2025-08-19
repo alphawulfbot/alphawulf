@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alpha Wulf - Tap to Earn</title>
+    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
         // Disable right-click context menu
@@ -3363,6 +3364,592 @@
         document.addEventListener('DOMContentLoaded', async function() {
             await initializeApp();
         });
+
+        // ===== AD INTEGRATION SECTION =====
+        
+        // Ad Controller and Configuration
+        let AdController = null;
+        let adConfig = {
+            blockId: "your-block-id", // Replace with actual blockId from Adsgram publisher account
+            rewardedAdCooldown: 60000, // 1 minute cooldown for rewarded ads
+            interstitialAdCooldown: 300000, // 5 minutes cooldown for interstitial ads
+            lastRewardedAdTime: 0,
+            lastInterstitialAdTime: 0,
+            tapCountForInterstitial: 50, // Show interstitial after 50 taps
+            currentTapCount: 0,
+            coinMilestoneForReward: 10000 // Show rewarded ad option every 10k coins
+        };
+
+        // Initialize Adsgram SDK
+        function initializeAds() {
+            try {
+                if (window.Adsgram) {
+                    AdController = window.Adsgram.init({ blockId: adConfig.blockId });
+                    console.log('Adsgram SDK initialized successfully');
+                    
+                    // Add banner ad container to home section if needed
+                    addBannerAdContainer();
+                } else {
+                    console.error('Adsgram SDK not loaded');
+                }
+            } catch (error) {
+                console.error('Failed to initialize Adsgram SDK:', error);
+            }
+        }
+
+        // Add banner ad container to the UI
+        function addBannerAdContainer() {
+            const homeSection = document.getElementById('homeSection');
+            if (homeSection && !document.getElementById('bannerAdContainer')) {
+                const bannerContainer = document.createElement('div');
+                bannerContainer.id = 'bannerAdContainer';
+                bannerContainer.style.cssText = `
+                    width: 100%;
+                    height: 60px;
+                    background: rgba(255, 215, 0, 0.1);
+                    border: 1px solid rgba(255, 215, 0, 0.3);
+                    border-radius: 10px;
+                    margin: 10px 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: #DAA520;
+                    font-size: 12px;
+                    text-align: center;
+                `;
+                bannerContainer.innerHTML = 'Banner Ad Space';
+                
+                // Insert before the main content
+                const mainContent = homeSection.querySelector('.main-content');
+                if (mainContent) {
+                    homeSection.insertBefore(bannerContainer, mainContent);
+                }
+            }
+        }
+
+        // Show rewarded video ad
+        function showRewardedAd(rewardType = 'coins', rewardAmount = 500) {
+            if (!AdController) {
+                console.error('AdController not initialized');
+                return;
+            }
+
+            const currentTime = Date.now();
+            if (currentTime - adConfig.lastRewardedAdTime < adConfig.rewardedAdCooldown) {
+                showError('Please wait before watching another ad');
+                return;
+            }
+
+            AdController.show().then((result) => {
+                if (result.done) {
+                    // User watched the ad till the end, give reward
+                    giveAdReward(rewardType, rewardAmount);
+                    adConfig.lastRewardedAdTime = currentTime;
+                    trackAdImpression('rewarded', true);
+                }
+            }).catch((error) => {
+                console.error('Rewarded ad error:', error);
+                trackAdImpression('rewarded', false);
+            });
+        }
+
+        // Show interstitial ad
+        function showInterstitialAd() {
+            if (!AdController) {
+                console.error('AdController not initialized');
+                return;
+            }
+
+            const currentTime = Date.now();
+            if (currentTime - adConfig.lastInterstitialAdTime < adConfig.interstitialAdCooldown) {
+                return; // Don't show if within cooldown
+            }
+
+            AdController.show().then((result) => {
+                // For interstitial, result.done is true whether user watched till end or closed it
+                adConfig.lastInterstitialAdTime = currentTime;
+                trackAdImpression('interstitial', result.done);
+            }).catch((error) => {
+                console.error('Interstitial ad error:', error);
+                trackAdImpression('interstitial', false);
+            });
+        }
+
+        // Give reward to user after watching ad
+        function giveAdReward(rewardType, rewardAmount) {
+            try {
+                if (rewardType === 'coins') {
+                    gameState.coins += rewardAmount;
+                    showSuccess(`You received ${rewardAmount} coins for watching the ad!`);
+                } else if (rewardType === 'energy') {
+                    const energyReward = Math.min(rewardAmount, gameState.maxEnergy - gameState.energy);
+                    gameState.energy += energyReward;
+                    showSuccess(`You received ${energyReward} energy for watching the ad!`);
+                }
+
+                // Save data and add transaction
+                saveUserData();
+                addTransaction('earned', `Ad Reward (${rewardType})`, rewardAmount);
+                updateUI();
+            } catch (error) {
+                console.error('Error giving ad reward:', error);
+            }
+        }
+
+        // Track ad impressions for analytics
+        function trackAdImpression(adType, completed) {
+            try {
+                // Log ad impression data (can be extended to send to analytics service)
+                const impressionData = {
+                    adType: adType,
+                    completed: completed,
+                    timestamp: Date.now(),
+                    userId: tg?.initDataUnsafe?.user?.id || 'test_user',
+                    sessionId: getSessionId(),
+                    userAgent: navigator.userAgent,
+                    rewardAmount: getRewardAmountByType(adType),
+                    gameState: {
+                        coins: gameState.coins,
+                        level: Math.floor(gameState.coins / 1000) + 1,
+                        energy: gameState.energy
+                    }
+                };
+                
+                console.log('Ad impression tracked:', impressionData);
+                
+                // Store in localStorage for basic analytics
+                const impressions = JSON.parse(localStorage.getItem('alphawulf_ad_impressions') || '[]');
+                impressions.push(impressionData);
+                
+                // Keep only last 100 impressions
+                if (impressions.length > 100) {
+                    impressions.splice(0, impressions.length - 100);
+                }
+                
+                localStorage.setItem('alphawulf_ad_impressions', JSON.stringify(impressions));
+                
+                // Send analytics to backend if available
+                sendAnalyticsToBackend(impressionData);
+                
+                // Update daily analytics
+                updateDailyAnalytics(adType, completed);
+                
+            } catch (error) {
+                console.error('Error tracking ad impression:', error);
+            }
+        }
+
+        // Get session ID for analytics
+        function getSessionId() {
+            let sessionId = sessionStorage.getItem('alphawulf_session_id');
+            if (!sessionId) {
+                sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                sessionStorage.setItem('alphawulf_session_id', sessionId);
+            }
+            return sessionId;
+        }
+
+        // Get reward amount by ad type
+        function getRewardAmountByType(adType) {
+            switch (adType) {
+                case 'rewarded': return 500; // Default coin reward
+                case 'interstitial': return 0; // No direct reward
+                default: return 0;
+            }
+        }
+
+        // Send analytics to backend
+        async function sendAnalyticsToBackend(impressionData) {
+            try {
+                const response = await fetch(`${API_BASE}/analytics/ad-impression`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(impressionData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to send analytics to backend');
+                }
+            } catch (error) {
+                console.error('Error sending analytics to backend:', error);
+                // Continue without backend analytics if it fails
+            }
+        }
+
+        // Update daily analytics
+        function updateDailyAnalytics(adType, completed) {
+            const today = new Date().toISOString().split('T')[0];
+            const dailyKey = `alphawulf_daily_analytics_${today}`;
+            
+            let dailyAnalytics = JSON.parse(localStorage.getItem(dailyKey) || '{}');
+            
+            if (!dailyAnalytics[adType]) {
+                dailyAnalytics[adType] = { impressions: 0, completions: 0 };
+            }
+            
+            dailyAnalytics[adType].impressions++;
+            if (completed) {
+                dailyAnalytics[adType].completions++;
+            }
+            
+            localStorage.setItem(dailyKey, JSON.stringify(dailyAnalytics));
+        }
+
+        // Get analytics summary
+        function getAnalyticsSummary() {
+            const impressions = JSON.parse(localStorage.getItem('alphawulf_ad_impressions') || '[]');
+            const summary = {
+                totalImpressions: impressions.length,
+                rewardedAds: impressions.filter(i => i.adType === 'rewarded').length,
+                interstitialAds: impressions.filter(i => i.adType === 'interstitial').length,
+                completedAds: impressions.filter(i => i.completed).length,
+                completionRate: impressions.length > 0 ? (impressions.filter(i => i.completed).length / impressions.length * 100).toFixed(2) : 0,
+                totalRevenueEstimate: calculateEstimatedRevenue(impressions)
+            };
+            
+            return summary;
+        }
+
+        // Calculate estimated revenue (rough estimate based on typical CPM rates)
+        function calculateEstimatedRevenue(impressions) {
+            const cpmRate = 0.5; // $0.5 per 1000 impressions (conservative estimate)
+            const completedImpressions = impressions.filter(i => i.completed).length;
+            return ((completedImpressions / 1000) * cpmRate).toFixed(4);
+        }
+
+        // Enhanced reward system with bonus multipliers
+        function giveAdReward(rewardType, rewardAmount) {
+            try {
+                let finalReward = rewardAmount;
+                let bonusMultiplier = 1;
+                
+                // Apply bonus multipliers based on user level
+                const userLevel = Math.floor(gameState.coins / 1000) + 1;
+                if (userLevel >= 10) bonusMultiplier = 1.2;
+                if (userLevel >= 25) bonusMultiplier = 1.5;
+                if (userLevel >= 50) bonusMultiplier = 2.0;
+                
+                finalReward = Math.floor(rewardAmount * bonusMultiplier);
+                
+                if (rewardType === 'coins') {
+                    gameState.coins += finalReward;
+                    gameState.totalEarned += finalReward;
+                    
+                    let message = `You received ${finalReward} coins for watching the ad!`;
+                    if (bonusMultiplier > 1) {
+                        message += ` (${bonusMultiplier}x level bonus!)`;
+                    }
+                    showSuccess(message);
+                    
+                } else if (rewardType === 'energy') {
+                    const energyReward = Math.min(finalReward, gameState.maxEnergy - gameState.energy);
+                    gameState.energy += energyReward;
+                    showSuccess(`You received ${energyReward} energy for watching the ad!`);
+                }
+
+                // Save data and add transaction
+                saveUserData();
+                addTransaction('earned', `Ad Reward (${rewardType})`, finalReward);
+                updateUI();
+                
+                // Track reward given
+                trackRewardGiven(rewardType, finalReward, bonusMultiplier);
+                
+            } catch (error) {
+                console.error('Error giving ad reward:', error);
+            }
+        }
+
+        // Track reward given for analytics
+        function trackRewardGiven(rewardType, amount, multiplier) {
+            const rewardData = {
+                rewardType: rewardType,
+                amount: amount,
+                multiplier: multiplier,
+                timestamp: Date.now(),
+                userId: tg?.initDataUnsafe?.user?.id || 'test_user'
+            };
+            
+            const rewards = JSON.parse(localStorage.getItem('alphawulf_ad_rewards') || '[]');
+            rewards.push(rewardData);
+            
+            // Keep only last 50 rewards
+            if (rewards.length > 50) {
+                rewards.splice(0, rewards.length - 50);
+            }
+            
+            localStorage.setItem('alphawulf_ad_rewards', JSON.stringify(rewards));
+        }
+
+        // TON Wallet Integration Preparation
+        let tonWalletConfig = {
+            walletAddress: null,
+            isConnected: false,
+            pendingPayouts: 0
+        };
+
+        // Initialize TON wallet connection (placeholder for future implementation)
+        function initializeTonWallet() {
+            // This is a placeholder for TON wallet integration
+            // In a real implementation, this would connect to TON wallet
+            console.log('TON wallet integration placeholder - not implemented yet');
+            
+            // Check if user has saved wallet address
+            const savedWallet = localStorage.getItem('alphawulf_ton_wallet');
+            if (savedWallet) {
+                tonWalletConfig.walletAddress = savedWallet;
+                tonWalletConfig.isConnected = true;
+                console.log('Loaded saved TON wallet:', savedWallet);
+            }
+        }
+
+        // Connect TON wallet (placeholder)
+        function connectTonWallet() {
+            // Placeholder for TON wallet connection
+            // In production, this would integrate with TON Connect or similar
+            const walletAddress = prompt('Enter your TON wallet address for payouts:');
+            if (walletAddress && walletAddress.length > 10) {
+                tonWalletConfig.walletAddress = walletAddress;
+                tonWalletConfig.isConnected = true;
+                localStorage.setItem('alphawulf_ton_wallet', walletAddress);
+                showSuccess('TON wallet connected successfully!');
+                updateTonWalletUI();
+            }
+        }
+
+        // Update TON wallet UI
+        function updateTonWalletUI() {
+            const walletStatus = document.getElementById('tonWalletStatus');
+            if (walletStatus) {
+                if (tonWalletConfig.isConnected) {
+                    walletStatus.innerHTML = `
+                        <div style="color: #4CAF50;">
+                            ✅ Wallet Connected<br>
+                            <small>${tonWalletConfig.walletAddress.substring(0, 8)}...${tonWalletConfig.walletAddress.substring(tonWalletConfig.walletAddress.length - 6)}</small>
+                        </div>
+                    `;
+                } else {
+                    walletStatus.innerHTML = `
+                        <div style="color: #FFA500;">
+                            ⚠️ No Wallet Connected<br>
+                            <button onclick="connectTonWallet()" style="background: #FFD700; color: #000; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">Connect Wallet</button>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // Add TON wallet status to withdrawal section
+        function addTonWalletStatus() {
+            const withdrawSection = document.getElementById('withdrawSection');
+            if (withdrawSection && !document.getElementById('tonWalletStatus')) {
+                const walletStatusDiv = document.createElement('div');
+                walletStatusDiv.id = 'tonWalletStatus';
+                walletStatusDiv.style.cssText = `
+                    background: rgba(255, 215, 0, 0.1);
+                    border: 1px solid rgba(255, 215, 0, 0.3);
+                    border-radius: 10px;
+                    padding: 15px;
+                    margin: 15px 0;
+                    text-align: center;
+                `;
+                
+                // Insert after section header
+                const sectionHeader = withdrawSection.querySelector('.section-header');
+                if (sectionHeader) {
+                    sectionHeader.insertAdjacentElement('afterend', walletStatusDiv);
+                }
+                
+                updateTonWalletUI();
+            }
+        }
+
+        // Calculate estimated ad revenue for user
+        function calculateUserAdRevenue() {
+            const impressions = JSON.parse(localStorage.getItem('alphawulf_ad_impressions') || '[]');
+            const completedAds = impressions.filter(i => i.completed).length;
+            
+            // Rough estimate: $0.5 CPM, user gets 70% share
+            const estimatedRevenue = ((completedAds / 1000) * 0.5 * 0.7).toFixed(4);
+            return parseFloat(estimatedRevenue);
+        }
+
+        // Show ad analytics to user (for transparency)
+        function showAdAnalytics() {
+            const analytics = getAnalyticsSummary();
+            const userRevenue = calculateUserAdRevenue();
+            
+            const analyticsHtml = `
+                <div style="background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 10px; padding: 15px; margin: 10px 0;">
+                    <h4 style="color: #FFD700; margin-bottom: 10px;">📊 Your Ad Statistics</h4>
+                    <p><strong>Total Ads Watched:</strong> ${analytics.totalImpressions}</p>
+                    <p><strong>Rewarded Ads:</strong> ${analytics.rewardedAds}</p>
+                    <p><strong>Completion Rate:</strong> ${analytics.completionRate}%</p>
+                    <p><strong>Estimated Revenue:</strong> $${userRevenue}</p>
+                    <small style="color: #DAA520;">Revenue is estimated and paid out monthly via Adsgram platform.</small>
+                </div>
+            `;
+            
+            // Add to withdrawal section if it exists
+            const withdrawSection = document.getElementById('withdrawSection');
+            if (withdrawSection && !document.getElementById('adAnalyticsDisplay')) {
+                const analyticsDiv = document.createElement('div');
+                analyticsDiv.id = 'adAnalyticsDisplay';
+                analyticsDiv.innerHTML = analyticsHtml;
+                
+                const sectionHeader = withdrawSection.querySelector('.section-header');
+                if (sectionHeader) {
+                    sectionHeader.insertAdjacentElement('afterend', analyticsDiv);
+                }
+            }
+        }
+
+        // Add rewarded ad button to minigame completion
+        function addRewardedAdOption(gameType, baseReward) {
+            const gameArea = document.getElementById(gameType + 'Game');
+            if (!gameArea) return;
+
+            // Check if button already exists
+            if (gameArea.querySelector('.ad-reward-btn')) return;
+
+            const adButton = document.createElement('button');
+            adButton.className = 'ad-reward-btn';
+            adButton.style.cssText = `
+                background: linear-gradient(135deg, #FF6B35, #F7931E);
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 25px;
+                font-weight: bold;
+                cursor: pointer;
+                margin: 10px;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+            `;
+            adButton.innerHTML = '📺 Watch Ad for Double Reward!';
+            
+            adButton.addEventListener('click', () => {
+                showRewardedAd('coins', baseReward);
+            });
+
+            adButton.addEventListener('mouseenter', () => {
+                adButton.style.transform = 'translateY(-2px)';
+                adButton.style.boxShadow = '0 6px 20px rgba(255, 107, 53, 0.4)';
+            });
+
+            adButton.addEventListener('mouseleave', () => {
+                adButton.style.transform = 'translateY(0)';
+                adButton.style.boxShadow = '0 4px 15px rgba(255, 107, 53, 0.3)';
+            });
+
+            gameArea.appendChild(adButton);
+        }
+
+        // Add energy recharge ad option
+        function addEnergyRechargeAdOption() {
+            const energyContainer = document.querySelector('.energy-container');
+            if (!energyContainer || energyContainer.querySelector('.energy-ad-btn')) return;
+
+            const adButton = document.createElement('button');
+            adButton.className = 'energy-ad-btn';
+            adButton.style.cssText = `
+                background: linear-gradient(135deg, #4CAF50, #45a049);
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: bold;
+                cursor: pointer;
+                margin-left: 10px;
+                transition: all 0.3s ease;
+                box-shadow: 0 2px 10px rgba(76, 175, 80, 0.3);
+            `;
+            adButton.innerHTML = '⚡ Watch Ad';
+            
+            adButton.addEventListener('click', () => {
+                showRewardedAd('energy', 25); // Restore 25 energy
+            });
+
+            // Add to energy label
+            const energyLabel = energyContainer.querySelector('.energy-label');
+            if (energyLabel) {
+                energyLabel.appendChild(adButton);
+            }
+        }
+
+        // Check for coin milestone and show rewarded ad option
+        function checkCoinMilestone() {
+            const milestone = Math.floor(gameState.coins / adConfig.coinMilestoneForReward) * adConfig.coinMilestoneForReward;
+            const lastMilestone = parseInt(localStorage.getItem('alphawulf_last_milestone') || '0');
+            
+            if (milestone > lastMilestone && milestone > 0) {
+                localStorage.setItem('alphawulf_last_milestone', milestone.toString());
+                
+                // Show milestone reward ad option
+                setTimeout(() => {
+                    if (confirm(`Congratulations! You've reached ${formatNumber(milestone)} coins! Watch an ad for a bonus reward?`)) {
+                        showRewardedAd('coins', 1000);
+                    }
+                }, 1000);
+            }
+        }
+
+        // Enhanced tap button with interstitial ad logic
+        const originalTapHandler = document.getElementById('tapButton').onclick;
+        document.getElementById('tapButton').addEventListener('click', function(e) {
+            // Increment tap count for interstitial ads
+            adConfig.currentTapCount++;
+            
+            // Check if we should show interstitial ad
+            if (adConfig.currentTapCount >= adConfig.tapCountForInterstitial) {
+                adConfig.currentTapCount = 0;
+                setTimeout(() => {
+                    showInterstitialAd();
+                }, 500); // Small delay after tap
+            }
+            
+            // Check for coin milestones
+            setTimeout(() => {
+                checkCoinMilestone();
+            }, 100);
+        });
+
+        // Enhanced navigation with interstitial ads
+        const originalShowSection = showSection;
+        function showSection(sectionName) {
+            // Call original function
+            originalShowSection.call(this, sectionName);
+            
+            // Show interstitial ad on section transitions (with cooldown)
+            if (sectionName !== 'home') {
+                setTimeout(() => {
+                    showInterstitialAd();
+                }, 300);
+            }
+        }
+
+        // Initialize ads when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                initializeAds();
+                initializeTonWallet();
+                addEnergyRechargeAdOption();
+                addTonWalletStatus();
+                showAdAnalytics();
+                
+                // Add rewarded ad options to minigames
+                setTimeout(() => {
+                    addRewardedAdOption('wolfHunt', 200);
+                    addRewardedAdOption('packLeader', 300);
+                    addRewardedAdOption('howlChallenge', 250);
+                }, 2000);
+            }, 1000);
+        });
+
+        // ===== END AD INTEGRATION SECTION =====
 
     </script>
 
